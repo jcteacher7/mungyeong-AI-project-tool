@@ -1,0 +1,82 @@
+# 개념기반 탐구 프로젝트 설계 도구
+
+로그인 없이 링크만으로 누구나 프로젝트 설계서를 만들고, 편집 내용이 Supabase에
+자동 저장되는 웹앱입니다. (Padlet처럼 "링크를 아는 사람은 편집 가능" 모델)
+
+## 1. Supabase 프로젝트 만들기
+
+1. https://supabase.com 접속 → 회원가입/로그인 (GitHub 계정으로 가능)
+2. "New project" 클릭 → 이름/비밀번호(DB 비밀번호, 아무거나 안전하게) 입력 후 생성
+   → 1~2분 정도 프로비저닝 대기
+3. 왼쪽 메뉴에서 **SQL Editor** 클릭 → "New query"
+4. 이 폴더의 [`schema.sql`](schema.sql) 파일 내용을 전부 복사해서 붙여넣고 **Run**
+   → `projects`라는 테이블이 생성됩니다.
+5. 왼쪽 메뉴 **Project Settings → API** 클릭
+   → **Project URL** 과 **anon public key** 를 복사해둡니다.
+
+## 2. 코드에 연결 정보 입력
+
+[`js/supabase-client.js`](js/supabase-client.js) 파일을 열어 위에서 복사한 값을 채워넣습니다.
+
+```js
+const SUPABASE_URL = "https://xxxxxxxx.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOi...";
+```
+
+> anon key는 브라우저 코드에 그대로 노출되어도 되는 "공개용" 키입니다. 실제 접근 제어는
+> Supabase의 Row Level Security(`schema.sql`에 정의됨)로 이루어집니다.
+
+## 3. 로컬에서 미리보기
+
+브라우저가 `file://` 경로에서 외부 API 호출을 막는 경우가 있어, 간단한 로컬 서버로
+띄워서 확인하는 것을 권장합니다. Node.js가 있다면:
+
+```bash
+npx serve .
+```
+
+Node.js가 없다면 이 폴더에 포함된 PowerShell 서버를 그대로 써도 됩니다 (Windows 기본 내장 기능만 사용):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .devserver.ps1
+```
+
+터미널에 나오는 주소(`http://localhost:5173` 또는 `:3000`)로 접속해 "새 프로젝트 만들기"가
+정상 동작하는지 확인하세요.
+
+## 4. Vercel에 배포하기
+
+빌드 과정이 없는 순수 정적 사이트라 배포가 간단합니다.
+
+**GitHub 경유 (추천)**
+1. 이 폴더를 GitHub 저장소로 push
+2. https://vercel.com 에서 "Add New... → Project" → 방금 만든 저장소 선택
+3. Framework Preset은 "Other"로 두고 그대로 Deploy
+   (Build Command 없이 정적 파일이 그대로 서빙됩니다)
+
+**Vercel CLI로 바로 배포**
+```bash
+npm i -g vercel
+vercel --prod
+```
+폴더 안에서 실행하면 안내에 따라 몇 초 만에 배포됩니다.
+
+## 데이터 / 보안 참고사항
+
+- 로그인이 없으므로, **프로젝트 링크(uuid)를 아는 사람은 누구나 그 프로젝트를 편집**할 수
+  있습니다. 링크는 추측하기 어려운 긴 무작위 문자열이라 실질적으로는 "직접 공유받은 사람만"
+  접근하게 되지만, 민감한 개인정보는 넣지 않는 것을 권장합니다.
+- 삭제 기능은 만들지 않았습니다(API로 삭제 불가). 필요하면 Supabase 대시보드의 Table
+  Editor에서 직접 행을 지우면 됩니다.
+- 각 브라우저는 자신이 만든 프로젝트 목록을 `localStorage`에 저장해 첫 화면에 보여줍니다.
+  다른 기기/브라우저에서는 보이지 않으므로, 꼭 프로젝트 안의 "공유 링크 복사" 버튼으로
+  링크를 저장/공유해두세요.
+
+## 원본과 달라진 점
+
+- 텍스트 편집 후 새로고침해도 사라지지 않고 Supabase에 자동 저장됩니다 (약 1초 디바운스).
+- 문경 예시 데이터 대신, 다른 학교/주제에도 쓸 수 있도록 빈 템플릿으로 시작합니다.
+- 보안을 위해 저장되는 값은 서식 없는 텍스트만 다룹니다. 따라서 "최종 일반화" 문장 안의
+  색깔 강조(예: 원본의 '변화'/'책임' 색상 표시)처럼 일부 텍스트 안 서식은 빠졌습니다.
+- 탭 제목, 표 머리글처럼 도구의 "틀"에 해당하는 라벨은 더 이상 수정할 수 없습니다(실수로
+  틀을 깨뜨리는 것을 방지). 내용(본문/항목)은 이전과 동일하게 자유롭게 수정할 수 있습니다.

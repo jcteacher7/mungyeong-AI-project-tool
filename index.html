@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개념기반 탐구 프로젝트 설계 도구</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Pretendard', 'sans-serif'] },
+                    colors: {
+                        eco: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased p-4 md:p-8">
+
+    <div class="max-w-3xl mx-auto">
+        <div class="text-center mt-10 mb-10">
+            <h1 class="text-3xl font-bold text-eco-800 mb-3 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-leaf"></i> 개념기반 탐구 프로젝트 설계 도구
+            </h1>
+            <p class="text-slate-500">GRASPS · ATL · 차시별 지도 계획을 온라인으로 함께 설계하고 자동으로 저장합니다.</p>
+        </div>
+
+        <div id="config-warning" class="hidden bg-amber-50 border border-amber-200 text-amber-800 text-sm p-4 rounded-xl mb-6">
+            <i class="fa-solid fa-triangle-exclamation"></i> Supabase 연결 정보가 아직 설정되지 않았습니다.
+            <code class="bg-amber-100 px-1 rounded">js/supabase-client.js</code> 파일에 Project URL과 anon key를 입력한 뒤 새로고침 해주세요.
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+            <button id="btn-new" class="bg-eco-600 hover:bg-eco-700 text-white px-5 py-3 rounded-xl font-semibold transition shadow-sm flex items-center justify-center gap-2 shrink-0">
+                <i class="fa-solid fa-circle-plus"></i> 새 프로젝트 만들기
+            </button>
+            <form id="form-open" class="flex gap-2 flex-1">
+                <input id="input-open-id" placeholder="다른 사람이 공유한 프로젝트 링크 붙여넣기" class="border border-slate-300 rounded-lg px-3 py-2 text-sm flex-1" />
+                <button class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shrink-0">열기</button>
+            </form>
+        </div>
+
+        <div>
+            <h2 class="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wide">이 브라우저에서 만든 프로젝트</h2>
+            <ul id="my-projects-list" class="space-y-2"></ul>
+            <p id="my-projects-empty" class="text-slate-400 text-sm">아직 만든 프로젝트가 없습니다. 위에서 새 프로젝트를 만들어보세요.</p>
+        </div>
+    </div>
+
+    <script src="js/supabase-client.js"></script>
+    <script src="js/template-data.js"></script>
+    <script>
+        const LS_KEY = "mgi_my_projects";
+
+        function getMyProjects() {
+            try {
+                return JSON.parse(localStorage.getItem(LS_KEY)) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function renderList() {
+            const list = getMyProjects();
+            const ul = document.getElementById("my-projects-list");
+            const empty = document.getElementById("my-projects-empty");
+            ul.innerHTML = "";
+            if (list.length === 0) {
+                empty.classList.remove("hidden");
+                return;
+            }
+            empty.classList.add("hidden");
+            list
+                .slice()
+                .reverse()
+                .forEach((p) => {
+                    const li = document.createElement("li");
+                    li.className = "bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between hover:border-eco-300 transition";
+                    const a = document.createElement("a");
+                    a.href = `project.html?id=${encodeURIComponent(p.id)}`;
+                    a.className = "font-medium text-slate-800 hover:text-eco-700";
+                    a.textContent = p.title || "제목 없는 프로젝트"; // textContent만 사용 -> 저장된 제목이 그대로 HTML로 실행되지 않음
+                    li.appendChild(a);
+                    const span = document.createElement("span");
+                    span.className = "text-xs text-slate-400";
+                    span.textContent = p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "";
+                    li.appendChild(span);
+                    ul.appendChild(li);
+                });
+        }
+
+        function extractId(input) {
+            const trimmed = input.trim();
+            try {
+                const url = new URL(trimmed);
+                const id = url.searchParams.get("id");
+                if (id) return id;
+            } catch (e) {
+                /* URL이 아니면 그냥 입력값을 id로 취급 */
+            }
+            return trimmed;
+        }
+
+        document.getElementById("btn-new").addEventListener("click", async () => {
+            const btn = document.getElementById("btn-new");
+            btn.disabled = true;
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 만드는 중...';
+            try {
+                const row = await dbCreateProject("제목 없는 프로젝트", defaultProjectData());
+                const list = getMyProjects();
+                list.push({ id: row.id, title: row.title, createdAt: Date.now() });
+                localStorage.setItem(LS_KEY, JSON.stringify(list));
+                window.location.href = `project.html?id=${encodeURIComponent(row.id)}`;
+            } catch (err) {
+                console.error(err);
+                alert("프로젝트 생성에 실패했습니다. Supabase 설정(js/supabase-client.js)과 인터넷 연결을 확인하세요.");
+                btn.disabled = false;
+                btn.innerHTML = original;
+            }
+        });
+
+        document.getElementById("form-open").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const input = document.getElementById("input-open-id");
+            const id = extractId(input.value);
+            if (!id) return;
+            window.location.href = `project.html?id=${encodeURIComponent(id)}`;
+        });
+
+        if (!isSupabaseConfigured()) {
+            document.getElementById("config-warning").classList.remove("hidden");
+        }
+        renderList();
+    </script>
+</body>
+</html>
