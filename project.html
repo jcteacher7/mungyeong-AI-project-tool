@@ -222,18 +222,28 @@
                     <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-inner max-h-[700px] overflow-y-auto">
                         <table class="w-full text-sm text-left whitespace-nowrap md:whitespace-normal min-w-[1300px]">
                             <thead class="text-xs text-slate-700 bg-slate-100 border-b border-slate-200 sticky top-0 z-10 shadow-sm">
-                                <tr>
-                                    <th scope="col" class="px-3 py-4 w-[10%] border-r border-slate-200">탐구 단계</th>
-                                    <th scope="col" class="px-3 py-4 w-[5%] border-r border-slate-200 text-center">차시</th>
-                                    <th scope="col" class="px-3 py-4 w-[15%] border-r border-slate-200">수업 주제 및 핵심 활동</th>
-                                    <th scope="col" class="px-3 py-4 w-[25%] border-r border-slate-200 bg-eco-50">세부 지도 계획</th>
-                                    <th scope="col" class="px-3 py-4 w-[15%] border-r border-slate-200 bg-purple-50">적용 ATL (학습방법)</th>
-                                    <th scope="col" class="px-3 py-4 w-[15%] border-r border-slate-200 bg-blue-50">AI · 디지털</th>
-                                    <th scope="col" class="px-3 py-4 w-[15%] bg-amber-50">학습 개념</th>
+                                <tr id="plan-thead-row">
+                                    <th scope="col" class="px-3 py-4 min-w-[130px] border-r border-slate-200">탐구 단계</th>
+                                    <th scope="col" class="px-3 py-4 min-w-[70px] border-r border-slate-200 text-center">차시</th>
+                                    <th scope="col" class="px-3 py-4 min-w-[170px] border-r border-slate-200">수업 주제 및 핵심 활동</th>
+                                    <th scope="col" class="px-3 py-4 min-w-[260px] border-r border-slate-200 bg-eco-50">세부 지도 계획</th>
+                                    <th scope="col" class="px-3 py-4 min-w-[170px] border-r border-slate-200 bg-purple-50">적용 ATL (학습방법)</th>
+                                    <th scope="col" class="px-3 py-4 min-w-[170px] border-r border-slate-200 bg-blue-50">AI · 디지털</th>
+                                    <th scope="col" class="px-3 py-4 min-w-[170px] border-r border-slate-200 bg-amber-50">학습 개념</th>
+                                    <th id="plan-add-col-th" class="px-2 py-4 border-r border-slate-200 bg-slate-50 no-print text-center w-[44px]">
+                                        <button type="button" id="btn-add-plan-column" title="열(칸) 추가" class="text-slate-500 hover:text-eco-700 transition"><i class="fa-solid fa-square-plus"></i></button>
+                                    </th>
+                                    <th class="px-2 py-4 bg-slate-50 no-print w-[60px] text-center">관리</th>
                                 </tr>
                             </thead>
                             <tbody id="plan-tbody" class="divide-y divide-slate-100 align-top"></tbody>
                         </table>
+                    </div>
+
+                    <div class="flex justify-center mt-4 no-print">
+                        <button type="button" id="btn-add-plan-row" class="bg-eco-100 hover:bg-eco-200 text-eco-700 px-3 py-1.5 rounded-lg text-sm font-semibold transition border border-eco-300 flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> 새로운 행(차시) 추가
+                        </button>
                     </div>
                 </div>
             </div>

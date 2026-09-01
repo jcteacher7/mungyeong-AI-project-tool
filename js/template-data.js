@@ -7,21 +7,41 @@ const BADGE_DEFS = {
   research: { icon: "fa-magnifying-glass", label: "Research (조사)", classes: "bg-teal-100 text-teal-800 border-teal-200" },
 };
 
-// 개념기반 탐구 7단계와, 각 단계에 속한 행(rowspan) 개수.
-// 총 행 개수는 12개로 고정되어 있습니다 (원본 예시안과 동일한 구조).
-const PLAN_STAGE_GROUPS = [
-  { stage: "1. Engage", sub: "(관계 맺기)", rows: 1 },
-  { stage: "2. Focus", sub: "(집중하기)", rows: 1 },
-  { stage: "3. Investigate", sub: "(조사하기)", rows: 3 },
-  { stage: "4. Organize", sub: "(조직하기)", rows: 2 },
-  { stage: "5. Generalize", sub: "(일반화하기)", rows: 2 },
-  { stage: "6. Transfer", sub: "(전이하기)", rows: 2 },
-  { stage: "7. Reflect", sub: "(성찰하기)", rows: 1 },
-];
-
+// 차시별 지도 계획 표의 기본 행. 각 행이 단계(stage)/소제목(sub)을 직접 들고 있어서
+// 행 단위로 자유롭게 추가/삭제할 수 있고, "탐구 단계" 텍스트도 행마다 수정할 수 있다.
+// (원본은 같은 단계의 행을 셀 병합으로 묶었지만, 그러면 행을 추가/삭제할 때마다
+// 병합 범위를 다시 계산해야 해서 훨씬 복잡해진다. 대신 화면에서는 같은 단계가
+// 연속되면 구분선을 넣어 시각적으로 묶어 보여준다.)
 function blankPlanRows() {
-  const sessions = ["1~2", "3~4", "5~6", "7~8", "9~10", "11~12", "13~14", "15", "16", "17~18", "19", "20"];
-  return sessions.map((s) => ({ session: s, topic: "", details: "", atl: [], aiDigital: "", concepts: "" }));
+  const defs = [
+    ["1. Engage", "(관계 맺기)", "1~2"],
+    ["2. Focus", "(집중하기)", "3~4"],
+    ["3. Investigate", "(조사하기)", "5~6"],
+    ["3. Investigate", "(조사하기)", "7~8"],
+    ["3. Investigate", "(조사하기)", "9~10"],
+    ["4. Organize", "(조직하기)", "11~12"],
+    ["4. Organize", "(조직하기)", "13~14"],
+    ["5. Generalize", "(일반화하기)", "15"],
+    ["5. Generalize", "(일반화하기)", "16"],
+    ["6. Transfer", "(전이하기)", "17~18"],
+    ["6. Transfer", "(전이하기)", "19"],
+    ["7. Reflect", "(성찰하기)", "20"],
+  ];
+  return defs.map(([stage, sub, session]) => ({
+    stage,
+    sub,
+    session,
+    topic: "",
+    details: "",
+    atl: [],
+    aiDigital: "",
+    concepts: "",
+    custom: {},
+  }));
+}
+
+function blankPlanRow() {
+  return { stage: "새 단계", sub: "", session: "", topic: "", details: "", atl: [], aiDigital: "", concepts: "", custom: {} };
 }
 
 // 새 프로젝트를 만들 때 채워지는 빈 템플릿입니다.
@@ -51,7 +71,7 @@ function defaultProjectData() {
       product: ["산출물을 입력하세요."],
       standards: ["평가 기준을 입력하세요."],
     },
-    plan: { rows: blankPlanRows() },
+    plan: { rows: blankPlanRows(), customColumns: [] },
     eval: {
       rows: [
         { area: "지식·이해", good: "", normal: "", needsWork: "" },

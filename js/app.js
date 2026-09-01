@@ -221,31 +221,157 @@ function renderAtlPalette() {
   });
 }
 
-function renderPlanTable(rows) {
+// 탐구 단계 칸: 원본은 같은 단계의 행들을 rowspan으로 병합했지만, 그러면 행을
+// 추가/삭제할 때마다 병합 범위를 다시 계산해야 해서 훨씬 복잡해진다. 대신 매 행마다
+// 독립된(직접 수정 가능한) 칸으로 두고, 바로 위 행과 단계가 같으면 구분선을 생략해서
+// 시각적으로만 묶어 보여준다.
+function createStageCell(rowData) {
+  const td = el("td", "px-3 py-3 font-semibold text-eco-700 bg-white border-r border-slate-200");
+  const stageSpan = el("span", "block");
+  stageSpan.contentEditable = "true";
+  stageSpan.dataset.field = "stage";
+  stageSpan.textContent = rowData.stage || "";
+  const subSpan = el("span", "block text-xs font-normal text-slate-500");
+  subSpan.contentEditable = "true";
+  subSpan.dataset.field = "sub";
+  subSpan.textContent = rowData.sub || "";
+  td.appendChild(stageSpan);
+  td.appendChild(subSpan);
+  return td;
+}
+
+function createCustomTd(value, colId) {
+  const td = el("td", "px-3 py-3 border-r border-slate-200");
+  td.contentEditable = "true";
+  td.dataset.colId = colId;
+  td.style.whiteSpace = "pre-wrap";
+  td.textContent = value || "";
+  return td;
+}
+
+function createColHeaderTh(col) {
+  const th = el("th", "px-3 py-4 min-w-[150px] border-r border-slate-200 bg-slate-50 plan-custom-th relative group/col");
+  th.dataset.colId = col.id;
+  const label = el("span", "");
+  label.contentEditable = "true";
+  label.textContent = col.label || "새 항목";
+  th.appendChild(label);
+  const removeBtn = el("button", "no-print ml-1 text-red-400 hover:text-red-600 align-middle");
+  removeBtn.type = "button";
+  removeBtn.title = "이 열 삭제";
+  removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+  removeBtn.addEventListener("click", () => {
+    const rows = readPlanRowsFromDom();
+    const customColumns = readCustomColumnsFromDom().filter((c) => c.id !== col.id);
+    rows.forEach((r) => delete r.custom[col.id]);
+    renderPlanTable(rows, customColumns);
+  });
+  th.appendChild(removeBtn);
+  return th;
+}
+
+function createPlanRowActionsTd(getTr) {
+  const td = el("td", "px-2 py-3 no-print text-center align-top whitespace-nowrap");
+  const addBtn = el("button", "text-eco-600 hover:text-eco-800 mr-2");
+  addBtn.type = "button";
+  addBtn.title = "이 아래에 행 추가";
+  addBtn.innerHTML = '<i class="fa-solid fa-square-plus"></i>';
+  addBtn.addEventListener("click", () => insertPlanRowAfter(getTr()));
+  const delBtn = el("button", "text-red-400 hover:text-red-600");
+  delBtn.type = "button";
+  delBtn.title = "이 행 삭제";
+  delBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+  delBtn.addEventListener("click", () => deletePlanRow(getTr()));
+  td.appendChild(addBtn);
+  td.appendChild(delBtn);
+  return td;
+}
+
+function createPlanRow(rowData, customColumns, isNewGroup) {
+  const tr = el("tr", `hover:bg-slate-50 transition-colors ${isNewGroup ? "border-t-2 border-t-eco-300" : ""}`);
+  tr.appendChild(createStageCell(rowData));
+  tr.appendChild(editableTd(rowData.session, "session", "font-medium text-slate-900 text-center"));
+  tr.appendChild(editableTd(rowData.topic, "topic"));
+  tr.appendChild(editableTd(rowData.details, "details"));
+  tr.appendChild(createAtlDropzoneTd(rowData.atl));
+  tr.appendChild(editableTd(rowData.aiDigital, "aidigital"));
+  tr.appendChild(editableTd(rowData.concepts, "concepts"));
+  customColumns.forEach((col) => tr.appendChild(createCustomTd((rowData.custom || {})[col.id] || "", col.id)));
+  tr.appendChild(createPlanRowActionsTd(() => tr));
+  return tr;
+}
+
+function renderPlanHead(customColumns) {
+  const theadRow = document.getElementById("plan-thead-row");
+  theadRow.querySelectorAll(".plan-custom-th").forEach((n) => n.remove());
+  const addColTh = document.getElementById("plan-add-col-th");
+  customColumns.forEach((col) => theadRow.insertBefore(createColHeaderTh(col), addColTh));
+}
+
+function renderPlanTable(rows, customColumns) {
+  renderPlanHead(customColumns || []);
   const tbody = document.getElementById("plan-tbody");
   tbody.innerHTML = "";
-  let rowIndex = 0;
-  PLAN_STAGE_GROUPS.forEach((group) => {
-    for (let i = 0; i < group.rows; i++) {
-      const rowData = rows[rowIndex] || { session: "", topic: "", details: "", atl: [], aiDigital: "", concepts: "" };
-      const tr = el("tr", "hover:bg-slate-50 transition-colors");
-      if (i === 0) {
-        const stageTd = el("td", "px-3 py-3 font-semibold text-eco-700 bg-white border-r border-slate-200");
-        stageTd.rowSpan = group.rows;
-        // group.stage / group.sub 는 PLAN_STAGE_GROUPS(고정 상수)에서만 오므로 안전합니다.
-        stageTd.innerHTML = `${group.stage}<br><span class="text-xs font-normal text-slate-500">${group.sub}</span>`;
-        tr.appendChild(stageTd);
-      }
-      tr.appendChild(editableTd(rowData.session, "session", "font-medium text-slate-900 text-center"));
-      tr.appendChild(editableTd(rowData.topic, "topic"));
-      tr.appendChild(editableTd(rowData.details, "details"));
-      tr.appendChild(createAtlDropzoneTd(rowData.atl));
-      tr.appendChild(editableTd(rowData.aiDigital, "aidigital"));
-      tr.appendChild(editableTd(rowData.concepts, "concepts", "", true));
-      tbody.appendChild(tr);
-      rowIndex++;
-    }
+  (rows || []).forEach((rowData, idx) => {
+    const isNewGroup = idx > 0 && rowData.stage !== rows[idx - 1].stage;
+    tbody.appendChild(createPlanRow(rowData, customColumns || [], isNewGroup));
   });
+}
+
+// 현재 화면(DOM)에 있는 표 내용을 그대로 읽어서 데이터 배열로 만든다.
+// 저장(serialize)과, 행/열 추가·삭제 후 다시 그릴 때 공통으로 사용한다.
+function readCustomColumnsFromDom() {
+  return Array.from(document.querySelectorAll("#plan-thead-row .plan-custom-th")).map((th) => ({
+    id: th.dataset.colId,
+    label: innerTextOf(th.querySelector("[contenteditable]")),
+  }));
+}
+
+function readPlanRowsFromDom() {
+  const customColumns = readCustomColumnsFromDom();
+  return Array.from(document.querySelectorAll("#plan-tbody tr")).map((tr) => {
+    const get = (f) => innerTextOf(tr.querySelector(`[data-field="${f}"]`));
+    const atl = Array.from(tr.querySelectorAll(".atl-dropzone [data-badge]")).map((b) => b.dataset.badge);
+    const custom = {};
+    customColumns.forEach((col) => {
+      custom[col.id] = innerTextOf(tr.querySelector(`td[data-col-id="${col.id}"]`));
+    });
+    return {
+      stage: get("stage"),
+      sub: get("sub"),
+      session: get("session"),
+      topic: get("topic"),
+      details: get("details"),
+      atl,
+      aiDigital: get("aidigital"),
+      concepts: get("concepts"),
+      custom,
+    };
+  });
+}
+
+function insertPlanRowAfter(tr) {
+  const rows = readPlanRowsFromDom();
+  const customColumns = readCustomColumnsFromDom();
+  const idx = Array.from(tr.parentElement.children).indexOf(tr);
+  const ref = rows[idx] || {};
+  rows.splice(idx + 1, 0, { stage: ref.stage || "", sub: ref.sub || "", session: "", topic: "", details: "", atl: [], aiDigital: "", concepts: "", custom: {} });
+  renderPlanTable(rows, customColumns);
+}
+
+function deletePlanRow(tr) {
+  const rows = readPlanRowsFromDom();
+  const customColumns = readCustomColumnsFromDom();
+  const idx = Array.from(tr.parentElement.children).indexOf(tr);
+  rows.splice(idx, 1);
+  renderPlanTable(rows, customColumns);
+}
+
+function addPlanColumn() {
+  const rows = readPlanRowsFromDom();
+  const customColumns = readCustomColumnsFromDom();
+  customColumns.push({ id: "col_" + Math.random().toString(36).slice(2, 9), label: "새 항목" });
+  renderPlanTable(rows, customColumns);
 }
 
 // ---------- 평가 계획 표 ----------
@@ -306,7 +432,7 @@ function hydrate(data) {
   standardList.innerHTML = "";
   (data.grasps.standards || []).forEach((t) => standardList.appendChild(createGraspsItem(t)));
 
-  renderPlanTable(data.plan.rows || []);
+  renderPlanTable(data.plan.rows || [], data.plan.customColumns || []);
   renderEvalTable(data.eval.rows || []);
 
   document.title = (data.title || "프로젝트") + " · 프로젝트 설계";
@@ -335,11 +461,8 @@ function serialize() {
   const product = Array.from(document.querySelectorAll("#product-list li span[contenteditable]")).map(innerTextOf).filter(Boolean);
   const standards = Array.from(document.querySelectorAll("#standard-list li span[contenteditable]")).map(innerTextOf).filter(Boolean);
 
-  const planRows = Array.from(document.querySelectorAll("#plan-tbody tr")).map((tr) => {
-    const get = (f) => innerTextOf(tr.querySelector(`td[data-field="${f}"]`));
-    const atl = Array.from(tr.querySelectorAll(".atl-dropzone [data-badge]")).map((b) => b.dataset.badge);
-    return { session: get("session"), topic: get("topic"), details: get("details"), atl, aiDigital: get("aidigital"), concepts: get("concepts") };
-  });
+  const planRows = readPlanRowsFromDom();
+  const planCustomColumns = readCustomColumnsFromDom();
 
   const evalRows = Array.from(document.querySelectorAll("#eval-tbody tr")).map((tr) => {
     const get = (f) => innerTextOf(tr.querySelector(`td[data-field="${f}"]`));
@@ -365,7 +488,7 @@ function serialize() {
       product,
       standards,
     },
-    plan: { rows: planRows },
+    plan: { rows: planRows, customColumns: planCustomColumns },
     eval: { rows: evalRows },
   };
 }
@@ -469,6 +592,13 @@ async function init() {
   document.getElementById("btn-add-standard").addEventListener("click", () => {
     document.getElementById("standard-list").appendChild(createGraspsItem("새로운 항목을 입력하세요."));
   });
+  document.getElementById("btn-add-plan-row").addEventListener("click", () => {
+    const rows = readPlanRowsFromDom();
+    const customColumns = readCustomColumnsFromDom();
+    rows.push(blankPlanRow());
+    renderPlanTable(rows, customColumns);
+  });
+  document.getElementById("btn-add-plan-column").addEventListener("click", addPlanColumn);
   document.getElementById("btn-share").addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
