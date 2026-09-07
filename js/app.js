@@ -68,7 +68,7 @@ function createFactItem(text) {
 }
 
 function createPillarEl(pillar) {
-  const wrap = el("div", "flex flex-col items-center pillar-wrapper relative group bg-white rounded-xl");
+  const wrap = el("div", "flex flex-col items-center pillar-wrapper relative group bg-white rounded-xl w-full md:w-[calc((100%-3rem)/3)] shrink-0");
 
   const delBtn = el("button", "hidden group-hover:flex absolute -top-3 -right-3 bg-red-500 text-white px-2 py-1 rounded shadow-md text-xs font-bold z-20 items-center gap-1 transition-all");
   delBtn.type = "button";
