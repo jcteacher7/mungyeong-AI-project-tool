@@ -14,22 +14,23 @@ const BADGE_DEFS = {
 // 연속되면 구분선을 넣어 시각적으로 묶어 보여준다.)
 function blankPlanRows() {
   const defs = [
-    ["1. Engage", "(관계 맺기)", "1~2"],
-    ["2. Focus", "(집중하기)", "3~4"],
-    ["3. Investigate", "(조사하기)", "5~6"],
-    ["3. Investigate", "(조사하기)", "7~8"],
-    ["3. Investigate", "(조사하기)", "9~10"],
-    ["4. Organize", "(조직하기)", "11~12"],
-    ["4. Organize", "(조직하기)", "13~14"],
-    ["5. Generalize", "(일반화하기)", "15"],
-    ["5. Generalize", "(일반화하기)", "16"],
-    ["6. Transfer", "(전이하기)", "17~18"],
-    ["6. Transfer", "(전이하기)", "19"],
-    ["7. Reflect", "(성찰하기)", "20"],
+    ["1. Tuning in", "(준비하기)", "1~2"],
+    ["1. Tuning in", "(준비하기)", "3~4"],
+    ["2. Investigate", "(조사하기)", "5~6"],
+    ["2. Investigate", "(조사하기)", "7~8"],
+    ["2. Investigate", "(조사하기)", "9~10"],
+    ["3. Organize", "(조직하기)", "11~12"],
+    ["3. Organize", "(조직하기)", "13~14"],
+    ["4. Generalize", "(일반화하기)", "15"],
+    ["4. Generalize", "(일반화하기)", "16"],
+    ["5. Transfer", "(전이하기)", "17~18"],
+    ["5. Transfer", "(전이하기)", "19"],
+    ["6. Reflect", "(성찰하기)", "20"],
   ];
   return defs.map(([stage, sub, session]) => ({
     stage,
     sub,
+    question: "",
     session,
     topic: "",
     details: "",
@@ -41,7 +42,7 @@ function blankPlanRows() {
 }
 
 function blankPlanRow() {
-  return { stage: "새 단계", sub: "", session: "", topic: "", details: "", atl: [], aiDigital: "", concepts: "", custom: {} };
+  return { stage: "새 단계", sub: "", question: "", session: "", topic: "", details: "", atl: [], aiDigital: "", concepts: "", custom: {} };
 }
 
 // 새 프로젝트를 만들 때 채워지는 빈 템플릿입니다.
@@ -74,9 +75,9 @@ function defaultProjectData() {
     plan: { rows: blankPlanRows(), customColumns: [] },
     eval: {
       rows: [
-        { area: "지식·이해", good: "", normal: "", needsWork: "" },
-        { area: "과정·기능", good: "", normal: "", needsWork: "" },
-        { area: "AI·디지털 활용", good: "", normal: "", needsWork: "" },
+        { area: "[이해]", criterion: "", good: "", normal: "", needsWork: "" },
+        { area: "[과정]", criterion: "", good: "", normal: "", needsWork: "" },
+        { area: "[ATL-AI·디지털]", criterion: "", good: "", normal: "", needsWork: "" },
       ],
     },
   };

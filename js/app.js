@@ -290,6 +290,7 @@ function createPlanRowActionsTd(getTr) {
 function createPlanRow(rowData, customColumns, isNewGroup) {
   const tr = el("tr", `hover:bg-slate-50 transition-colors ${isNewGroup ? "border-t-2 border-t-eco-300" : ""}`);
   tr.appendChild(createStageCell(rowData));
+  tr.appendChild(editableTd(rowData.question, "question"));
   tr.appendChild(editableTd(rowData.session, "session", "font-medium text-slate-900 text-center"));
   tr.appendChild(editableTd(rowData.topic, "topic"));
   tr.appendChild(editableTd(rowData.details, "details"));
@@ -339,6 +340,7 @@ function readPlanRowsFromDom() {
     return {
       stage: get("stage"),
       sub: get("sub"),
+      question: get("question"),
       session: get("session"),
       topic: get("topic"),
       details: get("details"),
@@ -355,7 +357,7 @@ function insertPlanRowAfter(tr) {
   const customColumns = readCustomColumnsFromDom();
   const idx = Array.from(tr.parentElement.children).indexOf(tr);
   const ref = rows[idx] || {};
-  rows.splice(idx + 1, 0, { stage: ref.stage || "", sub: ref.sub || "", session: "", topic: "", details: "", atl: [], aiDigital: "", concepts: "", custom: {} });
+  rows.splice(idx + 1, 0, { stage: ref.stage || "", sub: ref.sub || "", question: "", session: "", topic: "", details: "", atl: [], aiDigital: "", concepts: "", custom: {} });
   renderPlanTable(rows, customColumns);
 }
 
@@ -384,12 +386,29 @@ function evalTd(value, field, cls, noBorder) {
   return td;
 }
 
+// "[준거] 내용" 칸: 짧은 태그(area, 굵게) + 그 아래 기준 설명(criterion) 두 부분으로 구성.
+function createEvalAreaTd(r) {
+  const td = el("td", "px-4 py-6 border-r border-slate-200 bg-slate-50 align-top text-left");
+  const tag = el("p", "font-bold text-slate-800 mb-1");
+  tag.contentEditable = "true";
+  tag.dataset.field = "area";
+  tag.textContent = r.area || "";
+  const desc = el("p", "text-slate-600 text-xs leading-relaxed");
+  desc.contentEditable = "true";
+  desc.dataset.field = "criterion";
+  desc.style.whiteSpace = "pre-wrap";
+  desc.textContent = r.criterion || "";
+  td.appendChild(tag);
+  td.appendChild(desc);
+  return td;
+}
+
 function renderEvalTable(rows) {
   const tbody = document.getElementById("eval-tbody");
   tbody.innerHTML = "";
   (rows || []).forEach((r) => {
     const tr = el("tr", "hover:bg-slate-50 transition-colors");
-    tr.appendChild(evalTd(r.area, "area", "font-bold text-slate-800 text-center bg-slate-50 align-middle"));
+    tr.appendChild(createEvalAreaTd(r));
     tr.appendChild(evalTd(r.good, "good", "text-slate-700 leading-relaxed align-top"));
     tr.appendChild(evalTd(r.normal, "normal", "text-slate-700 leading-relaxed align-top"));
     tr.appendChild(evalTd(r.needsWork, "needsWork", "text-slate-700 leading-relaxed align-top", true));
@@ -465,8 +484,8 @@ function serialize() {
   const planCustomColumns = readCustomColumnsFromDom();
 
   const evalRows = Array.from(document.querySelectorAll("#eval-tbody tr")).map((tr) => {
-    const get = (f) => innerTextOf(tr.querySelector(`td[data-field="${f}"]`));
-    return { area: get("area"), good: get("good"), normal: get("normal"), needsWork: get("needsWork") };
+    const get = (f) => innerTextOf(tr.querySelector(`[data-field="${f}"]`));
+    return { area: get("area"), criterion: get("criterion"), good: get("good"), normal: get("normal"), needsWork: get("needsWork") };
   });
 
   return {
