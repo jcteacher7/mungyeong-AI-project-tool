@@ -22,3 +22,7 @@ create policy "Anyone can edit entries" on entries for update using (true) with 
 
 drop policy if exists "Anyone can clear entries" on entries;
 create policy "Anyone can clear entries" on entries for delete using (true);
+
+-- 테이블 권한: RLS 정책과 별개로 anon 역할에 권한을 줘야 합니다.
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on table public.entries to anon, authenticated;
