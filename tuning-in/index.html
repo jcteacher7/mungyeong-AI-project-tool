@@ -519,8 +519,10 @@ function duo(p){return '<div class="duo">'+img(p.a)+img(p.b)+'</div>';}
 
 const STEPS=[[1,'짝 짓기'],[2,'이유 쓰기'],[3,'무리 나누기'],[4,'발표하기']];
 function renderTop(){
-  $('groupBtn').textContent=group?(myName?group+'모둠 · '+myName:group+'모둠'):'모둠 고르기';
-  $('tabs').innerHTML=STEPS.map(function(s){return '<button class="tab" type="button" data-action="step" data-step="'+s[0]+'"'+(state.step===s[0]?' aria-current="step"':'')+(group?'':' disabled')+'><b>'+s[0]+'</b>'+s[1]+'</button>';}).join('');
+  var gb=$('groupBtn');
+  if(!SESSION){gb.hidden=true;}
+  else{gb.hidden=false;gb.textContent=group?(myName?group+'모둠 · '+myName:group+'모둠'):'모둠 고르기';}
+  $('tabs').innerHTML=(!SESSION||!group)?'':STEPS.map(function(s){return '<button class="tab" type="button" data-action="step" data-step="'+s[0]+'"'+(state.step===s[0]?' aria-current="step"':'')+'><b>'+s[0]+'</b>'+s[1]+'</button>';}).join('');
 }
 function renderPicker(){
   var note=online?(connected?'같은 모둠을 고른 친구들끼리 기록이 실시간으로 이어져요.':'서버에 연결되지 않아 지금은 이 기기에만 저장돼요.'):'지금은 이 기기에만 저장돼요.';
