@@ -132,6 +132,32 @@ textarea:focus,input[type=text]:focus{border-color:var(--ink); outline:none}
 .others{display:flex; flex-direction:column; gap:4px; border-top:1px dashed var(--line); padding-top:8px}
 .others p{font-size:15px; color:var(--muted); overflow-wrap:anywhere}
 .others b{color:var(--ink); font-weight:700; margin-right:4px}
+
+/* 수업 시작 화면 */
+.sess-list{display:flex; flex-direction:column; gap:8px}
+.sess-row{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+  background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 16px; text-align:left; width:100%}
+.sess-row:hover{border-color:var(--ink)}
+.sess-name{font-weight:700}
+.sess-meta{color:var(--muted); font-size:14px}
+.sess-meta code, .picker code{background:var(--sunk); border-radius:6px; padding:2px 8px; font-family:var(--f-head); letter-spacing:2px}
+.sess-card{background:var(--surface); border:2px solid var(--focus); border-radius:var(--radius); padding:22px; display:flex; flex-direction:column; gap:16px}
+.code-big{font-family:var(--f-head); font-size:84px; letter-spacing:12px; text-align:center; color:var(--ink);
+  background:var(--sunk); border-radius:var(--radius); padding:12px 8px; line-height:1.1}
+.qr-wrap{display:flex; gap:20px; align-items:center; flex-wrap:wrap}
+.qr{background:#FFFFFF; padding:10px; border-radius:12px; border:1px solid var(--line); line-height:0; min-width:120px; min-height:120px;
+  display:flex; align-items:center; justify-content:center}
+.qr-side{flex:1; min-width:220px; display:flex; flex-direction:column; gap:8px}
+.url-line{font-size:15px; overflow-wrap:anywhere; background:var(--sunk); border-radius:8px; padding:8px 10px}
+@media (max-width:480px){.code-big{font-size:56px; letter-spacing:8px}}
+
+@media print{
+  .top,.foot,.overlay,.toast,.present-head .btn,.gtabs{display:none!important}
+  body{background:#fff; color:#000; padding:0}
+  .group-sec{break-inside:avoid; border-color:#999}
+  .show-item p{font-size:14pt}
+  .gblock>h3{font-size:18pt}
+}
 </style>
 </head>
 <body>
@@ -158,9 +184,10 @@ textarea:focus,input[type=text]:focus{border-color:var(--ink); outline:none}
       <p>설정을 바꾸면 <b>모든 모둠</b>이 지금까지 적은 짝과 이유가 지워져요.</p>
       <div class="actions"><button class="btn small ghost" type="button" data-action="cancel-mode">그대로 두기</button><button class="btn small" type="button" data-action="confirm-mode">바꾸기</button></div>
     </div>
-    <button class="btn ghost" type="button" data-action="reset">모든 모둠 기록 지우기</button>
+    <button class="btn ghost" type="button" data-action="show-session">수업 코드 · QR 다시 보기</button>
+    <button class="btn ghost" type="button" data-action="reset">이 수업 기록 지우기</button>
     <div class="confirm" id="resetConfirm" hidden>
-      <p>네 모둠이 적은 짝, 이유, 무리가 <b>모두</b> 지워져요. 되돌릴 수 없어요.</p>
+      <p><b>지금 수업</b>의 네 모둠 기록이 모두 지워져요. 되돌릴 수 없어요. (다른 수업 기록은 그대로입니다)</p>
       <div class="actions"><button class="btn small ghost" type="button" data-action="cancel-reset">취소</button><button class="btn small" type="button" data-action="confirm-reset">지우기</button></div>
     </div>
     <p class="hint" id="modeNote"></p>
@@ -274,6 +301,7 @@ const CFG=(window.TUNING_IN||{});
 const online=!!(CFG.url&&CFG.key);
 const LOCAL_KEY='tuning-in-local-v2';
 let group=null, myName='', deviceId='', connected=false, setupError='';
+let SESSION='', sessionName='', sessionList=[], justCreated=false;
 let E={}, ALLE={};          /* E: 우리 모둠 값, ALLE: 모둠별 값(발표용) */
 const SRV={};               /* 서버에서 마지막으로 본 값 (합치기 기준점) */
 const LOCALW={};            /* 아직 서버에 못 보낸 내 값 */
@@ -281,6 +309,21 @@ try{myName=localStorage.getItem('tuning-in-name')||'';}catch(e){}
 try{group=+localStorage.getItem('tuning-in-group')||null;}catch(e){}
 try{deviceId=localStorage.getItem('tuning-in-device')||'';}catch(e){}
 if(!deviceId){deviceId='d'+Math.random().toString(36).slice(2,10);try{localStorage.setItem('tuning-in-device',deviceId);}catch(e){}}
+/* 수업 코드: 주소(?c=)가 우선, 없으면 이 기기가 기억하던 것 */
+(function(){
+  var m=/[?&]c=([A-Za-z0-9]{4,8})/.exec(location.search);
+  if(m){SESSION=m[1].toUpperCase();}
+  else{try{SESSION=localStorage.getItem('tuning-in-session')||'';}catch(e){}}
+})();
+const SEP='~', IDX='__sessions';
+function sk(key){return SESSION+SEP+key;}                 /* 우리 수업 칸 이름 */
+function unsk(key){var p=SESSION+SEP;return key.indexOf(p)===0?key.slice(p.length):null;}
+function newCode(){
+  var A='ACDEFGHJKLMNPQRTUVWXY34679', s='';       /* 헷갈리는 글자(B,I,O,S,Z,0,1,2,5,8) 제외 */
+  for(var i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];
+  return s;
+}
+function sessionUrl(code){return location.origin+location.pathname+'?c='+(code||SESSION);}
 
 function api(path,opts){
   opts=opts||{};
@@ -289,13 +332,44 @@ function api(path,opts){
 }
 async function pull(all){
   const filter=all?'':(group?'&group_id=in.(0,'+group+')':'&group_id=eq.0');
-  const r=await api('entries?select=group_id,key,value'+filter);
+  const r=await api('entries?select=group_id,key,value&key=like.'+encodeURIComponent(SESSION+SEP)+'*'+filter);
   if(!r.ok)throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,120));
   const rows=await r.json(), byG={};
-  rows.forEach(x=>{(byG[x.group_id]=byG[x.group_id]||{})[x.key]=x.value;});
+  rows.forEach(x=>{const k=unsk(x.key);if(k===null)return;(byG[x.group_id]=byG[x.group_id]||{})[k]=x.value;});
   return byG;
 }
-async function put(gid,key,value){
+/* 지난 수업 목록 */
+async function pullSessions(){
+  const r=await api('entries?select=key,value&group_id=eq.0&key=like.'+IDX+SEP+'*&order=key');
+  if(!r.ok)return [];
+  const rows=await r.json();
+  return rows.map(function(x){
+    var v=x.value||{};
+    return {code:x.key.slice((IDX+SEP).length),name:v.name||'',at:v.at||0};
+  }).sort(function(a,b){return b.at-a.at;});
+}
+async function createSession(name){
+  var code=newCode();
+  for(var i=0;i<5;i++){ if(!sessionList.some(function(s){return s.code===code;}))break; code=newCode(); }
+  await putRaw(0,IDX+SEP+code,{name:name||'',at:Date.now()});
+  SESSION=code;sessionName=name||'';justCreated=true;
+  try{localStorage.setItem('tuning-in-session',code);}catch(e){}
+  group=null;E={};ALLE={};
+  Object.keys(SRV).forEach(function(k){delete SRV[k];});
+  Object.keys(LOCALW).forEach(function(k){delete LOCALW[k];});
+  history.replaceState(null,'',sessionUrl(code));
+  return code;
+}
+function enterSession(code,name){
+  SESSION=String(code).toUpperCase();sessionName=name||'';justCreated=false;
+  try{localStorage.setItem('tuning-in-session',SESSION);}catch(e){}
+  group=null;E={};ALLE={};
+  Object.keys(SRV).forEach(function(k){delete SRV[k];});
+  Object.keys(LOCALW).forEach(function(k){delete LOCALW[k];});
+  history.replaceState(null,'',sessionUrl(SESSION));
+}
+async function put(gid,key,value){ return putRaw(gid,sk(key),value); }
+async function putRaw(gid,key,value){
   const r=await api('entries?on_conflict=group_id,key',{method:'POST',
     headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
     body:JSON.stringify([{group_id:gid,key:key,value:value===undefined?null:value,updated_at:new Date().toISOString()}])});
@@ -352,7 +426,7 @@ function stableSig(){
 }
 var lastSig=null;
 async function poll(){
-  if(!connected||pollBusy||document.hidden)return;
+  if(!connected||pollBusy||document.hidden||!SESSION||!group)return;
   pollBusy=true;
   try{
     const byG=await pull(state.step===4);
@@ -369,11 +443,16 @@ async function connect(){
   if(!online){setSync(false,'이 기기에만 저장');localLoad();render();return;}
   setSync(false,'연결 중…');
   try{
-    const byG=await pull(false);
-    connected=true;absorb(byG);
-    setSync(true,'모둠끼리 실시간 공유 중');
-    await ensureSeed();
-    announce();
+    sessionList=await pullSessions();
+    connected=true;
+    if(SESSION){
+      var found=sessionList.filter(function(x){return x.code===SESSION;})[0];
+      if(found)sessionName=found.name;
+      absorb(await pull(false));
+      await ensureSeed();
+      announce();
+      setSync(true,'모둠끼리 실시간 공유 중');
+    }else setSync(true,'연결됨');
     startPolling();
   }catch(e){
     connected=false;setupError=String(e.message||e);
@@ -445,7 +524,8 @@ function renderTop(){
 }
 function renderPicker(){
   var note=online?(connected?'같은 모둠을 고른 친구들끼리 기록이 실시간으로 이어져요.':'서버에 연결되지 않아 지금은 이 기기에만 저장돼요.'):'지금은 이 기기에만 저장돼요.';
-  return '<section class="picker"><h2 class="lead">이름을 적고 우리 모둠으로 들어가요</h2>'+
+  var head=(sessionName||SESSION)?'<p class="hint">'+(sessionName?esc(sessionName)+' · ':'')+'수업 코드 <code>'+SESSION+'</code></p>':'';
+  return head+'<section class="picker"><h2 class="lead">이름을 적고 우리 모둠으로 들어가요</h2>'+
   '<label for="nameInput" class="hint">내 이름</label>'+
   '<input type="text" id="nameInput" value="'+esc(myName)+'" placeholder="예) 김민수" autocomplete="off">'+
   '<div class="picker-grid">'+GROUPS.map(function(n){return '<button type="button" data-action="pick-group" data-group="'+n+'">'+n+'모둠</button>';}).join('')+'</div>'+
@@ -535,7 +615,8 @@ function renderStep4(){
   var tabs='<div class="gtabs"><button class="gtab" type="button" data-action="ptab" data-tab="all" aria-pressed="'+(state.presentTab==='all')+'">전체</button>'+
     GROUPS.map(function(g){return '<button class="gtab" type="button" data-action="ptab" data-tab="'+g+'" aria-pressed="'+(state.presentTab===String(g))+'">'+g+'모둠'+(done(g)?'<span class="mark">●</span>':'')+'</button>';}).join('')+'</div>';
   var which=state.presentTab==='all'?GROUPS:[+state.presentTab];
-  return '<section class="present"><div class="present-head"><h2>우리 반이 찾은 까닭</h2><button class="btn ghost" type="button" data-action="fullscreen">크게 보기</button></div>'+
+  return '<section class="present"><div class="present-head"><h2>우리 반이 찾은 까닭</h2><button class="btn ghost" type="button" data-action="fullscreen">크게 보기</button>'+
+  '<button class="btn ghost" type="button" data-action="print">인쇄 · PDF로 저장</button></div>'+
   (connected?'':'<p class="banner">지금은 이 기기에만 저장돼서 다른 모둠 기록은 보이지 않아요.</p>')+
   tabs+which.map(groupBlock).join('')+'</section>';
 }
@@ -545,19 +626,79 @@ function renderSetup(){
   (setupError?'<p class="banner">연결 오류: '+esc(setupError)+'</p>':'')+
   '<p class="hint">설정 전에도 아래에서 혼자 써 볼 수 있어요. 기록은 이 기기에만 남습니다.</p></section>';
 }
+/* ---------- 수업 시작 화면 ---------- */
+function fmtDate(ms){
+  if(!ms)return '';
+  var d=new Date(ms);
+  return (d.getMonth()+1)+'월 '+d.getDate()+'일 '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function renderStart(){
+  var list=sessionList.length?
+    '<div class="sess-list">'+sessionList.slice(0,12).map(function(x){
+      return '<button type="button" class="sess-row" data-action="open-session" data-code="'+x.code+'">'+
+        '<span class="sess-name">'+esc(x.name||'(이름 없는 수업)')+'</span>'+
+        '<span class="sess-meta"><code>'+x.code+'</code> · '+fmtDate(x.at)+'</span></button>';
+    }).join('')+'</div>'
+    :'<p class="empty-note">아직 저장된 수업이 없어요.</p>';
+  return '<section class="picker"><h2 class="lead">새로운 수업 시작하기</h2>'+
+    '<label for="sessName" class="hint">수업 이름 (나중에 찾기 쉽게)</label>'+
+    '<input type="text" id="sessName" placeholder="예) 4학년 1반 · 10월 29일" autocomplete="off">'+
+    '<div class="actions" style="justify-content:flex-start"><button class="btn" type="button" data-action="new-session">수업 시작하기</button></div>'+
+    '</section>'+
+    '<section class="tray"><h3>수업 코드로 들어가기</h3>'+
+    '<p class="hint">선생님이 화면에 띄워 준 네 글자를 적으세요.</p>'+
+    '<div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">'+
+    '<input type="text" id="codeInput" placeholder="예) K7MQ" maxlength="8" autocomplete="off" style="max-width:180px; text-transform:uppercase; font-family:var(--f-head); font-size:24px; letter-spacing:4px">'+
+    '<button class="btn ghost" type="button" data-action="join-code">들어가기</button></div></section>'+
+    '<section><h3 style="font-family:var(--f-head); font-size:22px; margin-bottom:10px">지난 수업</h3>'+list+'</section>';
+}
+function renderSessionInfo(){
+  var url=sessionUrl();
+  return '<section class="sess-card">'+
+    '<p class="hint">수업이 시작됐어요. 이 화면을 칠판 화면에 띄워 주세요.</p>'+
+    (sessionName?'<h2 class="lead">'+esc(sessionName)+'</h2>':'')+
+    '<div class="code-big">'+SESSION+'</div>'+
+    '<div class="qr-wrap"><div id="qrbox" class="qr"></div>'+
+    '<div class="qr-side"><p class="hint">학생 태블릿에서 이 주소를 열거나, QR을 찍으면 됩니다.</p>'+
+    '<p class="url-line" id="urlLine">'+esc(url)+'</p>'+
+    '<div class="actions" style="justify-content:flex-start"><button class="btn ghost small" type="button" data-action="copy-url">주소 복사</button></div></div></div>'+
+    '<div class="actions"><button class="btn ghost" type="button" data-action="leave-session">다른 수업 열기</button>'+
+    '<button class="btn" type="button" data-action="go-join">우리 모둠 고르러 가기</button></div></section>';
+}
+function drawQR(){
+  var box=$('qrbox');if(!box)return;
+  var url=sessionUrl();
+  function make(){
+    try{
+      var q=window.qrcode(0,'M');q.addData(url);q.make();
+      box.innerHTML=q.createSvgTag({cellSize:5,margin:2,scalable:true});
+      var svg=box.querySelector('svg');if(svg){svg.setAttribute('width','200');svg.setAttribute('height','200');}
+    }catch(e){box.innerHTML='<p class="hint">QR을 만들지 못했어요. 아래 주소를 쓰세요.</p>';}
+  }
+  if(window.qrcode)return make();
+  if(document.getElementById('qrlib'))return;
+  var sc=document.createElement('script');sc.id='qrlib';
+  sc.src='https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+  sc.onload=make;
+  sc.onerror=function(){box.innerHTML='<p class="hint">QR을 불러오지 못했어요. 아래 주소를 쓰세요.</p>';};
+  document.head.appendChild(sc);
+}
 function render(){
   renderTop();
   var main=$('main');
   var focused=document.activeElement;
   var isField=focused&&focused.dataset&&(focused.dataset.pair||focused.dataset.name);
-  var isName=focused&&focused.id==='nameInput';
-  var keep=(isField||isName)?{id:focused.id,start:focused.selectionStart,end:focused.selectionEnd,val:focused.value}:null;
-  var head=(online&&!connected&&!group)?renderSetup():'';
-  if(!group)main.innerHTML=head+renderPicker();
+  var isText=focused&&(focused.id==='nameInput'||focused.id==='sessName'||focused.id==='codeInput');
+  var keep=(isField||isText)?{id:focused.id,start:focused.selectionStart,end:focused.selectionEnd,val:focused.value}:null;
+  var head=(online&&!connected&&!SESSION)?renderSetup():'';
+  if(!SESSION)main.innerHTML=head+renderStart();
+  else if(justCreated)main.innerHTML=renderSessionInfo();
+  else if(!group)main.innerHTML=renderPicker();
   else main.innerHTML=(state.step===4?'':memberLine())+[null,renderStep1,renderStep2,renderStep3,renderStep4][state.step]();
   if(keep){var el=$(keep.id);if(el){
-    if(keep.id==='nameInput'&&el.value!==keep.val)el.value=keep.val;   /* 이름 치는 중 지워지지 않게 */
+    if(el.value!==keep.val)el.value=keep.val;   /* 치는 중 지워지지 않게 */
     el.focus();try{el.setSelectionRange(keep.start,keep.end);}catch(e){}}}
+  if(SESSION&&justCreated)drawQR();
 }
 
 /* ---------- 동작 ---------- */
@@ -591,6 +732,11 @@ async function joinGroup(g){
   try{ absorb(await pull(false)); await ensureSeed(); announce(); }catch(e){}
   render();
 }
+function selectUrl(){
+  var el=$('urlLine');if(!el)return;
+  try{var r=document.createRange();r.selectNodeContents(el);var sel=getSelection();sel.removeAllRanges();sel.addRange(r);
+    toast('주소가 선택됐어요. Ctrl+C로 복사하세요.');}catch(e){}
+}
 function openTeacher(){
   $('prepaired').checked=prepaired();$('modeConfirm').hidden=true;$('resetConfirm').hidden=true;
   $('modeNote').textContent=connected?'설정과 기록은 모든 기기에 함께 적용돼요.':'지금은 공유가 꺼져 있어 이 기기에만 적용돼요.';
@@ -600,7 +746,7 @@ function closeTeacher(){$('teacher').hidden=true;}
 async function resetAll(pre){
   if(connected){
     try{
-      var r=await api('entries?group_id=gt.0',{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+      var r=await api('entries?group_id=gt.0&key=like.'+encodeURIComponent(SESSION+SEP)+'*',{method:'DELETE',headers:{'Prefer':'return=minimal'}});
       if(!r.ok)throw new Error('HTTP '+r.status);
       await put(0,'prepaired',!!pre);
       ALLE={0:{prepaired:!!pre}};E={};
@@ -621,6 +767,43 @@ async function resetAll(pre){
 document.addEventListener('click',function(e){
   var t=e.target.closest('[data-action]');if(!t||t.disabled)return;
   var a=t.dataset.action;
+  if(a==='new-session'){
+    var ni=$('sessName'), nm=ni?ni.value.trim():'';
+    t.disabled=true;
+    createSession(nm).then(function(){
+      return pullSessions().then(function(l){sessionList=l;});
+    }).then(function(){render();toast('수업이 시작됐어요.');})
+     .catch(function(){t.disabled=false;toast('수업을 만들지 못했어요. 잠시 뒤 다시 해 보세요.');});
+    return;
+  }
+  if(a==='join-code'){
+    var ci=$('codeInput'), code=ci?ci.value.trim().toUpperCase():'';
+    if(!code){toast('수업 코드를 적어 주세요.');if(ci)ci.focus();return;}
+    var known=sessionList.filter(function(x){return x.code===code;})[0];
+    if(!known){toast('그런 수업 코드가 없어요. 다시 확인해 주세요.');return;}
+    enterSession(code,known.name);connect();return;
+  }
+  if(a==='open-session'){
+    var c=t.dataset.code, k=sessionList.filter(function(x){return x.code===c;})[0];
+    enterSession(c,k?k.name:'');connect();return;
+  }
+  if(a==='leave-session'){
+    SESSION='';sessionName='';justCreated=false;group=null;E={};ALLE={};
+    try{localStorage.removeItem('tuning-in-session');localStorage.removeItem('tuning-in-group');}catch(err){}
+    history.replaceState(null,'',location.origin+location.pathname);
+    connect();return;
+  }
+  if(a==='go-join'){justCreated=false;render();return;}
+  if(a==='show-session'){justCreated=true;closeTeacher();render();return;}
+  if(a==='copy-url'){
+    var u=sessionUrl();
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(u).then(function(){toast('주소를 복사했어요.');})
+        .catch(function(){selectUrl();});
+    }else selectUrl();
+    return;
+  }
+  if(a==='print'){window.print();return;}
   if(a==='pick-group'){
     var ni=$('nameInput'), v=ni?ni.value.trim():myName;
     if(!v){toast('이름을 먼저 적어 주세요.');if(ni)ni.focus();return;}
