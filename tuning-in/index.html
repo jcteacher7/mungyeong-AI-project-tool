@@ -337,6 +337,20 @@ function absorb(byG){
 }
 
 let pollT=null, pollBusy=false;
+function stableSig(){
+  var parts=[];
+  [['E',E],['A',ALLE]].forEach(function(pair){
+    var o=pair[1];
+    Object.keys(o).sort().forEach(function(k){
+      var v=o[k];
+      if(v&&typeof v==='object'&&!Array.isArray(v)){
+        parts.push(pair[0]+'|'+k+'='+Object.keys(v).sort().map(function(kk){return kk+':'+JSON.stringify(v[kk]);}).join(','));
+      }else parts.push(pair[0]+'|'+k+'='+JSON.stringify(v));
+    });
+  });
+  return parts.join(';');
+}
+var lastSig=null;
 async function poll(){
   if(!connected||pollBusy||document.hidden)return;
   pollBusy=true;
@@ -344,7 +358,8 @@ async function poll(){
     const byG=await pull(state.step===4);
     absorb(byG);
     setSync(true,'모둠끼리 실시간 공유 중');
-    render();
+    var sig=stableSig();
+    if(sig!==lastSig){lastSig=sig;render();}   /* 바뀐 게 없으면 화면을 다시 그리지 않음 */
   }catch(e){ setSync(false,'연결이 잠깐 끊겼어요'); }
   finally{ pollBusy=false; }
 }
@@ -534,11 +549,15 @@ function render(){
   renderTop();
   var main=$('main');
   var focused=document.activeElement;
-  var keep=(focused&&focused.dataset&&(focused.dataset.pair||focused.dataset.name))?{id:focused.id,start:focused.selectionStart,end:focused.selectionEnd}:null;
+  var isField=focused&&focused.dataset&&(focused.dataset.pair||focused.dataset.name);
+  var isName=focused&&focused.id==='nameInput';
+  var keep=(isField||isName)?{id:focused.id,start:focused.selectionStart,end:focused.selectionEnd,val:focused.value}:null;
   var head=(online&&!connected&&!group)?renderSetup():'';
-  if(!group){main.innerHTML=head+renderPicker();return;}
-  main.innerHTML=(state.step===4?'':memberLine())+[null,renderStep1,renderStep2,renderStep3,renderStep4][state.step]();
-  if(keep){var el=$(keep.id);if(el){el.focus();try{el.setSelectionRange(keep.start,keep.end);}catch(e){}}}
+  if(!group)main.innerHTML=head+renderPicker();
+  else main.innerHTML=(state.step===4?'':memberLine())+[null,renderStep1,renderStep2,renderStep3,renderStep4][state.step]();
+  if(keep){var el=$(keep.id);if(el){
+    if(keep.id==='nameInput'&&el.value!==keep.val)el.value=keep.val;   /* 이름 치는 중 지워지지 않게 */
+    el.focus();try{el.setSelectionRange(keep.start,keep.end);}catch(e){}}}
 }
 
 /* ---------- 동작 ---------- */
