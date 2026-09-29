@@ -288,7 +288,7 @@ function api(path,opts){
   return fetch(CFG.url.replace(/\/$/,'')+'/rest/v1/'+path,Object.assign({},opts,{headers:h}));
 }
 async function pull(all){
-  const filter=all?'':'&group_id=in.(0,'+group+')';
+  const filter=all?'':(group?'&group_id=in.(0,'+group+')':'&group_id=eq.0');
   const r=await api('entries?select=group_id,key,value'+filter);
   if(!r.ok)throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,120));
   const rows=await r.json(), byG={};
