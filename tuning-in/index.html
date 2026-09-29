@@ -135,8 +135,12 @@ textarea:focus,input[type=text]:focus{border-color:var(--ink); outline:none}
 
 /* 수업 시작 화면 */
 .sess-list{display:flex; flex-direction:column; gap:8px}
-.sess-row{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
-  background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 16px; text-align:left; width:100%}
+.sess-row{display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:6px 8px 6px 16px}
+.sess-open{flex:1; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+  background:none; border:0; text-align:left; padding:8px 0}
+.sess-del{display:flex; gap:6px; flex:none}
+.x-btn{flex:none; background:none; border:0; color:var(--muted); font-size:22px; line-height:1; padding:6px 10px; border-radius:8px}
+.x-btn:hover{background:var(--sunk); color:var(--ink)}
 .sess-row:hover{border-color:var(--ink)}
 .sess-name{font-weight:700}
 .sess-meta{color:var(--muted); font-size:14px}
@@ -360,6 +364,15 @@ async function createSession(name){
   history.replaceState(null,'',sessionUrl(code));
   return code;
 }
+async function deleteSession(code){
+  var r1=await api('entries?key=like.'+encodeURIComponent(code+SEP)+'*',{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+  if(!r1.ok)throw new Error('HTTP '+r1.status);
+  var r2=await api('entries?group_id=eq.0&key=eq.'+encodeURIComponent(IDX+SEP+code),{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+  if(!r2.ok)throw new Error('HTTP '+r2.status);
+  if(SESSION===code){SESSION='';sessionName='';group=null;E={};ALLE={};
+    try{localStorage.removeItem('tuning-in-session');}catch(e){}
+    history.replaceState(null,'',location.origin+location.pathname);}
+}
 function enterSession(code,name){
   SESSION=String(code).toUpperCase();sessionName=name||'';justCreated=false;
   try{localStorage.setItem('tuning-in-session',SESSION);}catch(e){}
@@ -510,7 +523,7 @@ function members(){
 }
 
 /* ---------- 화면 ---------- */
-const state={step:1,sel:null,pendingUnpair:null,presentTab:'all',pendingMode:null};
+const state={step:1,sel:null,pendingUnpair:null,presentTab:'all',pendingMode:null,pendingDelete:null};
 let toastT=null;
 function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true;},2800);}
 function setSync(on,text){const el=$('sync');el.classList.toggle('on',!!on);$('syncText').textContent=text;}
@@ -636,10 +649,17 @@ function fmtDate(ms){
 }
 function renderStart(){
   var list=sessionList.length?
-    '<div class="sess-list">'+sessionList.slice(0,12).map(function(x){
-      return '<button type="button" class="sess-row" data-action="open-session" data-code="'+x.code+'">'+
-        '<span class="sess-name">'+esc(x.name||'(이름 없는 수업)')+'</span>'+
-        '<span class="sess-meta"><code>'+x.code+'</code> · '+fmtDate(x.at)+'</span></button>';
+    '<div class="sess-list">'+sessionList.slice(0,20).map(function(x){
+      var pend=(state.pendingDelete===x.code);
+      return '<div class="sess-row">'+
+        '<button type="button" class="sess-open" data-action="open-session" data-code="'+x.code+'">'+
+          '<span class="sess-name">'+esc(x.name||'(이름 없는 수업)')+'</span>'+
+          '<span class="sess-meta"><code>'+x.code+'</code> · '+fmtDate(x.at)+'</span></button>'+
+        (pend
+          ?'<span class="sess-del"><button class="btn small ghost" type="button" data-action="cancel-del">취소</button>'+
+            '<button class="btn small" type="button" data-action="do-del" data-code="'+x.code+'">지우기</button></span>'
+          :'<button class="x-btn" type="button" title="이 수업 지우기" data-action="ask-del" data-code="'+x.code+'">\u00d7</button>')+
+        '</div>';
     }).join('')+'</div>'
     :'<p class="empty-note">아직 저장된 수업이 없어요.</p>';
   return '<section class="picker"><h2 class="lead">새로운 수업 시작하기</h2>'+
@@ -769,6 +789,16 @@ async function resetAll(pre){
 document.addEventListener('click',function(e){
   var t=e.target.closest('[data-action]');if(!t||t.disabled)return;
   var a=t.dataset.action;
+  if(a==='ask-del'){state.pendingDelete=t.dataset.code;render();return;}
+  if(a==='cancel-del'){state.pendingDelete=null;render();return;}
+  if(a==='do-del'){
+    var dc=t.dataset.code;t.disabled=true;
+    deleteSession(dc).then(function(){
+      state.pendingDelete=null;
+      return pullSessions().then(function(l){sessionList=l;render();toast('수업을 지웠어요.');});
+    }).catch(function(){t.disabled=false;toast('지우지 못했어요. 잠시 뒤 다시 해 보세요.');});
+    return;
+  }
   if(a==='new-session'){
     var ni=$('sessName'), nm=ni?ni.value.trim():'';
     t.disabled=true;
