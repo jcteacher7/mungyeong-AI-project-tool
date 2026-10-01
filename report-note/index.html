@@ -274,6 +274,13 @@ html{scrollbar-color:#BFB49F transparent}
 .card.mine{outline:none}
 .tipcard .btn{min-width:140px}
 .empty{color:var(--soft)}
+/* 반 고르기: 반 수에 맞춰 가운데로 */
+.page.start.center{justify-content:center;align-items:center;text-align:center;padding-left:48px;padding-right:48px}
+.page.start.center .pick.cls{flex:0 0 auto;width:100%;grid-template-columns:repeat(var(--n,2),minmax(0,360px));justify-content:center;margin-top:28px}
+@media (orientation:landscape) and (min-width:900px){
+  .page.start.center .pick.cls{grid-template-columns:repeat(var(--n,2),minmax(0,380px))}
+}
+@media (max-width:560px){.page.start.center .pick.cls{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -467,7 +474,7 @@ function rememberMe(){try{sessionStorage.setItem('rn-me',JSON.stringify({c:cid,s
 
 /* 1. 반 고르기 */
 function scClass(){
-  return '<div class="wrap page start"><h2 class="hand">어느 반인가요?</h2><p class="sub">우리 반을 눌러요.</p><div class="pick cls">'+
+  return '<div class="wrap page start center"><h2 class="hand">어느 반인가요?</h2><p class="sub">우리 반을 눌러요.</p><div class="pick cls" style="--n:'+cfg.classes.length+'">'+
     cfg.classes.map(function(c){
       var n=c.students.filter(function(s){return s.g>0;}).length;
       return '<button data-a="cls" data-v="'+c.id+'">'+esc(c.name)+'<span>'+(n?n+'명':'모둠 편성 전')+'</span></button>';
