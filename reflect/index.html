@@ -251,12 +251,34 @@ function ridgeIcon(v){
 }
 
 /* ── 화면 ── */
+/* 설정 칸을 구분하는 이름 — 화면을 다시 그려도 쓰던 글을 되돌려 놓는 데 씀 */
+function fkey(el){
+  var names=['cname','croster','sname','sshort','sq','pin'];
+  for(var i=0;i<names.length;i++)
+    if(el.dataset[names[i]]!==undefined)return names[i]+':'+el.dataset[names[i]];
+  return null;
+}
 function render(){
-  var k=klass(cid), s=stu(cid,sid);
+  var k=klass(cid), s=stu(cid,sid), A=document.getElementById('app');
   document.getElementById('state').innerHTML=
     (k?esc(k.name)+(s?' · <b>'+esc(s.name)+'</b>':''):'')+(connected?'':' · 연결 끊김');
+
+  /* 쓰던 글과 커서 자리를 챙겨 둠 */
+  var keep={}, fk=null, cs=0, ce=0, ae=document.activeElement;
+  A.querySelectorAll('input,textarea').forEach(function(el){
+    var key=fkey(el); if(!key)return;
+    keep[key]=el.value;
+    if(el===ae){fk=key;cs=el.selectionStart;ce=el.selectionEnd;}
+  });
+
   var f={cls:scClass,who:scWho,home:scHome,write:scWrite,teacher:scTeacher}[view.s]||scClass;
-  document.getElementById('app').innerHTML=f();
+  A.innerHTML=f();
+
+  A.querySelectorAll('input,textarea').forEach(function(el){
+    var key=fkey(el); if(!key||keep[key]===undefined)return;
+    el.value=keep[key];
+    if(key===fk){el.focus();try{el.setSelectionRange(cs,ce);}catch(e){}}
+  });
   wire();
 }
 function go(s,o){view=Object.assign({s:s},o||{});scrollTo(0,0);render();}
@@ -562,8 +584,15 @@ function wire(){
   if(/[?&]t=1/.test(location.search)){ tTab=cid||cfg.classes[0].id; go('teacher'); }
   else go(cid?'who':'cls');
   setInterval(function(){
-    if(view.s==='teacher'||view.s==='who'||view.s==='cls')
-      loadAll().then(function(){ if(view.s==='teacher'||view.s==='who'||view.s==='cls')render(); }).catch(function(){});
+    var live=['teacher','who','cls'].indexOf(view.s)>=0;
+    var ae=document.activeElement;
+    var typing=ae&&/^(INPUT|TEXTAREA)$/.test(ae.tagName);
+    if(!live||typing)return;
+    loadAll().then(function(){
+      var ae2=document.activeElement;
+      if(ae2&&/^(INPUT|TEXTAREA)$/.test(ae2.tagName))return;
+      if(['teacher','who','cls'].indexOf(view.s)>=0)render();
+    }).catch(function(){});
   },6000);
 })();
 </script>
