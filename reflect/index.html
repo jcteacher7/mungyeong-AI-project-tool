@@ -390,9 +390,8 @@ function ridgeChart(){
     g+='<text x="'+x(i)+'" y="'+(H-6)+'" text-anchor="middle" font-size="11" fill="var(--soft)" '+
        'font-family="var(--sans)">'+esc(st.s)+'</text>';
   });
-  g+='<text x="'+(L-14)+'" y="'+(H-6)+'" text-anchor="end" font-size="10.5" fill="var(--far)" '+
-     'font-family="var(--sans)">위 = 충분히</text>';
-  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;margin:12px 0 6px" '+
+  return '<p class="quiet" style="margin-top:10px">줄마다 위로 올라갈수록 스스로 잘했다고 본 것입니다.</p>'+
+    '<svg class="chart" viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;margin:12px 0 6px" '+
     'role="img" aria-label="단계별 자기평가">'+g+'</svg>';
 }
 
