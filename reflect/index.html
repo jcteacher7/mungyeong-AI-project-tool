@@ -286,7 +286,7 @@ function go(s,o){view=Object.assign({s:s},o||{});scrollTo(0,0);render();}
 /* 1. 반 */
 function scClass(){
   return '<div class="wrap"><h2>어느 반인가요?</h2>'+
-    '<p class="quiet">이 태블릿에서 다음부터는 바로 이름 고르기로 들어갑니다.</p>'+
+    '<p class="quiet">자기 반을 눌러 주세요.</p>'+
     '<div class="classpick">'+cfg.classes.map(function(c){
       var st=stage(c.cur);
       return '<button data-cls="'+c.id+'">'+esc(c.name)+
@@ -579,7 +579,9 @@ function wire(){
 (async function(){
   try{ await loadAll(); }
   catch(e){ say('서버에 연결하지 못했습니다. 남긴 글이 공유되지 않습니다. '+e.message,1); }
-  try{ var c=+localStorage.getItem('reflect-cls'); if(klass(c))cid=c; }catch(e){}
+  /* ?start=1 로 들어오면 기억해 둔 반을 지우고 반 고르기부터 시작 */
+  if(/[?&]start=1/.test(location.search)){ try{localStorage.removeItem('reflect-cls');}catch(e){} }
+  else { try{ var c=+localStorage.getItem('reflect-cls'); if(klass(c))cid=c; }catch(e){} }
   loaded=true;
   if(/[?&]t=1/.test(location.search)){ tTab=cid||cfg.classes[0].id; go('teacher'); }
   else go(cid?'who':'cls');
