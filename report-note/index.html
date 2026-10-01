@@ -323,6 +323,8 @@ function readFields(prefix){
   W5ORDER.forEach(function(k){var el=A.querySelector('[data-k="'+prefix+k+'"]');var v=el?el.value.trim():'';if(v){f[k]=v;any=true;}});
   return any?f:null;
 }
+function kindsOf(c){return c.kinds&&c.kinds.length?c.kinds:(c.kind?[c.kind]:[]);}
+function kindTags(c){return kindsOf(c).map(function(x){return '<span class="tag '+x+'">'+esc(cfg.kinds[x]||'')+'</span>';}).join('');}
 function w5name(k){var w=cfg.w5.filter(function(x){return x.k===k;})[0];return w?w.t:'';}
 function w5ask(k){var w=cfg.w5.filter(function(x){return x.k===k;})[0];return w?w.ask:'';}
 
@@ -394,7 +396,7 @@ function cardHtml(c,editable){
       '<div class="row"><button class="btn" data-a="edit-save" data-v="'+esc(c._k)+'">고친 글 남기기</button>'+
       '<button class="btn ghost" data-a="edit-cancel">그만두기</button></div></div>';
   }
-  var tags=(c.w?'<span class="tag w">'+esc(w5name(c.w))+'</span>':'')+(c.kind?'<span class="tag '+c.kind+'">'+esc(cfg.kinds[c.kind]||'')+'</span>':'');
+  var tags=(c.w?'<span class="tag w">'+esc(w5name(c.w))+'</span>':'')+kindTags(c);
   var tools='';
   if(mine&&editable){
     tools=ui.del===c._k?
@@ -409,14 +411,14 @@ function cardHtml(c,editable){
 function flashHtml(key){return ui.flash&&ui.flash.key===key&&Date.now()-ui.flash.at<4000?
   '<span class="saved">'+(ui.flash.local?'':'남겼어요 ✓')+'</span>'+(ui.flash.local?'<span class="local-note">서버에 못 보냈어요. 이 기기에만 남아 있어요.</span>':''):'';}
 function cardForm(sheet,slot,opts){
-  var key=sheet+':'+slot, w=ui.w5[key]||'', kd=ui.kind[key]||'';
+  var key=sheet+':'+slot, kd=ui.kind[key]||[];
   var html='<div class="form">';
   if(opts.w5){
     html+='<p class="hint">아는 칸만 채워도 돼요. 카드 한 장에 한 가지 사실!</p>'+fieldsHtml('f:'+key+':',null);
   }
   if(opts.kind){
-    html+='<div class="chips"><span class="lab">나누어 보기 (고르지 않아도 돼요)</span>'+['nat','man'].map(function(x){
-      return '<button data-a="kind" data-slot="'+key+'" data-v="'+x+'" class="'+(kd===x?'on':'')+'">'+esc(cfg.kinds[x])+'</button>';}).join('')+'</div>';
+    html+='<div class="chips"><span class="lab">나누어 보기 (둘 다 골라도 되고, 안 골라도 돼요)</span>'+['nat','man'].map(function(x){
+      return '<button data-a="kind" data-slot="'+key+'" data-v="'+x+'" class="'+(kd.indexOf(x)>=0?'on':'')+'">'+esc(cfg.kinds[x])+'</button>';}).join('')+'</div>';
   }
   if(!opts.w5)html+='<textarea data-k="new:'+key+'" data-min="1" placeholder="'+esc(opts.frame||'취재한 내용을 한 장에 하나씩 써요.')+'"></textarea>';
   html+='<div class="row">'+(opts.frame?'<button class="btn ghost" data-a="frame" data-v="new:'+key+'" data-f="'+esc(opts.frame)+'">틀 가져오기</button>':'')+
@@ -524,7 +526,7 @@ function scTeacher(){
       var l=cardsOf(k.id,g,tSheet,sl);
       html+='<h5>'+esc(tSheet==='cmp'?cfg.cmp[sl].name:cfg.slots[sl].name)+'</h5><div class="cards">'+(l.length?l.map(function(c){
         return '<div class="card"><div class="t">'+esc(c.t)+'</div><div class="meta">'+(c.w?'<span class="tag w">'+esc(w5name(c.w))+'</span>':'')+
-          (c.kind?'<span class="tag '+c.kind+'">'+esc(cfg.kinds[c.kind]||'')+'</span>':'')+'<span>'+esc(c.name||'')+'</span>'+
+          kindTags(c)+'<span>'+esc(c.name||'')+'</span>'+
           '<button class="lk danger" data-a="tdel" data-v="'+esc(c._k)+'">'+(ui.del===c._k?'정말 지우기':'지우기')+'</button></div></div>';}).join(''):'<p class="empty">없음</p>')+'</div>';
     });
     if(tSheet!=='cmp'){
@@ -613,7 +615,7 @@ document.addEventListener('click',async function(e){
   else if(a==='back-who'){sid=null;rememberMe();try{await loadData(cid);}catch(err){}go('who');}
   else if(a==='sheet'){go('note',{sheet:v});}
   else if(a==='cmp'){go('cmp');}
-  else if(a==='w5'||a==='kind'){var box=a==='w5'?ui.w5:ui.kind;box[b.dataset.slot]=box[b.dataset.slot]===v?'':v;render();}
+  else if(a==='kind'){var ks=(ui.kind[b.dataset.slot]||[]).slice(),ix=ks.indexOf(v);if(ix>=0)ks.splice(ix,1);else ks.push(v);ui.kind[b.dataset.slot]=ks;render();}
   else if(a==='frame'){var ta=A.querySelector('[data-k="'+v+'"]');if(ta){if(!ta.value.trim())ta.value=b.dataset.f;ta.focus();var i=ta.value.indexOf('(');if(i>=0)try{ta.setSelectionRange(i+1,i+1);}catch(err){}syncBtn(ta);}}
   else if(a==='add'){await addCard(v);}
   else if(a==='line'){await saveLine(v);}
@@ -658,11 +660,11 @@ async function addCard(key){
   if(ta){t=ta.value.trim();} else {f=readFields('f:'+key+':'); if(f)t=composeT(f);}
   if(!t)return;
   var k='c:'+cid+':'+s.g+':'+p[0]+':'+p[1]+':'+newId();
-  var v={t:t,by:sid,name:s.name,at:Date.now(),kind:p[1]==='use'&&p[0]!=='cmp'?(ui.kind[key]||''):''};
+  var v={t:t,by:sid,name:s.name,at:Date.now(),kinds:p[1]==='use'&&p[0]!=='cmp'?(ui.kind[key]||[]).slice():[]};
   if(f)v.f=f;
   saving['new:'+key]=1;
   cards[k]=v; if(ta)ta.value=''; else W5ORDER.forEach(function(x){var el=A.querySelector('[data-k="f:'+key+':'+x+'"]');if(el)el.value='';});
-  ui.kind[key]=''; if(document.activeElement)document.activeElement.blur();
+  ui.kind[key]=[]; if(document.activeElement)document.activeElement.blur();
   var ok=await send(k,v); delete saving['new:'+key];
   if(!ok)cards[k]=Object.assign({},v,{_local:1});
   ui.flash={key:key,at:Date.now(),local:!ok}; render();
