@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>나의 배움 돌아보기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBF7EF; --card:#FFFFFA; --ink:#2B2620; --muted:#8A8070; --line:#E6DFD1;
+  --green:#2E7D6B; --green-soft:#EAF3EF; --orange:#E8763C; --orange-soft:#FBEEE3;
+  --blue:#3E6FA8; --blue-soft:#E8F0F8;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:'Noto Sans KR',system-ui,sans-serif; font-size:17px; line-height:1.6;
+  padding:0 16px 120px; max-width:860px; margin:0 auto;
+}
+h1,h2,h3{font-family:'Jua',sans-serif; font-weight:400; line-height:1.3; margin:0}
+[hidden]{display:none!important}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+/* 머리 */
+header{display:flex;align-items:center;gap:10px;padding:20px 0 12px}
+header h1{font-size:26px;flex:1}
+.dot{width:10px;height:10px;border-radius:50%;background:#C4BCAC;flex:none}
+.dot.on{background:#49A98B}
+.who{font-size:14px;color:var(--muted)}
+.who b{color:var(--ink);font-weight:700}
+
+.card{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:22px;margin-bottom:16px}
+.card h2{font-size:22px;margin-bottom:6px}
+.sub{color:var(--muted);font-size:15px}
+
+/* 큰 버튼 */
+.big{display:block;width:100%;background:var(--green);color:#fff;border-radius:18px;
+  padding:18px;font-size:20px;font-weight:700;font-family:'Jua',sans-serif;margin-top:8px}
+.big.ghost{background:#fff;color:var(--green);border:2px solid var(--green)}
+.big[disabled]{background:#D8D2C6;color:#fff}
+.mini{border:2px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;font-size:15px}
+.mini.sel{border-color:var(--green);background:var(--green-soft);color:var(--green);font-weight:700}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* 명단 */
+.names{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:14px}
+.names button{background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px 8px;
+  font-size:18px;font-weight:500;display:flex;flex-direction:column;align-items:center;gap:2px}
+.names button span{font-size:13px;color:var(--muted)}
+.names button:hover{border-color:var(--green)}
+
+/* 성찰 문항 */
+.q{border-top:2px dashed var(--line);padding-top:18px;margin-top:18px}
+.q:first-of-type{border-top:none;padding-top:0;margin-top:0}
+.q .tag{display:inline-block;font-size:13px;font-weight:700;letter-spacing:1px;
+  padding:4px 12px;border-radius:999px;margin-bottom:8px}
+.q .tag.a{background:var(--green-soft);color:var(--green)}
+.q .tag.b{background:var(--orange-soft);color:var(--orange)}
+.q .tag.c{background:var(--blue-soft);color:var(--blue)}
+.q p.ask{font-size:19px;font-weight:500;margin:0 0 14px}
+.faces{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.faces button{background:#fff;border:2px solid var(--line);border-radius:18px;padding:12px 4px 10px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;font-size:15px;color:var(--muted)}
+.faces button svg{width:52px;height:52px}
+.faces button.sel{border-color:var(--green);background:var(--green-soft);color:var(--green);font-weight:700}
+.faces button.sel svg circle.f{fill:#FFE6A8}
+
+textarea{width:100%;border:2px solid var(--line);border-radius:16px;padding:14px;font-family:inherit;
+  font-size:17px;line-height:1.6;background:#fff;color:var(--ink);resize:vertical;min-height:84px}
+textarea:focus{outline:none;border-color:var(--green)}
+
+/* 성장 그래프 */
+.chart{width:100%;height:auto;display:block;margin:6px 0 4px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-bottom:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.notes li{margin-bottom:10px}
+.notes b{font-family:'Jua',sans-serif;font-weight:400;color:var(--green);margin-right:6px}
+
+/* 교사용 표 */
+.tblwrap{overflow-x:auto;margin-top:12px}
+table{border-collapse:collapse;font-size:14px;white-space:nowrap}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:center}
+th{background:#F3EEE3;font-weight:700}
+td.nm{text-align:left;position:sticky;left:0;background:var(--card);font-weight:500}
+.pips{display:flex;gap:3px;justify-content:center}
+.pip{width:9px;height:9px;border-radius:50%;background:#EDE7DA}
+.pip.l1{background:#E8C7B4}.pip.l2{background:#F0B07A}.pip.l3{background:#49A98B}
+
+.foot{text-align:center;padding:30px 0 10px}
+.foot button{color:var(--muted);font-size:14px;text-decoration:underline}
+.note{background:var(--orange-soft);border-radius:14px;padding:12px 16px;font-size:15px;color:#8a4b22}
+.err{background:#FBE3E3;color:#9B3030;border-radius:14px;padding:12px 16px;font-size:15px;margin-bottom:14px}
+
+@media print{
+  body{padding:0;max-width:none;background:#fff}
+  .noprint{display:none!important}
+  .card{border:1px solid #ccc;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<header class="noprint">
+  <h1>나의 배움 돌아보기</h1>
+  <span class="dot" id="dot" title="연결 상태"></span>
+</header>
+<div id="err" class="err noprint" hidden></div>
+<main id="app"></main>
+<div class="foot noprint"><button id="teacherBtn">선생님 화면</button></div>
+
+<script src="config.js"></script>
+<script>
+/* ──────────────────────────────────────────────────────────────
+   저장 구조 (기존 entries 표를 그대로 사용 — 새 SQL 없음)
+     group_id 901 / key 'cfg'              → 설정(명단, 차시, 오늘 차시)
+     group_id 900 / key 'r:<학생id>:<차시id>' → 성찰 기록 1건
+   ────────────────────────────────────────────────────────────── */
+var CFG=window.REFLECT_CFG||{}, G_DATA=900, G_CFG=901;
+var connected=false, loaded=false;
+
+var ATL=[
+  {k:'think', cls:'a', tag:'사고기능',   ask:'견주어 보고 까닭을 찾았나요?'},
+  {k:'self',  cls:'b', tag:'자기관리기능', ask:'스스로 계획하고 끝까지 했나요?'},
+  {k:'team',  cls:'c', tag:'협업기능',   ask:'모둠에서 내 몫을 했나요?'}
+];
+var LV=[{v:1,t:'아직이에요'},{v:2,t:'조금 했어요'},{v:3,t:'잘했어요'}];
+var COLOR={think:'#2E7D6B',self:'#E8763C',team:'#3E6FA8'};
+
+var defaultCfg={
+  className:'4학년 1반',
+  students:[],
+  lessons:[{id:1,t:'1차시'},{id:2,t:'2차시'},{id:3,t:'3차시'},{id:4,t:'4차시'},
+           {id:5,t:'5차시'},{id:6,t:'6차시'},{id:7,t:'7차시'},{id:8,t:'8차시'},
+           {id:9,t:'9차시'},{id:10,t:'10차시'}],
+  current:1,
+  question:''
+};
+var cfg=JSON.parse(JSON.stringify(defaultCfg));
+var recs={};                    /* 'sid:lid' → {think,self,team,note,ts} */
+var me=null;                    /* 내 학생 id */
+var view={screen:'pick'};       /* pick | write | growth | teacher | detail */
+var draft={};                   /* 작성 중인 값 */
+
+/* ── 서버 ── */
+function api(path,opts){
+  opts=opts||{};
+  var h=Object.assign({'apikey':CFG.key,'Authorization':'Bearer '+CFG.key,'Content-Type':'application/json'},opts.headers||{});
+  return fetch(String(CFG.url||'').replace(/\/$/,'')+'/rest/v1/'+path,Object.assign({},opts,{headers:h}));
+}
+async function put(gid,key,value){
+  var r=await api('entries?on_conflict=group_id,key',{method:'POST',
+    headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+    body:JSON.stringify([{group_id:gid,key:key,value:value===undefined?null:value,updated_at:new Date().toISOString()}])});
+  if(!r.ok)throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,140));
+}
+async function loadAll(){
+  var r=await api('entries?select=group_id,key,value&group_id=in.('+G_DATA+','+G_CFG+')');
+  if(!r.ok)throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,140));
+  var rows=await r.json();
+  recs={};
+  rows.forEach(function(x){
+    if(x.group_id===G_CFG&&x.key==='cfg'&&x.value){cfg=Object.assign({},defaultCfg,x.value);}
+    else if(x.group_id===G_DATA&&x.key.indexOf('r:')===0){recs[x.key.slice(2)]=x.value||{};}
+  });
+  connected=true;
+}
+async function saveCfg(){ cfg.at=Date.now(); await put(G_CFG,'cfg',cfg); }
+async function saveRec(sid,lid,v){ recs[sid+':'+lid]=v; await put(G_DATA,'r:'+sid+':'+lid,v); }
+
+/* ── 거들기 ── */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function student(id){for(var i=0;i<cfg.students.length;i++)if(cfg.students[i].id===id)return cfg.students[i];return null;}
+function lesson(id){for(var i=0;i<cfg.lessons.length;i++)if(cfg.lessons[i].id===id)return cfg.lessons[i];return null;}
+function rec(sid,lid){return recs[sid+':'+lid]||null;}
+function showErr(m){var e=document.getElementById('err');if(!m){e.hidden=true;return;}e.hidden=false;e.textContent=m;}
+function face(level,big){
+  /* 1 시무룩 · 2 보통 · 3 활짝 */
+  var mouth=level===1?'M18 36 Q25 30 32 36':level===2?'M18 34 H32':'M17 31 Q25 40 33 31';
+  return '<svg viewBox="0 0 50 50" aria-hidden="true">'+
+    '<circle class="f" cx="25" cy="25" r="22" fill="#F3EEE3"/>'+
+    '<circle cx="18" cy="21" r="2.6" fill="#2B2620"/><circle cx="32" cy="21" r="2.6" fill="#2B2620"/>'+
+    '<path d="'+mouth+'" stroke="#2B2620" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>';
+}
+
+/* ── 화면 ── */
+function render(){
+  document.getElementById('dot').className='dot'+(connected?' on':'');
+  var app=document.getElementById('app');
+  if(!loaded){app.innerHTML='<div class="card"><p class="sub">불러오는 중…</p></div>';return;}
+  var f={pick:scPick,write:scWrite,growth:scGrowth,teacher:scTeacher,detail:scDetail}[view.screen]||scPick;
+  app.innerHTML=f();
+  wire();
+}
+function go(s,extra){view=Object.assign({screen:s},extra||{});window.scrollTo(0,0);render();}
+
+/* 1. 이름 고르기 */
+function scPick(){
+  if(!cfg.students.length){
+    return '<div class="card"><h2>아직 명단이 없어요</h2>'+
+      '<p class="sub">아래 <b>선생님 화면</b>에서 우리 반 이름을 넣어 주세요.</p></div>';
+  }
+  var cur=lesson(cfg.current);
+  return '<div class="card">'+
+    '<h2>'+esc(cfg.className)+'</h2>'+
+    '<p class="sub">오늘은 <b>'+esc(cur?cur.t:'—')+'</b> 입니다. 자기 이름을 눌러 주세요.</p>'+
+    '<div class="names">'+cfg.students.map(function(s){
+      var done=!!rec(s.id,cfg.current);
+      return '<button data-pick="'+s.id+'">'+esc(s.name)+
+        '<span>'+(done?'오늘 완료':s.n+'번')+'</span></button>';
+    }).join('')+'</div></div>';
+}
+
+/* 2. 오늘 돌아보기 */
+function scWrite(){
+  var s=student(me), lid=view.lid||cfg.current, l=lesson(lid);
+  var old=rec(me,lid);
+  if(!draft.__lid||draft.__lid!==lid){
+    draft={__lid:lid,think:old&&old.think||0,self:old&&old.self||0,team:old&&old.team||0,note:old&&old.note||''};
+  }
+  var ready=draft.think&&draft.self&&draft.team;
+  return '<div class="card">'+
+    '<p class="who"><b>'+esc(s?s.name:'')+'</b> · '+esc(l?l.t:'')+(old?' · 전에 쓴 것을 고치는 중':'')+'</p>'+
+    '<h2 style="margin-top:4px">오늘 나는 어땠나요?</h2>'+
+    (cfg.question?'<p class="sub">'+esc(cfg.question)+'</p>':'')+
+    '<div style="margin-top:18px">'+ATL.map(function(a){
+      return '<div class="q"><span class="tag '+a.cls+'">'+a.tag+'</span>'+
+        '<p class="ask">'+esc(a.ask)+'</p><div class="faces">'+
+        LV.map(function(v){
+          return '<button data-set="'+a.k+'" data-v="'+v.v+'"'+(draft[a.k]===v.v?' class="sel"':'')+'>'+
+            face(v.v)+'<span>'+v.t+'</span></button>';
+        }).join('')+'</div></div>';
+    }).join('')+'</div>'+
+    '<div class="q"><p class="ask">오늘 알게 된 것을 한 줄로 써 보세요.</p>'+
+    '<textarea id="note" placeholder="예) 바다가 없으면 다른 고장과 바꿔야 한다는 걸 알았다.">'+esc(draft.note)+'</textarea></div>'+
+    '<button class="big" id="save"'+(ready?'':' disabled')+'>'+(ready?'다 했어요':'얼굴을 모두 골라 주세요')+'</button>'+
+    '<button class="big ghost" id="back">뒤로</button>'+
+    '</div>';
+}
+
+/* 3. 내 성장 */
+function scGrowth(){
+  var s=student(me)||{name:''};
+  var done=cfg.lessons.filter(function(l){return rec(me,l.id);});
+  var body;
+  if(!done.length){
+    body='<p class="sub">아직 기록이 없어요. 차시를 골라 돌아보기를 시작해 보세요.</p>';
+  }else{
+    body=chartSVG(me)+
+      '<div class="legend">'+ATL.map(function(a){
+        return '<span><i style="background:'+COLOR[a.k]+'"></i>'+a.tag+'</span>';}).join('')+'</div>'+
+      '<ul class="notes">'+done.map(function(l){
+        var r=rec(me,l.id);
+        return r.note?'<li><b>'+esc(l.t)+'</b>'+esc(r.note)+'</li>':'';
+      }).join('')+'</ul>';
+  }
+  return '<div class="card">'+
+    '<h2>'+esc(s.name)+'의 배움 그래프</h2>'+
+    '<p class="sub noprint">점이 올라갈수록 스스로 잘했다고 생각한 거예요.</p>'+
+    body+
+    '<div class="row noprint" style="margin-top:16px">'+cfg.lessons.map(function(l){
+      var r=rec(me,l.id);
+      return '<button class="mini'+(r?' sel':'')+'" data-open="'+l.id+'">'+esc(l.t)+(r?' ✓':'')+'</button>';
+    }).join('')+'</div>'+
+    '<button class="big ghost noprint" id="print">이 화면 인쇄 · PDF 저장</button>'+
+    '<button class="big ghost noprint" id="back">이름 고르기로</button>'+
+    '</div>';
+}
+function chartSVG(sid){
+  var W=640,H=240,P=42, ls=cfg.lessons, n=Math.max(ls.length,2);
+  var x=function(i){return P+i*(W-P*2)/(n-1);}, y=function(v){return H-40-(v-1)*(H-80)/2;};
+  var g='';
+  [3,2,1].forEach(function(v){
+    g+='<line x1="'+P+'" y1="'+y(v)+'" x2="'+(W-P)+'" y2="'+y(v)+'" stroke="#E6DFD1" stroke-width="1.5"/>'+
+       '<text x="'+(P-10)+'" y="'+(y(v)+5)+'" text-anchor="end" font-size="13" fill="#8A8070">'+
+       (v===3?'잘함':v===2?'조금':'아직')+'</text>';
+  });
+  ATL.forEach(function(a){
+    var pts=[];
+    ls.forEach(function(l,i){var r=rec(sid,l.id);if(r&&r[a.k])pts.push([x(i),y(r[a.k])]);});
+    if(pts.length>1)g+='<polyline fill="none" stroke="'+COLOR[a.k]+'" stroke-width="3" stroke-linejoin="round" points="'+
+      pts.map(function(p){return p[0]+','+p[1];}).join(' ')+'"/>';
+    pts.forEach(function(p){g+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="5.5" fill="'+COLOR[a.k]+'"/>';});
+  });
+  ls.forEach(function(l,i){
+    g+='<text x="'+x(i)+'" y="'+(H-14)+'" text-anchor="middle" font-size="12" fill="#8A8070">'+esc(l.t)+'</text>';
+  });
+  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="차시별 자기평가 그래프">'+g+'</svg>';
+}
+
+/* 4. 선생님 화면 */
+function scTeacher(){
+  return '<div class="card">'+
+    '<h2>선생님 화면</h2>'+
+    '<p class="sub">학생 이름을 누르면 그 학생의 그래프와 인쇄 화면이 열립니다.</p>'+
+    (cfg.students.length?'<div class="tblwrap"><table><thead><tr><th class="nm">이름</th>'+
+      cfg.lessons.map(function(l){return '<th>'+esc(l.t)+'</th>';}).join('')+'</tr></thead><tbody>'+
+      cfg.students.map(function(s){
+        return '<tr><td class="nm"><button data-see="'+s.id+'" style="text-decoration:underline">'+esc(s.name)+'</button></td>'+
+          cfg.lessons.map(function(l){
+            var r=rec(s.id,l.id);
+            if(!r)return '<td></td>';
+            return '<td><div class="pips">'+ATL.map(function(a){
+              return '<span class="pip l'+(r[a.k]||0)+'"></span>';}).join('')+'</div></td>';
+          }).join('')+'</tr>';
+      }).join('')+'</tbody></table></div>':'<p class="note">명단을 먼저 넣어 주세요.</p>')+
+    '</div>'+
+
+    '<div class="card"><h2>설정</h2>'+
+    '<p class="sub">반 이름</p><textarea id="cName" style="min-height:46px">'+esc(cfg.className)+'</textarea>'+
+    '<p class="sub" style="margin-top:14px">학생 이름 (한 줄에 한 명, 번호순)</p>'+
+    '<textarea id="cStu" style="min-height:140px" placeholder="김민준&#10;이서연&#10;박도윤">'+
+      esc(cfg.students.map(function(s){return s.name;}).join('\n'))+'</textarea>'+
+    '<p class="sub" style="margin-top:14px">차시 이름 (한 줄에 하나)</p>'+
+    '<textarea id="cLes" style="min-height:140px">'+esc(cfg.lessons.map(function(l){return l.t;}).join('\n'))+'</textarea>'+
+    '<p class="sub" style="margin-top:14px">오늘 차시</p>'+
+    '<div class="row">'+cfg.lessons.map(function(l){
+      return '<button class="mini'+(l.id===cfg.current?' sel':'')+'" data-cur="'+l.id+'">'+esc(l.t)+'</button>';
+    }).join('')+'</div>'+
+    '<p class="sub" style="margin-top:14px">오늘의 성찰 질문 (비워 두어도 됩니다)</p>'+
+    '<textarea id="cQ" style="min-height:46px" placeholder="예) 오늘 친구의 생각 덕분에 바뀐 것이 있나요?">'+esc(cfg.question||'')+'</textarea>'+
+    '<button class="big" id="cSave">설정 저장</button>'+
+    '<button class="big ghost" id="back">학생 화면으로</button>'+
+    '</div>';
+}
+
+/* 5. 학생 한 명 보기 (인쇄·공유용) */
+function scDetail(){
+  var sid=view.sid, s=student(sid)||{name:''};
+  var saveMe=me; me=sid;
+  var g=scGrowth(); me=saveMe;
+  return g.replace('<button class="big ghost noprint" id="back">이름 고르기로</button>',
+    '<button class="big ghost noprint" id="toTeacher">선생님 화면으로</button>');
+}
+
+/* ── 동작 연결 ── */
+function wire(){
+  var app=document.getElementById('app');
+  app.querySelectorAll('[data-pick]').forEach(function(b){
+    b.onclick=function(){me=+b.dataset.pick;draft={};go('write',{lid:cfg.current});};
+  });
+  app.querySelectorAll('[data-set]').forEach(function(b){
+    b.onclick=function(){
+      var t=document.getElementById('note'); if(t)draft.note=t.value;
+      draft[b.dataset.set]=+b.dataset.v; render();
+    };
+  });
+  app.querySelectorAll('[data-open]').forEach(function(b){
+    b.onclick=function(){draft={};go('write',{lid:+b.dataset.open});};
+  });
+  app.querySelectorAll('[data-see]').forEach(function(b){
+    b.onclick=function(){go('detail',{sid:+b.dataset.see});};
+  });
+  app.querySelectorAll('[data-cur]').forEach(function(b){
+    b.onclick=function(){cfg.current=+b.dataset.cur;render();};
+  });
+
+  var save=document.getElementById('save');
+  if(save)save.onclick=async function(){
+    var t=document.getElementById('note'); draft.note=t?t.value.trim():'';
+    save.disabled=true; save.textContent='저장 중…';
+    var v={think:draft.think,self:draft.self,team:draft.team,note:draft.note,ts:Date.now()};
+    try{ await saveRec(me,draft.__lid,v); showErr(''); }
+    catch(e){ recs[me+':'+draft.__lid]=v; showErr('서버에 저장하지 못했어요. 이 기기에만 남습니다. ('+e.message+')'); }
+    draft={}; go('growth');
+  };
+  var cSave=document.getElementById('cSave');
+  if(cSave)cSave.onclick=async function(){
+    var names=document.getElementById('cStu').value.split('\n').map(function(x){return x.trim();}).filter(Boolean);
+    var les=document.getElementById('cLes').value.split('\n').map(function(x){return x.trim();}).filter(Boolean);
+    var oldS=cfg.students.slice(), nextS=Math.max(0,...oldS.map(function(s){return s.id;}))+1;
+    cfg.students=names.map(function(nm,i){
+      var hit=oldS.filter(function(o){return o.name===nm;})[0];
+      return {id:hit?hit.id:nextS++, n:i+1, name:nm};
+    });
+    var oldL=cfg.lessons.slice(), nextL=Math.max(0,...oldL.map(function(l){return l.id;}))+1;
+    cfg.lessons=les.map(function(t){
+      var hit=oldL.filter(function(o){return o.t===t;})[0];
+      return {id:hit?hit.id:nextL++, t:t};
+    });
+    if(!lesson(cfg.current)&&cfg.lessons.length)cfg.current=cfg.lessons[0].id;
+    cfg.className=document.getElementById('cName').value.trim()||'우리 반';
+    cfg.question=document.getElementById('cQ').value.trim();
+    cSave.disabled=true; cSave.textContent='저장 중…';
+    try{ await saveCfg(); showErr(''); cSave.textContent='저장했습니다'; }
+    catch(e){ showErr('설정을 저장하지 못했어요. ('+e.message+')'); cSave.disabled=false; cSave.textContent='설정 저장'; }
+    setTimeout(render,700);
+  };
+  var pr=document.getElementById('print'); if(pr)pr.onclick=function(){window.print();};
+  var bk=document.getElementById('back');
+  if(bk)bk.onclick=function(){ draft={}; go(view.screen==='teacher'?'pick':(view.screen==='write'?'pick':'pick')); };
+  var tt=document.getElementById('toTeacher'); if(tt)tt.onclick=function(){go('teacher');};
+}
+document.getElementById('teacherBtn').onclick=function(){go(view.screen==='teacher'?'pick':'teacher');};
+
+/* ── 시작 ── */
+(async function(){
+  try{ await loadAll(); }
+  catch(e){ showErr('서버에 연결하지 못했어요. 기록이 공유되지 않습니다. ('+e.message+')'); }
+  loaded=true; render();
+  setInterval(function(){
+    if(view.screen==='teacher'||view.screen==='pick'){
+      loadAll().then(function(){ if(view.screen==='teacher'||view.screen==='pick')render(); }).catch(function(){});
+    }
+  },5000);
+})();
+</script>
+</body>
+</html>
