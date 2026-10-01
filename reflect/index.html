@@ -181,15 +181,17 @@ var CFG=window.REFLECT_CFG||{}, G_DATA=900, G_CFG=901, CKEY='cfg2';
 var connected=false, loaded=false, freshStage=0;
 
 var LEVELS=[{v:1,t:'아직'},{v:2,t:'조금'},{v:3,t:'충분히'}];
-var HEX={think:'#3E5C6B',self:'#C9913F',team:'#6F8F5F'};
+var HEX={think:'#3E5C6B',research:'#A85A43',comm:'#9A5F8C',team:'#6F8F5F',self:'#C9913F'};
 function ATLS(){return (cfg.atl&&cfg.atl.length)?cfg.atl:DEFAULT.atl;}
 
 var DEFAULT={
   pin:'1234',
   atl:[
-    {k:'think',label:'사고기능',    ask:'견주어 보고 까닭을 찾았나요?'},
-    {k:'self', label:'자기관리기능', ask:'스스로 계획하고 끝까지 해냈나요?'},
-    {k:'team', label:'협업기능',    ask:'모둠에서 내 몫을 했나요?'}
+    {k:'think',   label:'사고기능',    ask:'견주어 보고 까닭을 찾았나요?'},
+    {k:'research',label:'조사기능',    ask:'필요한 자료를 스스로 찾았나요?'},
+    {k:'comm',    label:'의사소통기능', ask:'내 생각을 친구가 알아듣게 말했나요?'},
+    {k:'team',    label:'협업기능',    ask:'모둠에서 내 몫을 했나요?'},
+    {k:'self',    label:'자기관리기능', ask:'스스로 계획하고 끝까지 해냈나요?'}
   ],
   classes:[
     {id:1,name:'4학년 1반',cur:1,students:[]},
@@ -333,8 +335,6 @@ function scHome(ro){
 
   if(done.length){
     out+='<hr class="rule"><h3>지나온 자리</h3>'+ridgeChart()+
-      '<div class="legend">'+ATLS().map(function(a){
-        return '<span><i style="background:'+HEX[a.k]+'"></i>'+esc(a.label)+'</span>';}).join('')+'</div>'+
       '<ul class="entries">'+done.map(function(st){
         var r=rec(cid,sid,st.id);
         return '<li><p class="st">'+esc(st.t)+
@@ -366,32 +366,44 @@ function trailSVG(){
   });
   return '<div class="trail"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="일곱 단계 중 지나온 자리">'+g+'</svg></div>';
 }
+/* 기능마다 한 줄씩 — 선이 겹치지 않도록 따로 그린다 */
 function ridgeChart(){
-  var sts=cfg.stages, n=sts.length, W=620, H=190, L=46, R=W-16, T=22, B=H-34;
-  var x=function(i){return L+i*(R-L)/(n-1);}, y=function(v){return B-(v-1)*(B-T)/2;};
+  var sts=cfg.stages, n=sts.length, list=ATLS();
+  var W=620, L=108, R=W-18, ROW=52, PLOT=30, TOP=10;
+  var H=TOP+list.length*ROW+22;
+  var x=function(i){return n<2?L:L+i*(R-L)/(n-1);};
   var g='';
-  [[3,'충분히'],[2,'조금'],[1,'아직']].forEach(function(p){
-    g+='<line x1="'+L+'" y1="'+y(p[0])+'" x2="'+R+'" y2="'+y(p[0])+'" stroke="var(--line)" stroke-width="1"/>'+
-       '<text x="'+(L-10)+'" y="'+(y(p[0])+4)+'" text-anchor="end" font-size="11" fill="var(--soft)" font-family="var(--sans)">'+p[1]+'</text>';
-  });
-  ATLS().forEach(function(a){
-    var pts=[]; sts.forEach(function(st,i){var r=rec(cid,sid,st.id);if(r&&r[a.k])pts.push([x(i),y(r[a.k])]);});
-    if(pts.length>1)g+='<polyline fill="none" stroke="'+HEX[a.k]+'" stroke-width="2.4" stroke-linecap="round" '+
-      'stroke-linejoin="round" opacity=".9" points="'+pts.map(function(p){return p[0]+','+p[1];}).join(' ')+'"/>';
+  list.forEach(function(a,r){
+    var top=TOP+r*ROW, base=top+PLOT;
+    var y=function(v){return base-(v-1)*PLOT/2;};
+    g+='<line x1="'+L+'" y1="'+base+'" x2="'+R+'" y2="'+base+'" stroke="var(--line)" stroke-width="1"/>';
+    g+='<line x1="'+L+'" y1="'+top+'" x2="'+R+'" y2="'+top+'" stroke="var(--line)" stroke-width="1" opacity=".55"/>';
+    g+='<text x="'+(L-14)+'" y="'+(base-PLOT/2+4)+'" text-anchor="end" font-size="12.5" '+
+       'fill="var(--soft)" font-family="var(--sans)">'+esc(a.label)+'</text>';
+    var pts=[];
+    sts.forEach(function(st,i){var rr=rec(cid,sid,st.id); if(rr&&rr[a.k])pts.push([x(i),y(rr[a.k])]);});
+    if(pts.length>1)g+='<polyline fill="none" stroke="'+HEX[a.k]+'" stroke-width="2.2" stroke-linecap="round" '+
+      'stroke-linejoin="round" points="'+pts.map(function(p){return p[0]+','+p[1];}).join(' ')+'"/>';
     pts.forEach(function(p){g+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="4" fill="'+HEX[a.k]+'"/>';});
   });
   sts.forEach(function(st,i){
-    g+='<text x="'+x(i)+'" y="'+(H-10)+'" text-anchor="middle" font-size="11" fill="var(--soft)" font-family="var(--sans)">'+esc(st.s)+'</text>';
+    g+='<text x="'+x(i)+'" y="'+(H-6)+'" text-anchor="middle" font-size="11" fill="var(--soft)" '+
+       'font-family="var(--sans)">'+esc(st.s)+'</text>';
   });
-  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;margin:10px 0 6px" role="img" aria-label="단계별 자기평가">'+g+'</svg>';
+  g+='<text x="'+(L-14)+'" y="'+(H-6)+'" text-anchor="end" font-size="10.5" fill="var(--far)" '+
+     'font-family="var(--sans)">위 = 충분히</text>';
+  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;margin:12px 0 6px" '+
+    'role="img" aria-label="단계별 자기평가">'+g+'</svg>';
 }
 
 /* 4. 돌아보기 */
 function scWrite(){
   var st=stage(view.st), old=rec(cid,sid,view.st);
-  if(draft.__st!==view.st)draft={__st:view.st,think:old&&old.think||0,self:old&&old.self||0,
-    team:old&&old.team||0,note:old&&old.note||''};
-  var ready=draft.think&&draft.self&&draft.team;
+  if(draft.__st!==view.st){
+    draft={__st:view.st,note:old&&old.note||''};
+    ATLS().forEach(function(a){draft[a.k]=old&&old[a.k]||0;});
+  }
+  var ready=ATLS().every(function(a){return draft[a.k];});
   return '<div class="wrap">'+
     '<p class="quiet">'+esc(st.t)+'</p>'+
     '<h2>'+esc(st.q)+'</h2>'+
@@ -405,7 +417,7 @@ function scWrite(){
             ridgeIcon(l.v)+'<span>'+l.t+'</span></button>';}).join('')+'</div></div>';
     }).join('')+
     '<div style="margin-top:34px">'+
-      (ready?'<button class="go" id="save">남기기</button>':'<p class="quiet">세 가지를 모두 고르면 남길 수 있습니다.</p>')+
+      (ready?'<button class="go" id="save">남기기</button>':'<p class="quiet">'+ATLS().length+'가지를 모두 고르면 남길 수 있습니다.</p>')+
       '<button class="go quietbtn" id="cancel" style="margin-left:'+(ready?'18px':'0')+'">그만두기</button>'+
     '</div></div>';
 }
@@ -469,8 +481,8 @@ function scTeacher(){
         '<p class="lbl" style="margin-top:12px">성찰 질문</p>'+
         '<textarea data-sq="'+i+'" style="min-height:76px">'+esc(s.q)+'</textarea></div>';
     }).join('')+
-    '<h3 style="margin-top:26px">스스로 재어 보는 세 가지</h3>'+
-    '<p class="quiet">모든 단계에 똑같이 나옵니다. 세 가지라야 그래프에 선이 셋으로 그려지니 개수는 바꾸지 않았습니다.</p>'+
+    '<h3 style="margin-top:26px">스스로 재어 보는 '+ATLS().length+'가지</h3>'+
+    '<p class="quiet">모든 단계에 똑같이 나옵니다. 아이가 '+ATLS().length+'번 눌러야 하니, 이름과 묻는 말은 되도록 짧게 두세요.</p>'+
     ATLS().map(function(a,i){
       return '<div class="setblock">'+
         '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:'+HEX[a.k]+'"></span>'+
@@ -513,7 +525,8 @@ function wire(){
   var sv=A.querySelector('#save');
   if(sv)sv.onclick=async function(){
     var t=document.getElementById('note');
-    var v={think:draft.think,self:draft.self,team:draft.team,note:t?t.value.trim():'',ts:Date.now()};
+    var v={note:t?t.value.trim():'',ts:Date.now()};
+    ATLS().forEach(function(a){v[a.k]=draft[a.k]||0;});
     sv.textContent='남기는 중…';
     var st=draft.__st;
     try{ await saveRec(cid,sid,st,v); say(''); }
