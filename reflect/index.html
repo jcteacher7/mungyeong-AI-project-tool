@@ -277,7 +277,10 @@ function scWho(){
   var k=klass(cid); if(!k)return scClass();
   var st=stage(k.cur);
   if(!k.students.length)return '<div class="wrap"><h2>'+esc(k.name)+'</h2>'+
-    '<p class="msg">명단이 아직 없습니다. 아래 선생님 화면에서 이름을 넣어 주세요.</p></div>';
+    '<p class="msg">아직 이 반의 명단이 없습니다.</p>'+
+    '<p class="quiet">선생님 화면에서 학생 이름을 넣으면 이 자리에 명단이 나옵니다.</p>'+
+    '<button class="go" id="setupBtn">선생님 화면 열기</button>'+
+    '<div class="foot noprint"><button data-back="cls">다른 반 고르기</button></div></div>';
   return '<div class="wrap"><h2>'+esc(st?st.t:'')+'</h2>'+
     '<p class="quiet">자기 이름을 눌러 주세요.</p>'+
     '<div class="pickgrid">'+k.students.map(function(s){
@@ -502,6 +505,8 @@ function wire(){
     }
     render();
   };});
+  var sb=A.querySelector('#setupBtn');
+  if(sb)sb.onclick=function(){typed='';wrong=false;tTab=cid||cfg.classes[0].id;go('teacher');};
   var lb=A.querySelector('#lockBtn');
   if(lb)lb.onclick=function(){
     unlocked=false; typed='';
