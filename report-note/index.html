@@ -292,6 +292,11 @@ var composing=false, pendingRender=false;
 document.addEventListener('compositionstart',function(){composing=true;});
 document.addEventListener('compositionend',function(){composing=false;if(pendingRender){pendingRender=false;setTimeout(function(){if(!composing)render();},0);}});
 function typing(){ if(composing)return true; var a=document.activeElement; return !!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); }
+var lastKey=0;
+document.addEventListener('keydown',function(){lastKey=Date.now();});
+document.addEventListener('input',function(){lastKey=Date.now();},true);
+/* 글 칸에 있어도, 조합 중이 아니고 3초 넘게 손을 멈췄으면 새 글을 보여 줘도 됨 */
+function busy(){ if(composing)return true; if(!typing())return false; return Date.now()-lastKey<3000; }
 
 function render(){
   if(composing){pendingRender=true;return;}
@@ -592,7 +597,7 @@ async function addCard(key){
   var ok=await send(k,v); delete saving['new:'+key];
   if(!ok)cards[k]=Object.assign({},v,{_local:1});
   ui.flash={key:key,at:Date.now(),local:!ok}; render();
-  setTimeout(function(){if(!typing())render();},4200);
+  setTimeout(function(){if(!busy())render();},4200);
 }
 async function saveLine(sheet){
   var A=document.getElementById('app'), ta=A.querySelector('[data-k="line:'+sheet+'"]'); if(!ta)return;
@@ -602,7 +607,7 @@ async function saveLine(sheet){
   lines[k]=v; var ok=await send(k,v); delete saving['line:'+sheet];
   if(!ok)lines[k]=Object.assign({},v,{_local:1});
   ui.flash={key:sheet+':line',at:Date.now(),local:!ok}; ta.blur(); render();
-  setTimeout(function(){if(!typing())render();},4200);
+  setTimeout(function(){if(!busy())render();},4200);
 }
 async function importRoster(){
   try{
@@ -656,7 +661,7 @@ async function saveSettings(){
   if(/[?&]t=1/.test(location.search)){ tTab=cid||cfg.classes[0].id; try{await loadData(tTab);}catch(e){} go('teacher'); }
   else go(cid?(sid?'note':'who'):'cls', sid?{sheet:firstOpenSheet()}:null);
   setInterval(async function(){
-    if(document.hidden||typing()||ui.edit)return;
+    if(document.hidden||busy()||ui.edit)return;
     if(view.s==='teacher'&&cfgDirty)return;
     if(view.s==='lock')return;
     try{
@@ -664,8 +669,8 @@ async function saveSettings(){
       await loadCfg();
       var c=view.s==='teacher'?tTab:cid;
       if(c)await loadData(c);
-      if(!typing()&&!ui.edit&&!(view.s==='teacher'&&cfgDirty))render();
-    }catch(e){ connected=false; if(!typing())render(); }
+      if(!busy()&&!ui.edit&&!(view.s==='teacher'&&cfgDirty))render();
+    }catch(e){ connected=false; if(!busy())render(); }
   },5000);
 })();
 </script>
