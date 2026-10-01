@@ -68,6 +68,9 @@ p{margin:0 0 4px}
 .go{display:inline-flex;align-items:center;gap:10px;margin-top:18px;background:var(--near);color:#fff;
   padding:14px 26px;border-radius:2px;font-weight:500;font-size:16.5px}
 .go.quietbtn{background:none;color:var(--near);padding:12px 0;box-shadow:inset 0 -1px 0 var(--near)}
+.go[disabled]{background:#C3CDCB;cursor:default}
+.saved{background:#fff;border-left:3px solid var(--moss);padding:14px 18px;margin:16px 0;font-size:15.5px}
+.saved b{font-family:var(--serif);font-weight:400;color:var(--moss)}
 
 /* 명단 */
 .pickgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:1px;background:var(--line);
@@ -222,7 +225,7 @@ var DEFAULT={
 };
 var cfg=clone(DEFAULT), recs={}, draft={};
 var cid=null, sid=null, view={s:'cls'}, tTab=1;
-var unlocked=false, typed='', wrong=false, cfgDirty=false;
+var unlocked=false, typed='', wrong=false, cfgDirty=false, justSaved=0;
 try{unlocked=localStorage.getItem('reflect-teacher')==='1';}catch(e){}
 
 function clone(o){return JSON.parse(JSON.stringify(o));}
@@ -335,12 +338,15 @@ function scHome(ro){
   var done=cfg.stages.filter(function(st){return rec(cid,sid,st.id);});
   var cur=stage(k?k.cur:0);
   var curDone=cur&&rec(cid,sid,cur.id);
+  var js=justSaved?stage(justSaved):null;
   var out='<div class="wrap">'+
+    (js&&!ro?'<p class="saved"><b>남겼어요.</b> '+esc(js.t)+' 돌아보기가 저장되었습니다. '+
+      '선생님 화면과 아래 그래프에 바로 보입니다.</p>':'')+
     '<h2 style="font-size:24px">'+esc(s.name)+'의 길</h2>'+
     '<p class="quiet">일곱 자리를 지나며 남긴 생각입니다. 지나온 자리는 언제든 다시 열어 고칠 수 있습니다.</p>'+
     trailSVG()+
     (cur?'<div class="today">'+
-      '<p class="tag">'+(curDone?'다시 열기':'오늘 머무는 자리')+'</p>'+
+      '<p class="tag">'+(curDone?'저장됨 · 다시 열어 고칠 수 있어요':'오늘 머무는 자리')+'</p>'+
       '<h2>'+esc(cur.t)+'</h2>'+
       '<p class="quiet" style="font-family:var(--serif);font-size:17px;color:var(--ink);opacity:.8">'+esc(cur.q)+'</p>'+
       (ro?'':'<button class="go" data-open="'+cur.id+'">'+(curDone?'고쳐 쓰기':'돌아보기')+'</button>')+
@@ -436,8 +442,12 @@ function scWrite(){
             ridgeIcon(l.v)+'<span>'+l.t+'</span></button>';}).join('')+'</div></div>';
     }).join('')+
     '<div style="margin-top:34px">'+
-      (ready?'<button class="go" id="save">남기기</button>':'<p class="quiet">'+list.length+'가지를 모두 고르면 남길 수 있습니다.</p>')+
-      '<button class="go quietbtn" id="cancel" style="margin-left:'+(ready?'18px':'0')+'">그만두기</button>'+
+      '<button class="go" id="save"'+(ready?'':' disabled')+'>남기기</button>'+
+      '<button class="go quietbtn" id="cancel" style="margin-left:18px">그만두기</button>'+
+      (ready?'':'<p class="quiet" style="margin-top:12px">'+
+        esc(list.filter(function(a){return !draft[a.k];}).map(function(a){return a.label;}).join(', '))+
+        ' 을(를) 아직 고르지 않았어요.</p>')+
+      (old?'<p class="quiet" style="margin-top:12px">전에 남긴 것을 고치는 중입니다. 다시 남기면 바뀝니다.</p>':'')+
     '</div></div>';
 }
 
@@ -554,11 +564,13 @@ function wire(){
     var v={note:t?t.value.trim():'',ts:Date.now()};
     stageATL(stage(draft.__st)).forEach(function(a){v[a.k]=draft[a.k]||0;});
     sv.textContent='남기는 중…';
-    var st=draft.__st;
-    try{ await saveRec(cid,sid,st,v); say(''); }
-    catch(e){ recs[cid+':'+sid+':'+st]=v; say('서버에 보내지 못해 이 태블릿에만 남았습니다. '+e.message,1); }
-    draft={}; freshStage=st; go('home');
+    var st=draft.__st, ok=true;
+    try{ await saveRec(cid,sid,st,v); }
+    catch(e){ ok=false; recs[cid+':'+sid+':'+st]=v;
+      say('서버에 보내지 못해 이 태블릿에만 남았습니다. 선생님께 알려 주세요. '+e.message,1); }
+    draft={}; freshStage=st; justSaved=ok?st:0; go('home');
     setTimeout(function(){freshStage=0;},1200);
+    if(ok)setTimeout(function(){ if(justSaved===st){justSaved=0; if(view.s==='home')render();} },7000);
   };
   var cc=A.querySelector('#cancel'); if(cc)cc.onclick=function(){draft={};go('home');};
   var pr=A.querySelector('#print'); if(pr)pr.onclick=function(){print();};
