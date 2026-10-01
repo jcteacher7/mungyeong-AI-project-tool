@@ -16,7 +16,7 @@
   --paper:#FBF8F1;     /* 수첩 종이 */
   --rule:#E3DCCB;      /* 줄 */
   --ink:#2B2A27;       /* 연필 */
-  --soft:#77716A;      /* 흐린 글씨 */
+  --soft:#5C564E;      /* 흐린 글씨 */
   --past:#F2E7D2;      /* 과거 장: 낡은 종이 */
   --pastInk:#4A3F33;   /* 석탄 */
   --now:#EAF3F8;       /* 현재 장: 맑은 하늘 */
@@ -253,6 +253,20 @@ input,textarea,select{font-size:18px}
   .page.start .pick.cls{grid-template-columns:repeat(3,1fr)}
   .page.start .pick.cls button{min-height:260px;font-size:44px}
 }
+/* ── 색 ── */
+.page.past{background-image:linear-gradient(to right,transparent 0 30px,#D9A89A 30px 31.5px,transparent 31.5px),
+  linear-gradient(to bottom,#E6D3B3 0,rgba(242,231,210,0) 150px)}
+.page.now{background-image:linear-gradient(to right,transparent 0 30px,#E9B4A8 30px 31.5px,transparent 31.5px),
+  linear-gradient(to bottom,#CFE4F2 0,rgba(234,243,248,0) 150px)}
+.page.past h2.hand{color:var(--pastInk)}
+.page.now h2.hand{color:var(--nowInk)}
+.page.now .w5grid span{color:var(--nowInk)}
+.mini.now{background:#DDEDF7}
+.mini.now h4{color:var(--nowInk)} .mini.past h4{color:var(--pastInk)}
+.badge.shut{background:rgba(60,50,30,.1);color:var(--soft)}
+::selection{background:#FFE58A;color:var(--ink)}
+input,textarea{caret-color:var(--open)}
+html{scrollbar-color:#BFB49F transparent}
 </style>
 </head>
 <body>
