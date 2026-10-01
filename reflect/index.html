@@ -183,6 +183,12 @@ var connected=false, loaded=false, freshStage=0;
 var LEVELS=[{v:1,t:'아직'},{v:2,t:'조금'},{v:3,t:'충분히'}];
 var HEX={think:'#3E5C6B',research:'#A85A43',comm:'#9A5F8C',team:'#6F8F5F',self:'#C9913F'};
 function ATLS(){return (cfg.atl&&cfg.atl.length)?cfg.atl:DEFAULT.atl;}
+/* 그 단계에서 묻기로 한 기능만 */
+function stageATL(st){
+  if(!st||!st.use||!st.use.length)return ATLS();
+  var picked=ATLS().filter(function(a){return st.use.indexOf(a.k)>=0;});
+  return picked.length?picked:ATLS();
+}
 
 var DEFAULT={
   pin:'1234',
@@ -198,18 +204,25 @@ var DEFAULT={
     {id:2,name:'4학년 2반',cur:1,students:[]}
   ],
   stages:[
-    {id:1,t:'준비하기',      s:'준비',  q:'이 주제에서 내가 가장 궁금한 것은 무엇인가요?'},
-    {id:2,t:'조사하기 (공간)',s:'공간',  q:'장소가 다르면 사는 모습도 다르다는 것을 어디에서 느꼈나요?'},
-    {id:3,t:'조사하기 (시간)',s:'시간',  q:'옛날과 지금을 견주어 보고 새로 알게 된 것은 무엇인가요?'},
-    {id:4,t:'조직·정리하기', s:'정리',  q:'흩어져 있던 자료를 모으니 어떤 묶음이 보였나요?'},
-    {id:5,t:'일반화하기',    s:'일반화',q:'우리가 찾은 것을 한 문장으로 쓴다면? 그렇게 생각한 까닭도 함께 써 보세요.'},
-    {id:6,t:'전이하기',      s:'전이',  q:'알게 된 것을 다른 고장이나 내 생활에 어떻게 써 볼 수 있을까요?'},
-    {id:7,t:'성찰하기',      s:'성찰',  q:'이 단원을 시작할 때의 나와 지금의 나는 무엇이 달라졌나요?'}
+    {id:1,t:'준비하기',      s:'준비',  use:['think','self'],
+     q:'이 주제에서 내가 가장 궁금한 것은 무엇인가요?'},
+    {id:2,t:'조사하기 (공간)',s:'공간',  use:['research','comm'],
+     q:'장소가 다르면 사는 모습도 다르다는 것을 어디에서 느꼈나요?'},
+    {id:3,t:'조사하기 (시간)',s:'시간',  use:['research','think'],
+     q:'옛날과 지금을 견주어 보고 새로 알게 된 것은 무엇인가요?'},
+    {id:4,t:'조직·정리하기', s:'정리',  use:['think','team'],
+     q:'흩어져 있던 자료를 모으니 어떤 묶음이 보였나요?'},
+    {id:5,t:'일반화하기',    s:'일반화',use:['think','comm'],
+     q:'우리가 찾은 것을 한 문장으로 쓴다면? 그렇게 생각한 까닭도 함께 써 보세요.'},
+    {id:6,t:'전이하기',      s:'전이',  use:['think','comm','self'],
+     q:'알게 된 것을 다른 고장이나 내 생활에 어떻게 써 볼 수 있을까요?'},
+    {id:7,t:'성찰하기',      s:'성찰',  use:['self','team','think'],
+     q:'이 단원을 시작할 때의 나와 지금의 나는 무엇이 달라졌나요?'}
   ]
 };
 var cfg=clone(DEFAULT), recs={}, draft={};
 var cid=null, sid=null, view={s:'cls'}, tTab=1;
-var unlocked=false, typed='', wrong=false;
+var unlocked=false, typed='', wrong=false, cfgDirty=false;
 try{unlocked=localStorage.getItem('reflect-teacher')==='1';}catch(e){}
 
 function clone(o){return JSON.parse(JSON.stringify(o));}
@@ -338,7 +351,8 @@ function scHome(ro){
       '<ul class="entries">'+done.map(function(st){
         var r=rec(cid,sid,st.id);
         return '<li><p class="st">'+esc(st.t)+
-          '<span class="marks">'+ATLS().map(function(a){return '<i class="mk v'+(r[a.k]||0)+'"></i>';}).join('')+'</span></p>'+
+          '<span class="marks">'+stageATL(st).map(function(a){
+            return '<i class="mk v'+(r[a.k]||0)+'" title="'+esc(a.label)+'"></i>';}).join('')+'</span></p>'+
           '<p class="tx">'+(r.note?esc(r.note):'<span class="quiet">쓴 글 없음</span>')+'</p></li>';
       }).join('')+'</ul>';
   }
@@ -368,7 +382,12 @@ function trailSVG(){
 }
 /* 기능마다 한 줄씩 — 선이 겹치지 않도록 따로 그린다 */
 function ridgeChart(){
-  var sts=cfg.stages, n=sts.length, list=ATLS();
+  var sts=cfg.stages, n=sts.length;
+  /* 한 번이라도 물어본 기능만 줄로 그린다 */
+  var list=ATLS().filter(function(a){
+    return sts.some(function(st){var r=rec(cid,sid,st.id);return r&&r[a.k];});
+  });
+  if(!list.length)list=ATLS();
   var W=620, L=108, R=W-18, ROW=52, PLOT=30, TOP=10;
   var H=TOP+list.length*ROW+22;
   var x=function(i){return n<2?L:L+i*(R-L)/(n-1);};
@@ -398,25 +417,26 @@ function ridgeChart(){
 /* 4. 돌아보기 */
 function scWrite(){
   var st=stage(view.st), old=rec(cid,sid,view.st);
+  var list=stageATL(st);
   if(draft.__st!==view.st){
     draft={__st:view.st,note:old&&old.note||''};
-    ATLS().forEach(function(a){draft[a.k]=old&&old[a.k]||0;});
+    list.forEach(function(a){draft[a.k]=old&&old[a.k]||0;});
   }
-  var ready=ATLS().every(function(a){return draft[a.k];});
+  var ready=list.every(function(a){return draft[a.k];});
   return '<div class="wrap">'+
     '<p class="quiet">'+esc(st.t)+'</p>'+
     '<h2>'+esc(st.q)+'</h2>'+
     '<textarea id="note" placeholder="떠오르는 대로 적어 보세요.">'+esc(draft.note)+'</textarea>'+
     '<hr class="rule">'+
     '<p class="quiet">이번 단계에서 나는 어땠나요?</p>'+
-    ATLS().map(function(a){
+    list.map(function(a){
       return '<div class="ask"><p class="skill">'+esc(a.label)+'</p><q>'+esc(a.ask)+'</q>'+
         '<div class="scale">'+LEVELS.map(function(l){
           return '<button data-k="'+a.k+'" data-v="'+l.v+'" aria-pressed="'+(draft[a.k]===l.v)+'">'+
             ridgeIcon(l.v)+'<span>'+l.t+'</span></button>';}).join('')+'</div></div>';
     }).join('')+
     '<div style="margin-top:34px">'+
-      (ready?'<button class="go" id="save">남기기</button>':'<p class="quiet">'+ATLS().length+'가지를 모두 고르면 남길 수 있습니다.</p>')+
+      (ready?'<button class="go" id="save">남기기</button>':'<p class="quiet">'+list.length+'가지를 모두 고르면 남길 수 있습니다.</p>')+
       '<button class="go quietbtn" id="cancel" style="margin-left:'+(ready?'18px':'0')+'">그만두기</button>'+
     '</div></div>';
 }
@@ -456,8 +476,8 @@ function scTeacher(){
         return '<tr><td class="nm"><button data-see="'+s.id+'">'+esc(s.name)+'</button></td>'+
           cfg.stages.map(function(st){
             var r=rec(k.id,s.id,st.id);
-            return '<td>'+(r?'<span class="marks">'+ATLS().map(function(a){
-              return '<i class="mk v'+(r[a.k]||0)+'"></i>';}).join('')+'</span>':'<span class="quiet">·</span>')+'</td>';
+            return '<td>'+(r?'<span class="marks">'+stageATL(st).map(function(a){
+              return '<i class="mk v'+(r[a.k]||0)+'" title="'+esc(a.label)+'"></i>';}).join('')+'</span>':'<span class="quiet">·</span>')+'</td>';
           }).join('')+'</tr>';
       }).join('')+'</tbody></table></div>':'<p class="msg">이 반의 명단이 아직 없습니다.</p>')+
 
@@ -478,7 +498,14 @@ function scTeacher(){
         '<p class="lbl" style="margin-top:12px">그래프에 쓸 짧은 이름</p>'+
         '<input class="t" data-sshort="'+i+'" value="'+esc(s.s)+'" style="font-size:15px;font-family:var(--sans)">'+
         '<p class="lbl" style="margin-top:12px">성찰 질문</p>'+
-        '<textarea data-sq="'+i+'" style="min-height:76px">'+esc(s.q)+'</textarea></div>';
+        '<textarea data-sq="'+i+'" style="min-height:76px">'+esc(s.q)+'</textarea>'+
+        '<p class="lbl" style="margin-top:14px">이 단계에서 물어볼 기능</p>'+
+        '<div class="chips">'+ATLS().map(function(a){
+          var on=stageATL(s).some(function(x){return x.k===a.k;});
+          return '<button data-use="'+i+'" data-k="'+a.k+'" aria-pressed="'+on+'" '+
+            'style="'+(on?'border-color:'+HEX[a.k]+';color:'+HEX[a.k]+';background:#fff;font-weight:500':'')+'">'+
+            esc(a.label)+'</button>';
+        }).join('')+'</div></div>';
     }).join('')+
     '<h3 style="margin-top:26px">스스로 재어 보는 '+ATLS().length+'가지</h3>'+
     '<p class="quiet">모든 단계에 똑같이 나옵니다. 아이가 '+ATLS().length+'번 눌러야 하니, 이름과 묻는 말은 되도록 짧게 두세요.</p>'+
@@ -525,7 +552,7 @@ function wire(){
   if(sv)sv.onclick=async function(){
     var t=document.getElementById('note');
     var v={note:t?t.value.trim():'',ts:Date.now()};
-    ATLS().forEach(function(a){v[a.k]=draft[a.k]||0;});
+    stageATL(stage(draft.__st)).forEach(function(a){v[a.k]=draft[a.k]||0;});
     sv.textContent='남기는 중…';
     var st=draft.__st;
     try{ await saveRec(cid,sid,st,v); say(''); }
@@ -549,6 +576,13 @@ function wire(){
       } else { wrong=true; typed=''; }
     }
     render();
+  };});
+  A.querySelectorAll('[data-use]').forEach(function(b){b.onclick=function(){
+    var s=cfg.stages[+b.dataset.use], k=b.dataset.k;
+    if(!s.use||!s.use.length)s.use=ATLS().map(function(a){return a.k;});
+    var at=s.use.indexOf(k);
+    if(at>=0){ if(s.use.length<=1)return; s.use.splice(at,1); } else s.use.push(k);
+    cfgDirty=true; render();
   };});
   var sb=A.querySelector('#setupBtn');
   if(sb)sb.onclick=function(){typed='';wrong=false;tTab=cid||cfg.classes[0].id;go('teacher');};
@@ -586,7 +620,7 @@ function wire(){
     var pn=A.querySelector('[data-pin]');
     if(pn){var p=pn.value.replace(/\D/g,'').slice(0,4); if(p.length===4)cfg.pin=p;}
     cs.textContent='저장하는 중…';
-    try{ await saveCfg(); say('설정을 저장했습니다.'); }
+    try{ await saveCfg(); cfgDirty=false; say('설정을 저장했습니다.'); }
     catch(e){ say('설정을 저장하지 못했습니다. '+e.message,1); }
     render();
   };
@@ -618,6 +652,7 @@ function wire(){
     var ae=document.activeElement;
     var typing=ae&&/^(INPUT|TEXTAREA)$/.test(ae.tagName);
     if(!live||typing)return;
+    if(view.s==='teacher'&&cfgDirty)return;   /* 저장 안 한 설정이 있으면 건드리지 않음 */
     loadAll().then(function(){
       var ae2=document.activeElement;
       if(ae2&&/^(INPUT|TEXTAREA)$/.test(ae2.tagName))return;
