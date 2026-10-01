@@ -205,7 +205,7 @@ th{font-weight:400;color:var(--soft);font-size:13px}
 .board .col h4{margin:0;font-family:var(--hand);font-size:28px;font-weight:400}
 .board h5{margin:8px 0 4px;font-size:14px;color:var(--soft);font-weight:400}
 .board .card{flex:1 1 100%;min-width:0}
-.big .board .card .t{font-size:22px}
+.big .board .card .t,.big .board .fx dd{font-size:24px}
 .big .board .col h4{font-size:36px}
 .f{display:grid;grid-template-columns:150px 1fr;gap:6px 10px;align-items:center;margin:4px 0}
 .f input,.f select{width:100%;padding:8px 10px;border:1.5px solid #CFC6B3;border-radius:8px;background:#fff}
@@ -496,6 +496,7 @@ function tabs(){
     '<button data-a="cmp" class="t-cmp'+(sh==='cmp'?' on':'')+'">비교하기</button>'+
     '<button class="tipbtn" data-a="tip">선생님의 취재 팁</button></div>';
 }
+function cardBody(c){return c.f?'<dl class="fx">'+w5list().filter(function(w){return c.f[w.k];}).map(function(w){return '<dt>'+esc(w.t)+'</dt><dd>'+esc(c.f[w.k])+'</dd>';}).join('')+'</dl>':'<div class="t">'+esc(c.t)+'</div>';}
 function cardHtml(c,editable){
   var mine=c.by===sid;
   if(ui.edit===c._k&&mine){
@@ -513,7 +514,7 @@ function cardHtml(c,editable){
       '<button class="lk danger" data-a="del-yes" data-v="'+esc(c._k)+'">정말 지울게요</button><button class="lk" data-a="del-no">아니요</button>':
       '<button class="lk" data-a="edit" data-v="'+esc(c._k)+'">고치기</button><button class="lk" data-a="del" data-v="'+esc(c._k)+'">지우기</button>';
   }
-  var body=c.f?'<dl class="fx">'+w5list().filter(function(w){return c.f[w.k];}).map(function(w){return '<dt>'+esc(w.t)+'</dt><dd>'+esc(c.f[w.k])+'</dd>';}).join('')+'</dl>':'<div class="t">'+esc(c.t)+'</div>';
+  var body=cardBody(c);
   return '<div class="card'+(mine?' mine':'')+(c._local?' local':'')+'">'+body+
     '<div class="meta">'+tags+'<span>'+esc(c.name||'')+'</span>'+tools+'</div>'+
     (c._local?'<div class="local-note">아직 이 기기에만 남아 있어요. 인터넷이 되면 저절로 보내요.</div>':'')+'</div>';
@@ -650,7 +651,7 @@ function scTeacher(){
     sls.forEach(function(sl){
       var l=cardsOf(k.id,g,tSheet,sl);
       html+='<h5>'+esc(tSheet==='cmp'?cfg.cmp[sl].name:cfg.slots[sl].name)+'</h5><div class="cards">'+(l.length?l.map(function(c){
-        return '<div class="card"><div class="t">'+esc(c.t)+'</div><div class="meta">'+(c.w?'<span class="tag w">'+esc(w5name(c.w))+'</span>':'')+
+        return '<div class="card">'+cardBody(c)+'<div class="meta">'+(c.w?'<span class="tag w">'+esc(w5name(c.w))+'</span>':'')+
           kindTags(c)+'<span>'+esc(c.name||'')+'</span>'+
           '<button class="lk danger" data-a="tdel" data-v="'+esc(c._k)+'">'+(ui.del===c._k?'정말 지우기':'지우기')+'</button></div></div>';}).join(''):'<p class="empty">없음</p>')+'</div>';
     });
