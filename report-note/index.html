@@ -125,7 +125,7 @@ textarea{width:100%;min-height:76px;padding:6px 12px;border:1.5px solid #CFC6B3;
 .btn:disabled{opacity:1;background:transparent;color:var(--soft);border:2px dashed #BDB3A0;box-shadow:none}
 .btn.ghost{background:var(--paper);color:var(--ink);border:2px solid #CFC6B3;box-shadow:0 2px 0 rgba(0,0,0,.06)}
 .why{font-size:14px;color:var(--soft)}
-.saved{font-size:15px;color:var(--ok);font-weight:700}
+.saved{font-size:16px;color:var(--ok)}
 .local-note{font-size:14px;color:var(--bad)}
 
 .lines{margin:8px 0;padding:0;list-style:none}
@@ -136,7 +136,7 @@ textarea{width:100%;min-height:76px;padding:6px 12px;border:1.5px solid #CFC6B3;
 .w5grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:6px 0}
 .w5grid label{min-width:0;display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid #CFC6B3;border-radius:10px;padding:4px 4px 4px 10px}
 .w5grid label:focus-within{border-color:var(--nowInk)}
-.w5grid span{flex:0 0 52px;font-size:15px;font-weight:700;color:var(--pastInk)}
+.w5grid span{flex:0 0 56px;font-size:16px;color:var(--pastInk)}
 .w5grid input{flex:1;min-width:0;border:none;background:transparent;padding:8px 4px;font-size:17px;outline:none}
 @media (max-width:640px){.w5grid{grid-template-columns:1fr}}
 .fx{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:0;font-size:16px}
@@ -214,6 +214,45 @@ th{font-weight:400;color:var(--soft);font-size:13px}
 .pad button{height:64px;border-radius:12px;background:#fff;border:1.5px solid var(--rule);font-size:24px}
 .dots{text-align:center;font-size:30px;letter-spacing:10px;min-height:44px}
 @media (max-width:640px){.f{grid-template-columns:1fr}}
+/* ── 글씨 정리 ── */
+*{font-synthesis:none}  /* 고운돋움에는 굵은 글씨가 없어서 번져 보이지 않게 */
+b,strong{font-weight:400;color:var(--ink);background:linear-gradient(transparent 58%,#FFE58A 58%)}  /* 형광펜 */
+.lines li b{background:none}
+body{font-size:18px}
+input,textarea,select{font-size:18px}
+#state{font-size:15px}
+.badge{font-size:14px}
+.card .meta,.lk,.why,.local-note,.swap{font-size:15px}
+.tag{font-size:14px}
+.chips .lab,.colh,.fx dt,.mini h5,.lines li b{font-size:15px}
+.hint{font-size:16px}
+.picker .today,.picker .cnt{font-size:13px}
+.pick button span{font-size:15px}
+/* 시작 화면: 크게, 빈 곳 없이 */
+.page.start{min-height:calc(100vh - 110px);display:flex;flex-direction:column}
+.page.start h2.hand{font-size:46px}
+.page.start .sub{font-size:20px}
+.page.start .pick button{font-size:26px;min-height:88px}
+.page.start .grp h3{font-size:34px}
+.pick.cls{flex:1;align-content:center}
+.pick.cls button{font-size:34px;min-height:180px}
+.pick.cls button span{font-size:18px;margin-top:6px}
+@media (orientation:landscape) and (min-width:900px){
+  body{font-size:20px}
+  input,textarea,select{font-size:20px}
+  h2.hand{font-size:44px}
+  .askrow .ask{font-size:22px}
+  .picker button,.tabs button,.btn,.chips button{font-size:19px}
+  .card .t,.fx dd{font-size:19px}
+  .w5grid input{font-size:19px}
+  .w5grid span{font-size:17px}
+  .hint{font-size:17px}
+  .mini ul{font-size:17px}
+  .tipgen,.tipex{font-size:18px}
+  .page.start .pick{grid-template-columns:repeat(5,1fr)}
+  .pick.cls{grid-template-columns:repeat(3,1fr)}
+  .pick.cls button{min-height:240px;font-size:40px}
+}
 </style>
 </head>
 <body>
@@ -249,10 +288,10 @@ var DEFAULT={
   w5:[
     {k:'what',t:'무엇을',ask:'무엇을 했나요?'},
     {k:'who',t:'누가',ask:'누가 했나요?'},
-    {k:'where',t:'어디서',ask:'어디에서 있었던 일인가요?'},
-    {k:'when',t:'언제',ask:'언제 있었던 일인가요?'},
-    {k:'why',t:'왜',ask:'왜 그렇게 했을까요?'},
-    {k:'how',t:'어떻게',ask:'어떻게 했나요? 어떻게 살았나요?'}
+    {k:'where',t:'어디서',ask:'어디였나요?'},
+    {k:'when',t:'언제',ask:'언제였나요?'},
+    {k:'why',t:'왜',ask:'왜 그랬을까요?'},
+    {k:'how',t:'어떻게',ask:'어떻게 했나요?'}
   ],
   tips:{
     general:'예시는 문경이 아니라 다른 마을(부산 바닷가) 이야기예요. 문경 이야기는 여러분이 직접 취재해요!\n카드 한 장에는 한 가지 사실만 적어요.\n모르는 칸은 비워도 괜찮아요. 아는 칸부터 채워요.\n자료에서 찾은 낱말을 그대로 써도 좋아요.',
@@ -359,7 +398,9 @@ function cardsOf(c,g,sheet,slot){
 }
 function lineOf(c,s,sheet){return lines['l:'+c+':'+s+':'+sheet]||null;}
 var W5ORDER=['who','when','where','what','how','why'];
-function w5list(){return W5ORDER.map(function(k){var w=cfg.w5.filter(function(x){return x.k===k;})[0]||DEFAULT.w5.filter(function(x){return x.k===k;})[0];return w;});}
+var OLD_ASK={'어떻게 했나요? 어떻게 살았나요?':1,'어디에서 있었던 일인가요?':1,'언제 있었던 일인가요?':1,'왜 그렇게 했을까요?':1};
+function w5list(){return W5ORDER.map(function(k){var d=DEFAULT.w5.filter(function(x){return x.k===k;})[0];var w=cfg.w5.filter(function(x){return x.k===k;})[0]||d;
+  return OLD_ASK[w.ask]?Object.assign({},w,{ask:d.ask}):w;});}
 function composeT(f){return w5list().filter(function(w){return f[w.k];}).map(function(w){return w.t+': '+f[w.k];}).join(' · ');}
 function fieldsHtml(prefix,f){
   return '<div class="w5grid">'+w5list().map(function(w){
@@ -405,7 +446,7 @@ function rememberMe(){try{sessionStorage.setItem('rn-me',JSON.stringify({c:cid,s
 
 /* 1. 반 고르기 */
 function scClass(){
-  return '<div class="wrap page"><h2 class="hand">어느 반인가요?</h2><p class="sub">우리 반을 눌러요.</p><div class="pick">'+
+  return '<div class="wrap page start"><h2 class="hand">어느 반인가요?</h2><p class="sub">우리 반을 눌러요.</p><div class="pick cls">'+
     cfg.classes.map(function(c){
       var n=c.students.filter(function(s){return s.g>0;}).length;
       return '<button data-a="cls" data-v="'+c.id+'">'+esc(c.name)+'<span>'+(n?n+'명':'모둠 편성 전')+'</span></button>';
@@ -417,7 +458,7 @@ function scWho(){
   var on=k.students.filter(function(s){return s.g>0;});
   if(!on.length)return '<div class="wrap page"><h2 class="hand">'+esc(k.name)+'</h2><p>아직 모둠 편성이 없어요. 선생님께 말씀드려요.</p>'+
     '<div class="row"><button class="btn ghost" data-a="back-cls">반 다시 고르기</button></div></div>';
-  var html='<div class="wrap page"><h2 class="hand">'+esc(k.name)+' · 내 이름을 눌러요</h2>';
+  var html='<div class="wrap page start"><h2 class="hand">'+esc(k.name)+' · 내 이름을 눌러요</h2>';
   for(var g=1;g<=k.groups;g++){
     var ms=on.filter(function(s){return s.g===g;}); if(!ms.length)continue;
     html+='<div class="grp"><h3>'+g+'모둠</h3><div class="pick">'+ms.map(function(s){
