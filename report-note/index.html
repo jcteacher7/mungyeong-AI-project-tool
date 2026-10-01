@@ -151,6 +151,37 @@ textarea{width:100%;min-height:76px;padding:6px 12px;border:1.5px solid #CFC6B3;
 .tipcard h4{margin:14px 0 4px;font-size:16px}
 .tipgen{font-size:16px;color:var(--pastInk)}
 .tipex{background:rgba(255,255,255,.7);border-radius:8px;padding:10px 12px;font-size:16px;line-height:1.7}
+/* 칸 고르기·두 줄기 */
+.pagehead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.pagehead h2.hand{margin:0}
+.picker{display:flex;gap:6px;flex-wrap:wrap}
+.picker button{position:relative;padding:8px 16px;border-radius:10px;border:2px solid #CFC6B3;background:var(--paper);font-size:17px;min-height:48px}
+.picker button.on{background:var(--ink);color:#FBF8F1;border-color:var(--ink)}
+.picker .today{display:inline-block;margin-left:6px;font-size:12px;padding:1px 7px;border-radius:999px;background:var(--open);color:#fff;vertical-align:2px}
+.picker .cnt{display:inline-block;margin-left:6px;font-size:12px;padding:0 7px;border-radius:999px;background:rgba(0,0,0,.1)}
+.picker button.on .cnt{background:rgba(255,255,255,.25)}
+.askrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 12px}
+.askrow .ask{margin:0;font-size:18px}
+.colh{margin:0 0 6px;font-size:15px;font-weight:400;color:var(--soft)}
+.colh span{margin-left:4px}
+.col-write{background:rgba(255,255,255,.72);border:2px solid var(--open);border-radius:12px;padding:14px;margin-top:14px}
+.col-write.shut{border-color:#CFC6B3}
+.cmpgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.cmpgrid .col-write{grid-column:1 / -1}
+@media (orientation:landscape) and (min-width:900px){
+  .wrap{max-width:1320px}
+  header.top{padding:10px 0 2px} #title{font-size:28px}
+  .split{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:start}
+  .split.solo{grid-template-columns:1fr}
+  .col-write{margin-top:0;position:sticky;top:10px}
+  .split .w5grid{grid-template-columns:1fr 1fr}
+  .cmpgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.15fr);align-items:start}
+  .cmpgrid .col-write{grid-column:auto;position:sticky;top:10px}
+  .pick{grid-template-columns:repeat(5,1fr)}
+  .modal{justify-content:flex-end;align-items:stretch;padding:0}
+  .tipcard{max-width:440px;border-radius:18px 0 0 18px;overflow:auto;max-height:100vh}
+  .page{padding-top:16px;padding-bottom:20px}
+}
 /* 비교 */
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .mini{border-radius:10px;padding:10px 12px}
@@ -431,7 +462,7 @@ function cardForm(sheet,slot,opts){
   var key=sheet+':'+slot, kd=ui.kind[key]||[];
   var html='<div class="form">';
   if(opts.w5){
-    html+='<p class="hint">아는 칸만 채워도 돼요. 카드 한 장에 한 가지 사실!</p>'+fieldsHtml('f:'+key+':',null);
+    html+='<p class="hint">아는 칸만 채워요 · 카드 한 장에 한 가지 사실 · 친구 카드와 겹치지 않게</p>'+fieldsHtml('f:'+key+':',null);
   }
   if(opts.kind){
     html+='<div class="chips"><span class="lab">나누어 보기 (둘 다 골라도 되고, 안 골라도 돼요)</span>'+['nat','man'].map(function(x){
@@ -442,36 +473,50 @@ function cardForm(sheet,slot,opts){
     '<button class="btn" data-a="add" data-v="'+key+'" disabled>카드 올리기</button><span class="why" data-why="new:'+key+'">'+(opts.w5?'한 칸이라도 채우면 올릴 수 있어요.':'글을 쓰면 올릴 수 있어요.')+'</span>'+flashHtml(key)+'</div></div>';
   return html;
 }
-function slotBox(sheet,slot,idx){
+var SLOTNO={use:'①',life:'②',line:'③'};
+function firstOpenSlot(sh){var o=['use','life','line'].filter(function(x){return isOpen(sh+':'+x);});return o[0]||'use';}
+function slotPicker(sh,cur){
+  return '<div class="picker" role="tablist">'+['use','life','line'].map(function(x){
+    var op=isOpen(sh+':'+x);
+    return '<button role="tab" data-a="slot" data-v="'+x+'" class="'+(cur===x?'on':'')+'">'+SLOTNO[x]+' '+esc(cfg.slots[x].name)+
+      (op?'<span class="today">오늘</span>':'')+'</button>';}).join('')+'</div>';
+}
+function cardList(list,editable,empty){
+  return '<div class="cards">'+(list.length?list.map(function(c){return cardHtml(c,editable);}).join(''):'<p class="empty">'+(empty||'아직 카드가 없어요.')+'</p>')+'</div>';
+}
+function askRow(text,open){
+  return '<div class="askrow"><p class="ask">'+esc(text)+'</p><span class="badge '+(open?'open':'shut')+'">'+(open?'오늘 쓰는 칸':'보기만')+'</span></div>';
+}
+function slotArea(sheet,slot){
   var s=me(), key=sheet+':'+slot, open=isOpen(key), conf=cfg.slots[slot];
   var list=cardsOf(cid,s.g,sheet,slot);
-  return '<section class="slot'+(open?' isopen':'')+'"><h3>'+['①','②'][idx]+' '+esc(conf.name)+
-    '<span class="badge '+(open?'open':'shut')+'">'+(open?'오늘 쓰는 칸':'보기만')+'</span></h3>'+
-    '<p class="ask">'+esc(conf.ask)+'</p>'+
-    (open?'<p class="tip">우리 모둠 카드가 여기 모여요. 올리기 전에 친구 카드를 먼저 읽고, 같은 내용이면 새로운 것을 찾아봐요.</p>':'')+
-    '<div class="cards">'+(list.length?list.map(function(c){return cardHtml(c,open);}).join(''):'<p class="empty">아직 카드가 없어요.</p>')+'</div>'+
-    (open?cardForm(sheet,slot,{w5:true,kind:slot==='use'}):'')+'</section>';
+  return askRow(conf.ask,open)+'<div class="split'+(open?'':' solo')+'">'+
+    '<div class="col-read"><h4 class="colh">우리 모둠 카드 <span>'+list.length+'장</span></h4>'+cardList(list,open)+'</div>'+
+    (open?'<div class="col-write"><h4 class="colh">내가 쓰는 카드</h4>'+cardForm(sheet,slot,{w5:true,kind:slot==='use'})+'</div>':'')+
+    '</div>';
 }
-function lineBox(sheet){
+function lineArea(sheet){
   var s=me(), k=klass(cid), key=sheet+':line', open=isOpen(key), conf=cfg.slots.line, my=lineOf(cid,sid,sheet);
-  var html='<section class="slot'+(open?' isopen':'')+'"><h3>③ '+esc(conf.name)+
-    '<span class="badge '+(open?'open':'shut')+'">'+(open?'오늘 쓰는 칸':'보기만')+'</span></h3>'+
-    '<p class="ask">'+esc(conf.ask)+'</p><p class="tip">연결 한 줄은 모둠 카드가 아니라 <b>나만의 칸</b>이에요.</p>';
+  var mini=SLOTS.map(function(sl){var l=cardsOf(cid,s.g,sheet,sl);
+    return '<h5>'+SLOTNO[sl]+' '+esc(cfg.slots[sl].name)+'</h5>'+(l.length?'<ul>'+l.map(function(c){return '<li>'+esc(c.t)+'</li>';}).join('')+'</ul>':'<p class="empty">카드 없음</p>');}).join('');
+  var mates=k.students.filter(function(x){return x.g===s.g&&x.id!==sid;}), friends;
+  if(my){
+    var got=mates.map(function(x){var l=lineOf(cid,x.id,sheet);return l?'<li><b>'+esc(x.name)+'</b>'+esc(l.t)+'</li>':'';}).join('');
+    friends=got?'<ul class="lines">'+got+'</ul>':'<p class="empty">아직 남긴 친구가 없어요.</p>';
+  } else friends='<p class="empty">내 한 줄을 남기면 모둠 친구들의 한 줄이 보여요.</p>';
+  var write;
   if(open){
-    html+='<textarea data-k="line:'+sheet+'" data-min="1" placeholder="'+esc(conf.frame)+'">'+esc(my?my.t:'')+'</textarea>'+
+    write='<p class="hint">연결 한 줄은 모둠 카드가 아니라 <b>나만의 칸</b>이에요.</p>'+
+      '<textarea data-k="line:'+sheet+'" data-min="1" placeholder="'+esc(conf.frame)+'">'+esc(my?my.t:'')+'</textarea>'+
       '<div class="row"><button class="btn ghost" data-a="frame" data-v="line:'+sheet+'" data-f="'+esc(conf.frame)+'">틀 가져오기</button>'+
       '<button class="btn" data-a="line" data-v="'+sheet+'" disabled>'+(my?'고친 한 줄 남기기':'내 한 줄 남기기')+'</button>'+
       '<span class="why" data-why="line:'+sheet+'">글을 쓰면 남길 수 있어요.</span>'+flashHtml(key)+'</div>'+
       (my&&my._local?'<p class="local-note">아직 이 기기에만 남아 있어요.</p>':'');
-  } else {
-    html+=my?'<div class="cards"><div class="card mine"><div class="t">'+esc(my.t)+'</div></div></div>':'<p class="empty">아직 내 한 줄이 없어요.</p>';
-  }
-  var mates=k.students.filter(function(x){return x.g===s.g&&x.id!==sid;});
-  if(my){
-    var got=mates.map(function(x){var l=lineOf(cid,x.id,sheet);return l?'<li><b>'+esc(x.name)+'</b>'+esc(l.t)+'</li>':'';}).join('');
-    html+='<h4 style="margin:12px 0 0;font-size:15px;color:var(--soft);font-weight:400">우리 모둠 친구들의 한 줄</h4>'+(got?'<ul class="lines">'+got+'</ul>':'<p class="empty">아직 남긴 친구가 없어요.</p>');
-  } else html+='<p class="empty">내 한 줄을 남기면 모둠 친구들의 한 줄이 보여요.</p>';
-  return html+'</section>';
+  } else write=my?'<div class="card mine"><div class="t">'+esc(my.t)+'</div></div>':'<p class="empty">아직 내 한 줄이 없어요.</p>';
+  return askRow(conf.ask,open)+'<div class="split">'+
+    '<div class="col-read"><h4 class="colh">이 장에서 모은 카드</h4><div class="mini '+sheet+'">'+mini+'</div>'+
+      '<h4 class="colh" style="margin-top:14px">우리 모둠 친구들의 한 줄</h4>'+friends+'</div>'+
+    '<div class="col-write'+(open?'':' shut')+'"><h4 class="colh">내 한 줄</h4>'+write+'</div></div>';
 }
 function tipBox(kind){
   if(!ui.tip)return '';
@@ -485,29 +530,28 @@ function tipBox(kind){
 }
 function scNote(){
   var s=me(); if(!s)return scWho();
-  var sh=view.sheet;
-  return '<div class="wrap">'+tabs()+'<div class="page '+sh+'"><h2 class="hand">'+esc(cfg.sheets[sh])+' 취재 노트 · '+s.g+'모둠</h2>'+
-    slotBox(sh,'use',0)+slotBox(sh,'life',1)+lineBox(sh)+'</div></div>'+tipBox('note');
+  var sh=view.sheet, sl=view.slot||firstOpenSlot(sh);
+  return '<div class="wrap">'+tabs()+'<div class="page '+sh+'"><div class="pagehead"><h2 class="hand">'+esc(cfg.sheets[sh])+' 취재 노트 · '+s.g+'모둠</h2>'+
+    slotPicker(sh,sl)+'</div>'+(sl==='line'?lineArea(sh):slotArea(sh,sl))+'</div></div>'+tipBox('note');
 }
 /* 4. 비교하기 */
 function scCmp(){
   var s=me(); if(!s)return scWho();
-  var open=isOpen('cmp');
+  var open=isOpen('cmp'), cs=view.cslot||'use', conf=cfg.cmp[cs], list=cardsOf(cid,s.g,'cmp',cs);
   var side=SHEETS.map(function(sh){
     return '<div class="mini '+sh+'"><h4>'+esc(cfg.sheets[sh])+'</h4>'+SLOTS.map(function(sl){
       var l=cardsOf(cid,s.g,sh,sl);
       return '<h5>'+esc(cfg.slots[sl].name)+'</h5>'+(l.length?'<ul>'+l.map(function(c){return '<li>'+esc(c.t)+'</li>';}).join('')+'</ul>':'<p class="empty">카드 없음</p>');
     }).join('')+'</div>';
   }).join('');
-  var boxes=CMP.map(function(sl){
-    var conf=cfg.cmp[sl], list=cardsOf(cid,s.g,'cmp',sl);
-    return '<section class="slot'+(open?' isopen':'')+'"><h3>'+esc(conf.name)+'<span class="badge '+(open?'open':'shut')+'">'+(open?'오늘 쓰는 칸':'보기만')+'</span></h3>'+
-      (conf.frame?'<p class="ask">'+esc(conf.frame)+'</p>':'')+
-      '<div class="cards">'+(list.length?list.map(function(c){return cardHtml(c,open);}).join(''):'<p class="empty">아직 카드가 없어요.</p>')+'</div>'+
-      (open?cardForm('cmp',sl,{frame:conf.frame}):'')+'</section>';
-  }).join('');
-  return '<div class="wrap">'+tabs()+'<div class="page"><h2 class="hand">과거와 현재 나란히 보기 · '+s.g+'모둠</h2>'+
-    '<p class="sub">위에서 두 장을 견주어 보고, 아래에 모둠이 함께 적어요.</p><div class="cols">'+side+'</div>'+boxes+'</div></div>'+tipBox('cmp');
+  var pick='<div class="picker">'+CMP.map(function(x){var n=cardsOf(cid,s.g,'cmp',x).length;
+    return '<button data-a="cslot" data-v="'+x+'" class="'+(cs===x?'on':'')+'">'+esc(cfg.cmp[x].name)+(n?'<span class="cnt">'+n+'</span>':'')+'</button>';}).join('')+'</div>';
+  var write='<div class="col-write'+(open?'':' shut')+'">'+pick+
+    (conf.frame?'<p class="ask">'+esc(conf.frame)+'</p>':'')+cardList(list,open,'아직 카드가 없어요.')+
+    (open?cardForm('cmp',cs,{frame:conf.frame}):'<p class="empty">선생님이 칸을 열면 쓸 수 있어요.</p>')+'</div>';
+  return '<div class="wrap">'+tabs()+'<div class="page"><div class="pagehead"><h2 class="hand">과거와 현재 나란히 보기 · '+s.g+'모둠</h2>'+
+    '<span class="badge '+(open?'open':'shut')+'">'+(open?'오늘 쓰는 칸':'보기만')+'</span></div>'+
+    '<div class="cmpgrid">'+side+write+'</div></div></div>'+tipBox('cmp');
 }
 
 /* 선생님: 암호 */
@@ -628,9 +672,11 @@ document.addEventListener('click',async function(e){
   var a=b.dataset.a, v=b.dataset.v, A=document.getElementById('app');
   if(a==='cls'){cid=+v;sid=null;rememberMe();try{await loadData(cid);}catch(err){}go('who');}
   else if(a==='back-cls'){cid=null;sid=null;rememberMe();go('cls');}
-  else if(a==='who'){sid=+v;rememberMe();overlayPending();go('note',{sheet:firstOpenSheet()});}
+  else if(a==='who'){sid=+v;rememberMe();overlayPending();var fs=firstOpenSheet();go('note',{sheet:fs,slot:firstOpenSlot(fs)});}
   else if(a==='back-who'){sid=null;rememberMe();try{await loadData(cid);}catch(err){}go('who');}
-  else if(a==='sheet'){go('note',{sheet:v});}
+  else if(a==='sheet'){go('note',{sheet:v,slot:firstOpenSlot(v)});}
+  else if(a==='slot'){view.slot=v;ui.edit=null;ui.del=null;render();}
+  else if(a==='cslot'){view.cslot=v;ui.edit=null;ui.del=null;render();}
   else if(a==='cmp'){go('cmp');}
   else if(a==='kind'){var ks=(ui.kind[b.dataset.slot]||[]).slice(),ix=ks.indexOf(v);if(ix>=0)ks.splice(ix,1);else ks.push(v);ui.kind[b.dataset.slot]=ks;render();}
   else if(a==='frame'){var ta=A.querySelector('[data-k="'+v+'"]');if(ta){if(!ta.value.trim())ta.value=b.dataset.f;ta.focus();var i=ta.value.indexOf('(');if(i>=0)try{ta.setSelectionRange(i+1,i+1);}catch(err){}syncBtn(ta);}}
@@ -747,7 +793,7 @@ async function saveSettings(){
   try{ await flush(); if(cid)await loadData(cid); }catch(e){}
   loaded=true;
   if(/[?&]t=1/.test(location.search)){ tTab=cid||cfg.classes[0].id; try{await loadData(tTab);}catch(e){} go('teacher'); }
-  else go(cid?(sid?'note':'who'):'cls', sid?{sheet:firstOpenSheet()}:null);
+  else { var fs0=firstOpenSheet(); go(cid?(sid?'note':'who'):'cls', sid?{sheet:fs0,slot:firstOpenSlot(fs0)}:null); }
   setInterval(async function(){
     if(document.hidden||busy()||ui.edit)return;
     if(view.s==='teacher'&&cfgDirty)return;
