@@ -50,26 +50,38 @@ header.top{max-width:1180px;margin:0 auto;display:flex;align-items:baseline;just
 /* 수첩 */
 .page{background:var(--paper);border-radius:6px 14px 14px 6px;padding:22px 22px 26px;
   box-shadow:0 1px 0 #d8d0bf,0 10px 24px -14px rgba(60,50,30,.35);
-  background-image:repeating-linear-gradient(transparent 0 31px,var(--rule) 31px 32px);
-  border-left:10px solid #CDBF9F}
+  background-image:linear-gradient(to right,transparent 0 30px,#E9B4A8 30px 31.5px,transparent 31.5px);
+  padding-left:48px;border-left:10px solid #CDBF9F}
 .page.past{background-color:var(--past);border-left-color:#5A4E40}
 .page.now{background-color:var(--now);border-left-color:#5B8DB0}
 h2.hand{font-family:var(--hand);font-size:36px;font-weight:400;margin:0 0 6px;line-height:1.1}
 .sub{color:var(--soft);font-size:15px;margin:0 0 14px}
 
 /* 고르기 */
-.pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:14px}
-.pick button{background:#fff;border:1.5px solid var(--rule);border-radius:12px;padding:16px 12px;font-size:19px;text-align:center;min-height:64px}
-.pick button:hover{border-color:var(--nowInk)}
+.pick{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+@media (max-width:560px){.pick{grid-template-columns:repeat(2,1fr)}}
+.pick button{background:#fff;border:2px solid #CFC6B3;border-radius:10px;padding:16px 12px;font-size:20px;text-align:center;min-height:68px;
+  box-shadow:0 2px 0 rgba(0,0,0,.06);transition:transform .1s ease-out,border-color .1s}
+.pick button:hover{border-color:var(--ink)} .pick button:active{transform:translateY(2px)}
 .pick button span{display:block;font-size:13px;color:var(--soft)}
 .grp{margin-top:18px}
 .grp h3{font-family:var(--hand);font-size:28px;font-weight:400;margin:0}
 
 /* 장 넘기기 */
-.tabs{display:flex;gap:8px;margin:6px 0 14px;flex-wrap:wrap}
-.tabs button{padding:10px 18px;border-radius:999px;background:#fff;border:1.5px solid var(--rule);font-size:17px}
-.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.tabs .who{margin-left:auto;font-size:14px;color:var(--soft);padding:10px 4px;border:none;background:none}
+.tabs{display:flex;gap:6px;margin:10px 0 0;padding-left:16px;align-items:flex-end;flex-wrap:wrap}
+.tabs button{padding:10px 20px 9px;border-radius:12px 12px 0 0;background:#DDD5C6;border:1px solid rgba(60,50,30,.12);border-bottom:none;
+  font-size:17px;color:var(--soft);min-height:48px;transform:translateY(3px);transition:transform .15s ease-out}
+.tabs button:hover{transform:translateY(0)}
+.tabs button.on{transform:none;color:var(--ink);font-weight:400;box-shadow:0 -2px 6px -4px rgba(60,50,30,.4)}
+.tabs button.t-past.on{background:var(--past)} .tabs button.t-now.on{background:var(--now)} .tabs button.t-cmp.on{background:var(--paper)}
+.tabs button.t-past{border-top:3px solid #5A4E40} .tabs button.t-now{border-top:3px solid #5B8DB0} .tabs button.t-cmp{border-top:3px solid #CDBF9F}
+.tabs .tipbtn{margin-left:auto;align-self:center;transform:none;border-radius:4px 4px 12px 4px;border:1px solid #E2CF6E;border-bottom:1px solid #E2CF6E}
+.wrap > .page{border-top-left-radius:0}
+.tabs button.on:not([class*="t-"]){background:#fff}
+.tabs .who{margin-left:auto;font-size:14px;color:var(--soft);padding:10px 4px;border:none;background:none;transform:none;min-height:0;box-shadow:none}
+.tabs .who + .who{margin-left:8px}
+.tabtools{display:inline-flex;gap:6px;align-items:center}
+.swap{font-size:14px;color:var(--soft);text-decoration:underline;text-underline-offset:3px;padding:4px 2px;margin-left:8px}
 
 /* 칸 */
 .slot{margin:18px 0 0;padding:14px 0 6px;border-top:2px dashed rgba(0,0,0,.12)}
@@ -100,14 +112,18 @@ h2.hand{font-family:var(--hand);font-size:36px;font-weight:400;margin:0 0 6px;li
 /* 쓰기 */
 .form{margin-top:8px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
-.chips button{padding:6px 12px;border-radius:999px;background:#fff;border:1.5px solid var(--rule);font-size:15px;min-height:38px}
-.chips button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chips button{padding:6px 14px;border-radius:10px;background:var(--paper);border:2px solid #CFC6B3;font-size:16px;min-height:44px}
+.chips button.on{background:var(--ink);color:#FBF8F1;border-color:var(--ink)}
 .chips .lab{font-size:13px;color:var(--soft);align-self:center;margin-right:4px}
 .hint{font-size:15px;color:var(--nowInk);margin:4px 0}
-textarea{width:100%;min-height:76px;padding:10px 12px;border:1.5px solid #CFC6B3;border-radius:10px;background:#fff;resize:vertical;line-height:1.5}
+textarea{width:100%;min-height:76px;padding:6px 12px;border:1.5px solid #CFC6B3;border-radius:10px;resize:vertical;line-height:32px;
+  background-color:#fff;background-image:repeating-linear-gradient(transparent 0 31px,var(--rule) 31px 32px);background-position:0 6px;background-attachment:local}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
-.btn{background:var(--ink);color:#fff;border-radius:10px;padding:12px 20px;font-size:17px;min-height:48px}
-.btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--rule)}
+.btn{background:var(--ink);color:#FBF8F1;border:2px solid var(--ink);border-radius:10px;padding:10px 20px;font-size:17px;min-height:48px;
+  box-shadow:0 2px 0 rgba(0,0,0,.18);transition:transform .1s ease-out,box-shadow .1s ease-out}
+.btn:active{transform:translateY(2px);box-shadow:none}
+.btn:disabled{opacity:1;background:transparent;color:var(--soft);border:2px dashed #BDB3A0;box-shadow:none}
+.btn.ghost{background:var(--paper);color:var(--ink);border:2px solid #CFC6B3;box-shadow:0 2px 0 rgba(0,0,0,.06)}
 .why{font-size:14px;color:var(--soft)}
 .saved{font-size:15px;color:var(--ok);font-weight:700}
 .local-note{font-size:14px;color:var(--bad)}
@@ -262,6 +278,7 @@ async function loadCfg(){
   if(!r.ok)throw new Error('HTTP '+r.status);
   var rows=await r.json();
   if(rows.length&&rows[0].value)cfg=merge(DEFAULT,rows[0].value);
+  connected=true;
 }
 async function loadData(c){
   if(!c)return;
@@ -342,7 +359,7 @@ function busy(){ if(composing)return true; if(!typing())return false; return Dat
 function render(){
   if(composing){pendingRender=true;return;}
   var A=document.getElementById('app'), k=klass(cid), s=me();
-  document.getElementById('state').innerHTML=(k&&view.s!=='teacher'&&view.s!=='lock'?esc(k.name)+(s?' · '+s.g+'모둠 · <b>'+esc(s.name)+'</b>':''):'')+(connected?'':' · <span style="color:var(--bad)">연결 끊김</span>');
+  document.getElementById('state').innerHTML=(k&&view.s!=='teacher'&&view.s!=='lock'?esc(k.name)+(s?' · '+s.g+'모둠 · <b>'+esc(s.name)+'</b>'+((view.s==='note'||view.s==='cmp')?'<button class="swap" data-a="back-who">이름 바꾸기</button>':''):''):'')+(connected?'':' · <span style="color:var(--bad)">인터넷 연결을 확인해 주세요</span>');
   var keep={}, fk=null, cs=0, ce=0, ae=document.activeElement;
   A.querySelectorAll('[data-k]').forEach(function(el){ keep[el.dataset.k]=el.value; if(el===ae){fk=el.dataset.k;cs=el.selectionStart;ce=el.selectionEnd;} });
   var f={cls:scClass,who:scWho,note:scNote,cmp:scCmp,lock:scLock,teacher:scTeacher}[view.s]||scClass;
@@ -382,9 +399,9 @@ function scWho(){
 function tabs(){
   var sh=view.s==='cmp'?'cmp':view.sheet;
   return '<div class="tabs">'+SHEETS.map(function(x){
-    return '<button data-a="sheet" data-v="'+x+'" class="'+(sh===x?'on':'')+'">'+esc(cfg.sheets[x])+' 장</button>';}).join('')+
-    '<button data-a="cmp" class="'+(sh==='cmp'?'on':'')+'">비교하기</button>'+
-    '<button class="who" data-a="back-who">이름 바꾸기</button><button class="tipbtn" data-a="tip">선생님의 취재 팁</button></div>';
+    return '<button data-a="sheet" data-v="'+x+'" class="t-'+x+(sh===x?' on':'')+'">'+esc(cfg.sheets[x])+' 장</button>';}).join('')+
+    '<button data-a="cmp" class="t-cmp'+(sh==='cmp'?' on':'')+'">비교하기</button>'+
+    '<button class="tipbtn" data-a="tip">선생님의 취재 팁</button></div>';
 }
 function cardHtml(c,editable){
   var mine=c.by===sid;
