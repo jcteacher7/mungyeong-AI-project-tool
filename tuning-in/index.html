@@ -437,9 +437,24 @@ function stableSig(){
   });
   return parts.join(';');
 }
+/* 한글은 여러 자모를 모아 한 글자를 만든다. 그 사이에 화면을 다시 그리면
+   조합이 끊겨 'ㅇㅏㄴ' 처럼 흩어진다. 조합 중이거나 글을 치는 동안에는 그리지 않는다. */
+var composing=false, pendingRender=false;
+document.addEventListener('compositionstart',function(){composing=true;});
+document.addEventListener('compositionend',function(){
+  composing=false;
+  if(pendingRender){pendingRender=false;setTimeout(function(){if(!composing)render();},0);}
+});
+function isTyping(){
+  if(composing)return true;
+  var a=document.activeElement;
+  return !!(a&&(a.tagName==='TEXTAREA'||a.tagName==='INPUT'));
+}
+
 var lastSig=null;
 async function poll(){
   if(!connected||pollBusy||document.hidden||!SESSION||!group)return;
+  if(isTyping())return;
   pollBusy=true;
   try{
     const byG=await pull(state.step===4);
@@ -706,6 +721,7 @@ function drawQR(){
   document.head.appendChild(sc);
 }
 function render(){
+  if(typeof composing!=='undefined'&&composing){pendingRender=true;return;}
   renderTop();
   var main=$('main');
   var focused=document.activeElement;
