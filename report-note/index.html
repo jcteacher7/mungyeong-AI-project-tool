@@ -267,6 +267,13 @@ input,textarea,select{font-size:18px}
 ::selection{background:#FFE58A;color:var(--ink)}
 input,textarea{caret-color:var(--open)}
 html{scrollbar-color:#BFB49F transparent}
+/* ── 마무리 ── */
+.card{position:relative}
+.card.mine::before{content:'';position:absolute;top:-7px;left:50%;width:58px;height:15px;transform:translateX(-50%) rotate(-2deg);
+  background:rgba(217,98,43,.32);border-radius:2px}
+.card.mine{outline:none}
+.tipcard .btn{min-width:140px}
+.empty{color:var(--soft)}
 </style>
 </head>
 <body>
@@ -594,6 +601,8 @@ function scCmp(){
   var s=me(); if(!s)return scWho();
   var open=isOpen('cmp'), cs=view.cslot||'use', conf=cfg.cmp[cs], list=cardsOf(cid,s.g,'cmp',cs);
   var side=SHEETS.map(function(sh){
+    var total=SLOTS.reduce(function(n,sl){return n+cardsOf(cid,s.g,sh,sl).length;},0);
+    if(!total)return '<div class="mini '+sh+'"><h4>'+esc(cfg.sheets[sh])+'</h4><p class="empty">'+esc(cfg.sheets[sh])+' 장에 아직 카드가 없어요.</p></div>';
     return '<div class="mini '+sh+'"><h4>'+esc(cfg.sheets[sh])+'</h4>'+SLOTS.map(function(sl){
       var l=cardsOf(cid,s.g,sh,sl);
       return '<h5>'+esc(cfg.slots[sl].name)+'</h5>'+(l.length?'<ul>'+l.map(function(c){return '<li>'+esc(c.t)+'</li>';}).join('')+'</ul>':'<p class="empty">카드 없음</p>');
