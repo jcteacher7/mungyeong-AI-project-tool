@@ -224,7 +224,7 @@ var DEFAULT={
   ]
 };
 var cfg=clone(DEFAULT), recs={}, draft={};
-var cid=null, sid=null, view={s:'cls'}, tTab=1;
+var cid=null, sid=null, view={s:'cls'}, tTab=1, tStage=0;
 var unlocked=false, typed='', wrong=false, cfgDirty=false, justSaved=0;
 try{unlocked=localStorage.getItem('reflect-teacher')==='1';}catch(e){}
 
@@ -477,7 +477,9 @@ function scTeacher(){
     '<h2 style="font-size:24px">선생님 화면</h2>'+
     '<div class="tabs">'+cfg.classes.map(function(c){
       return '<button data-tab="'+c.id+'" aria-selected="'+(c.id===k.id)+'">'+esc(c.name)+'</button>';}).join('')+'</div>'+
-    '<p class="quiet" style="margin-top:14px">지금 단계를 고르면 그 반 학생들에게 그 단계가 열립니다. 이름을 누르면 그 학생의 길이 열리고 인쇄할 수 있습니다.</p>'+
+    '<p class="quiet" style="margin-top:14px">'+esc(k.name)+'은(는) 지금 <b style="color:var(--lit)">'+
+      esc((stage(k.cur)||{}).t||'—')+'</b> 입니다. 다음 단계로 넘기려면 아래에서 그 단계를 누르세요. '+
+      '아이들 화면이 바로 그 단계로 바뀝니다. 이름을 누르면 그 학생의 길이 열리고 인쇄할 수 있습니다.</p>'+
     '<div class="chips">'+cfg.stages.map(function(s){
       return '<button data-cur="'+s.id+'" aria-pressed="'+(s.id===k.cur)+'">'+esc(s.t)+'</button>';}).join('')+'</div>'+
     (k.students.length?'<div class="tblwrap"><table><thead><tr><th style="text-align:left">이름</th>'+
@@ -490,6 +492,29 @@ function scTeacher(){
               return '<i class="mk v'+(r[a.k]||0)+'" title="'+esc(a.label)+'"></i>';}).join('')+'</span>':'<span class="quiet">·</span>')+'</td>';
           }).join('')+'</tr>';
       }).join('')+'</tbody></table></div>':'<p class="msg">이 반의 명단이 아직 없습니다.</p>')+
+
+    /* 아이들이 적은 글 모아 보기 */
+    (function(){
+      var vs=stage(tStage)||stage(k.cur)||cfg.stages[0];
+      if(!vs||!k.students.length)return '';
+      var wrote=k.students.filter(function(s){var r=rec(k.id,s.id,vs.id);return r&&r.note;});
+      var blank=k.students.filter(function(s){return !rec(k.id,s.id,vs.id);});
+      return '<hr class="rule"><h3>아이들이 적은 글</h3>'+
+        '<div class="chips" style="margin:12px 0">'+cfg.stages.map(function(s){
+          return '<button data-vs="'+s.id+'" aria-pressed="'+(s.id===vs.id)+'">'+esc(s.s)+'</button>';
+        }).join('')+'</div>'+
+        '<p class="quiet">'+esc(vs.t)+' · '+esc(vs.q)+'</p>'+
+        (wrote.length?'<ul class="entries">'+wrote.map(function(s){
+          var r=rec(k.id,s.id,vs.id);
+          return '<li><p class="st">'+esc(s.name)+
+            '<span class="marks">'+stageATL(vs).map(function(a){
+              return '<i class="mk v'+(r[a.k]||0)+'" title="'+esc(a.label)+'"></i>';}).join('')+'</span></p>'+
+            '<p class="tx">'+esc(r.note)+'</p></li>';
+        }).join('')+'</ul>':'<p class="quiet" style="margin-top:10px">아직 적은 글이 없습니다.</p>')+
+        (blank.length?'<p class="quiet" style="margin-top:14px">아직 안 한 사람 '+blank.length+'명 — '+
+          esc(blank.map(function(s){return s.name;}).join(', '))+'</p>':
+          '<p class="quiet" style="margin-top:14px">모두 마쳤습니다.</p>');
+    })()+
 
     '<hr class="rule"><h3>반과 명단</h3>'+
     cfg.classes.map(function(c,i){
@@ -551,7 +576,8 @@ function wire(){
   A.querySelectorAll('[data-k]').forEach(function(b){b.onclick=function(){
     var t=document.getElementById('note'); if(t)draft.note=t.value;
     draft[b.dataset.k]=+b.dataset.v; render();};});
-  A.querySelectorAll('[data-tab]').forEach(function(b){b.onclick=function(){tTab=+b.dataset.tab;render();};});
+  A.querySelectorAll('[data-tab]').forEach(function(b){b.onclick=function(){tTab=+b.dataset.tab;tStage=0;render();};});
+  A.querySelectorAll('[data-vs]').forEach(function(b){b.onclick=function(){tStage=+b.dataset.vs;render();};});
   A.querySelectorAll('[data-see]').forEach(function(b){b.onclick=function(){
     cid=tTab; sid=+b.dataset.see; go('teacher',{see:1});};});
   A.querySelectorAll('[data-cur]').forEach(function(b){b.onclick=async function(){
