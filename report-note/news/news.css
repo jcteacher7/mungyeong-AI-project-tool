@@ -1,0 +1,79 @@
+/* 문경 타임머신 신문 — 종이 신문 느낌, A4 한 장 인쇄 + 태블릿 화면 겸용 */
+:root{
+  --paper:#FBF8F1; --ink:#1F1D1A; --soft:#4F4A43; --rule:#2B2824; --hair:#CFC6B3;
+  --mark:#FFE36E; --past:#5A4E40; --now:#245B80; --accent:var(--past);
+}
+body.now{--accent:var(--now)}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#E7E1D5;color:var(--ink);font-family:'Gowun Dodum',system-ui,sans-serif;font-synthesis:none}
+.sheet{width:210mm;min-height:297mm;margin:16px auto;background:var(--paper);padding:9mm 10mm 8mm;
+  box-shadow:0 10px 30px -14px rgba(40,30,15,.45);font-size:10.4pt;line-height:1.62}
+mark{background:linear-gradient(transparent 45%,var(--mark) 45%);color:inherit;padding:0 1px}
+
+/* 머리 */
+.mast{display:grid;grid-template-columns:30mm 1fr 34mm;align-items:center;gap:5mm;padding-bottom:3mm;border-bottom:3px solid var(--rule)}
+.badge{display:flex;flex-direction:column;align-items:center;gap:1mm;font-size:8.5pt;color:var(--soft);text-align:center;line-height:1.25}
+.badge svg{width:15mm;height:15mm}
+.title{font-family:'Black Han Sans',sans-serif;font-size:40pt;line-height:1;text-align:center;letter-spacing:.02em;margin:0}
+.issue{border:2px solid var(--rule);padding:2mm 3mm;text-align:center;font-family:'Black Han Sans',sans-serif;line-height:1.25}
+.issue .no{font-size:13pt} .issue .era{font-size:11pt;color:var(--accent)}
+.dateline{display:flex;justify-content:space-between;font-size:8.5pt;color:var(--soft);padding:1.2mm 0;border-bottom:1px solid var(--rule);margin-bottom:3.5mm}
+
+/* 지면 */
+.grid{display:grid;grid-template-columns:repeat(12,1fr);column-gap:5mm;row-gap:3.5mm}
+.art{position:relative}
+.art + .art,.box{}
+.c8{grid-column:span 8} .c6{grid-column:span 6} .c4{grid-column:span 4} .c12{grid-column:span 12}
+.vline{border-left:1px solid var(--hair);padding-left:5mm}
+.hline{border-top:2px solid var(--rule);padding-top:3mm}
+h2{font-family:'Gowun Batang',serif;font-weight:700;font-size:16.5pt;line-height:1.25;margin:0 0 1mm}
+h2 .hl{background:linear-gradient(transparent 50%,var(--mark) 50%)}
+.deck{font-family:'Gowun Batang',serif;font-weight:700;font-size:10.5pt;color:var(--accent);margin:0 0 2mm}
+.art p{margin:0 0 1.6mm;text-align:justify;word-break:keep-all}
+.no-tag{display:inline-block;font-family:'Black Han Sans',sans-serif;font-size:9pt;color:#fff;background:var(--accent);padding:.2mm 2mm;margin-right:1.5mm;vertical-align:2px}
+.fig{float:left;width:43%;margin:1mm 4mm 1.5mm 0;border:1px solid var(--hair);background:#F3EDE0}
+.fig.right{float:right;margin:1mm 0 1.5mm 4mm}
+.fig svg{display:block;width:100%;height:auto}
+.fig figcaption{font-size:8pt;color:var(--soft);padding:1mm 2mm;border-top:1px solid var(--hair);line-height:1.35}
+.quote{border-left:3px solid var(--accent);padding:.5mm 0 .5mm 3mm;margin:1.5mm 0;font-family:'Gowun Batang',serif;font-weight:700;font-size:10pt}
+
+/* 상자 */
+.box{border:2px solid var(--rule);padding:3mm 3.5mm;align-self:start}
+.box h3{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:12pt;margin:0 0 2mm;text-align:center}
+.box h3::before,.box h3::after{content:' [ ';color:var(--accent)} .box h3::after{content:' ] '}
+.words{margin:0;padding:0;list-style:none;font-size:9.6pt;line-height:1.5}
+.words li{padding:1mm 0;border-bottom:1px dotted var(--hair)}
+.words b{font-weight:400;background:linear-gradient(transparent 50%,var(--mark) 50%);margin-right:1.5mm}
+.w5{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6mm;margin:0;padding:0;list-style:none}
+.w5 li{border:1.5px solid var(--rule);text-align:center;padding:1.5mm .5mm;font-family:'Black Han Sans',sans-serif;font-size:11pt;line-height:1.1}
+.w5 li span{display:block;font-family:'Gowun Dodum',sans-serif;font-size:7.6pt;color:var(--soft);margin-top:.8mm}
+.box .tip{font-size:9pt;margin:2.2mm 0 0;line-height:1.5}
+
+.foot{margin-top:4mm;padding-top:2mm;border-top:3px double var(--rule);font-size:7.8pt;color:var(--soft);line-height:1.45}
+
+/* 화면 도구 */
+.tools{position:sticky;top:0;z-index:5;display:flex;gap:10px;justify-content:center;padding:10px;background:rgba(231,225,213,.92);backdrop-filter:blur(4px)}
+.tools button,.tools a{font:inherit;font-size:16px;border:2px solid var(--rule);background:var(--paper);color:var(--ink);border-radius:10px;padding:8px 16px;text-decoration:none;cursor:pointer;min-height:44px}
+.tools .note{align-self:center;font-size:14px;color:var(--soft)}
+
+@media screen and (max-width:820px){
+  .sheet{width:auto;min-height:0;margin:10px;padding:16px;font-size:16px}
+  .mast{grid-template-columns:1fr;text-align:center}
+  .badge{display:none}
+  .title{font-size:38px}
+  .grid{display:block}
+  .art,.box{margin-bottom:16px}
+  .vline{border-left:none;padding-left:0}
+  .fig{width:100%;float:none;margin:6px 0}
+  h2{font-size:24px}
+}
+@media screen and (min-width:821px) and (max-width:1100px){
+  .sheet{width:auto;max-width:1000px;margin:10px auto;font-size:15px}
+}
+@media print{
+  @page{size:A4;margin:0}
+  body{background:none}
+  .tools{display:none}
+  .sheet{margin:0;box-shadow:none;width:210mm;height:297mm;overflow:hidden}
+}

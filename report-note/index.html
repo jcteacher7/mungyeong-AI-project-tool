@@ -289,6 +289,7 @@ html{scrollbar-color:#BFB49F transparent}
 .linkcard:hover,.linkcard:focus-visible{border-color:var(--nowInk)}
 .linkcard .lt{display:block;font-size:18px;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(36,91,128,.4)}
 .linkcard .lf{display:block;font-size:16px;color:var(--soft);margin-top:4px}
+.linkcard .lv.main{background:var(--open);color:#fff}
 .linkcard .lv{display:inline-block;margin-top:6px;font-size:14px;padding:1px 10px;border-radius:999px;background:rgba(0,0,0,.08)}
 </style>
 </head>
@@ -330,11 +331,11 @@ var DEFAULT={
     {k:'why',t:'왜',ask:'왜 그랬을까요?'},
     {k:'how',t:'어떻게',ask:'어떻게 했나요?'}
   ],
-  links:{past:'‘거인의 숲’서 깔깔, ‘백두대간’에 진지… (서울신문 2023.4.7) | https://m.seoul.co.kr/news/2023/04/07/20230407014001 | 박물관에 되살린 사택촌: 공동 우물, 목욕탕, 가게 | 쉬움\n철거 대신 보존 선택한 문경 은성광업소 (강원일보 2026.8.25) | https://v.daum.net/v/UKr7Z9rNlM | 언제·어디서 석탄을 캤나, 사택·우물·목욕탕·이발소, 인구 16만 | 보통\n문경석탄박물관 소개 (경북매일 2025.11.25) | https://www.kbmaeil.com/article/20251122500051 | 광부 가족의 집과 살림, 갱도 안의 일 | 보통',now:'눈가림 옹벽…‘죽은물’ 하천으로 ‘줄줄’ (매일신문 2005.3.12) | https://www.imaeil.com/page/view/2005031211145937448 | 폐광 뒤 땅속 물이 냇물을 누렇게 만든 일 | 어려움\n광해공단 ‘갑정탄광 수질정화시설’ (에너지경제신문 2013.5.30) | https://m.ekn.kr/view.php?key=83728 | 물풀(부들)로 물을 깨끗하게 하고 생태공원이 된 일 | 어려움\n철거 대신 보존 선택한 문경 은성광업소 (강원일보 2026.8.25) | https://v.daum.net/v/UKr7Z9rNlM | 석탄박물관(1999년)과 에코월드, 한 해 방문객 수 | 보통\n‘거인의 숲’서 깔깔, ‘백두대간’에 진지… (서울신문 2023.4.7) | https://m.seoul.co.kr/news/2023/04/07/20230407014001 | 지금 에코월드에서 할 수 있는 것 | 쉬움\n‘왕과 사는 남자’ 흥행… ‘문경 러시’ (경북매일 2026.3.26) | https://kbmaeil.com/article/20260325500242 | 문경새재 오픈세트장에 늘어난 관광객, 한복 체험 | 보통'},
+  links:{past:'문경 타임머신 신문 1호 · 탄광 시절 (수업용으로 쉽게 다시 쓴 신문) | https://jcteacher7.github.io/mungyeong-AI-project-tool/report-note/news/past.html | 기사 4개 · 기사마다 이용 방식 1장, 생활 모습 1장 | 먼저 읽어요\n‘거인의 숲’서 깔깔, ‘백두대간’에 진지… (서울신문 2023.4.7) | https://m.seoul.co.kr/news/2023/04/07/20230407014001 | 박물관에 되살린 사택촌: 공동 우물, 목욕탕, 가게 | 쉬움\n철거 대신 보존 선택한 문경 은성광업소 (강원일보 2026.8.25) | https://v.daum.net/v/UKr7Z9rNlM | 언제·어디서 석탄을 캤나, 사택·우물·목욕탕·이발소, 인구 16만 | 보통\n문경석탄박물관 소개 (경북매일 2025.11.25) | https://www.kbmaeil.com/article/20251122500051 | 광부 가족의 집과 살림, 갱도 안의 일 | 보통',now:'문경 타임머신 신문 2호 · 탄광 그 뒤, 지금 (수업용으로 쉽게 다시 쓴 신문) | https://jcteacher7.github.io/mungyeong-AI-project-tool/report-note/news/now.html | 기사 4개 · 기사마다 이용 방식 1장, 생활 모습 1장 | 먼저 읽어요\n눈가림 옹벽…‘죽은물’ 하천으로 ‘줄줄’ (매일신문 2005.3.12) | https://www.imaeil.com/page/view/2005031211145937448 | 폐광 뒤 땅속 물이 냇물을 누렇게 만든 일 | 어려움\n광해공단 ‘갑정탄광 수질정화시설’ (에너지경제신문 2013.5.30) | https://m.ekn.kr/view.php?key=83728 | 물풀(부들)로 물을 깨끗하게 하고 생태공원이 된 일 | 어려움\n철거 대신 보존 선택한 문경 은성광업소 (강원일보 2026.8.25) | https://v.daum.net/v/UKr7Z9rNlM | 석탄박물관(1999년)과 에코월드, 한 해 방문객 수 | 보통\n‘거인의 숲’서 깔깔, ‘백두대간’에 진지… (서울신문 2023.4.7) | https://m.seoul.co.kr/news/2023/04/07/20230407014001 | 지금 에코월드에서 할 수 있는 것 | 쉬움\n‘왕과 사는 남자’ 흥행… ‘문경 러시’ (경북매일 2026.3.26) | https://kbmaeil.com/article/20260325500242 | 문경새재 오픈세트장에 늘어난 관광객, 한복 체험 | 보통'},
   tips:{
-    general:'예시는 문경이 아니라 다른 마을(부산 바닷가) 이야기예요. 문경 이야기는 여러분이 직접 취재해요!\n카드 한 장에는 한 가지 사실만 적어요.\n모르는 칸은 비워도 괜찮아요. 아는 칸부터 채워요.\n자료에서 찾은 낱말을 그대로 써도 좋아요.',
+    general:'예시는 문경이 아니라 다른 마을(부산 바닷가) 이야기예요. 문경 이야기는 여러분이 직접 취재해요!\n카드 한 장에는 한 가지 사실만 적어요.\n여섯 칸을 모두 채워야 올릴 수 있어요. 취재 자료의 신문 기사에서 하나씩 찾아봐요.\n신문에서 찾은 낱말을 그대로 써도 좋아요.',
     use:'누가: 어부들\n언제: 아주 옛날부터\n어디서: 부산 앞바다\n무엇을: 물고기를 잡았다\n어떻게: 배를 타고 그물을 던져서\n왜: 바다가 가까워서',
-    life:'누가: 어부 가족들\n어디서: 바닷가 마을\n무엇을: 잡은 생선을 시장에 내다 팔았다\n어떻게: 새벽마다 시장에 모여서',
+    life:'누가: 어부 가족들\n언제: 고깃배가 들어오는 새벽마다\n어디서: 바닷가 마을 시장\n무엇을: 잡은 생선을 내다 팔았다\n어떻게: 생선을 손질해 좌판에 늘어놓고\n왜: 생선을 팔아 살림을 꾸리려고',
     line:'바다에서 물고기를 잡았기 때문에, 사람들은 바닷가에 모여 살며 생선을 팔았다.',
     cmp:'달라진 이용 방식: 예전에는 (작은 배로 물고기를 잡았고), 지금은 (큰 항구에서 배로 물건을 실어 나른다).\n이어 보기: 바다를 이용하는 방식이 (무역)으로 바뀌자, 사람들의 생활은 (항구에서 일하는 사람이 많아졌다).'
   },
@@ -445,6 +446,10 @@ function fieldsHtml(prefix,f){
     return '<label><span>'+esc(w.t)+'</span><input data-k="'+prefix+w.k+'" placeholder="'+esc(w.ask)+'" value="'+esc(f&&f[w.k]||'')+'"></label>';
   }).join('')+'</div>';
 }
+function missingFields(prefix){
+  var A=document.getElementById('app');
+  return w5list().filter(function(w){var el=A.querySelector('[data-k="'+prefix+w.k+'"]');return !(el&&el.value.trim());}).map(function(w){return w.t;});
+}
 function readFields(prefix){
   var A=document.getElementById('app'), f={}, any=false;
   W5ORDER.forEach(function(k){var el=A.querySelector('[data-k="'+prefix+k+'"]');var v=el?el.value.trim():'';if(v){f[k]=v;any=true;}});
@@ -542,7 +547,7 @@ function cardForm(sheet,slot,opts){
   var key=sheet+':'+slot, kd=ui.kind[key]||[];
   var html='<div class="form">';
   if(opts.w5){
-    html+='<p class="hint">아는 칸만 채워요 · 카드 한 장에 한 가지 사실 · 친구 카드와 겹치지 않게</p>'+fieldsHtml('f:'+key+':',null);
+    html+='<p class="hint">여섯 칸을 모두 채워요 · 카드 한 장에 한 가지 사실 · 친구 카드와 겹치지 않게</p>'+fieldsHtml('f:'+key+':',null);
   }
   if(opts.kind){
     html+='<div class="chips"><span class="lab">나누어 보기 (둘 다 골라도 되고, 안 골라도 돼요)</span>'+['nat','man'].map(function(x){
@@ -550,7 +555,7 @@ function cardForm(sheet,slot,opts){
   }
   if(!opts.w5)html+='<textarea data-k="new:'+key+'" data-min="1" placeholder="'+esc(opts.frame||'취재한 내용을 한 장에 하나씩 써요.')+'"></textarea>';
   html+='<div class="row">'+(opts.frame?'<button class="btn ghost" data-a="frame" data-v="new:'+key+'" data-f="'+esc(opts.frame)+'">틀 가져오기</button>':'')+
-    '<button class="btn" data-a="add" data-v="'+key+'" disabled>카드 올리기</button><span class="why" data-why="new:'+key+'">'+(opts.w5?'한 칸이라도 채우면 올릴 수 있어요.':'글을 쓰면 올릴 수 있어요.')+'</span>'+flashHtml(key)+'</div></div>';
+    '<button class="btn" data-a="add" data-v="'+key+'" disabled>카드 올리기</button><span class="why" data-why="new:'+key+'">'+(opts.w5?'여섯 칸을 모두 채우면 올릴 수 있어요.':'글을 쓰면 올릴 수 있어요.')+'</span>'+flashHtml(key)+'</div></div>';
   return html;
 }
 var SLOTNO={use:'①',life:'②',line:'③'};
@@ -601,7 +606,9 @@ function lineArea(sheet){
 function tipBox(kind){
   if(!ui.tip)return '';
   function sec(title,txt){return txt?'<h4>'+esc(title)+'</h4><div class="tipex">'+esc(txt).replace(/\n/g,'<br>')+'</div>':'';}
-  var T=cfg.tips||{};
+  var T=Object.assign({},cfg.tips||{});
+  if(T.general==='예시는 문경이 아니라 다른 마을(부산 바닷가) 이야기예요. 문경 이야기는 여러분이 직접 취재해요!\n카드 한 장에는 한 가지 사실만 적어요.\n모르는 칸은 비워도 괜찮아요. 아는 칸부터 채워요.\n자료에서 찾은 낱말을 그대로 써도 좋아요.')T.general=DEFAULT.tips.general;
+  if(T.life==='누가: 어부 가족들\n어디서: 바닷가 마을\n무엇을: 잡은 생선을 시장에 내다 팔았다\n어떻게: 새벽마다 시장에 모여서')T.life=DEFAULT.tips.life;
   var body=kind==='cmp'?sec('비교하기 예시',T.cmp):
     sec('① '+cfg.slots.use.name+' 카드 예시',T.use)+sec('② '+cfg.slots.life.name+' 카드 예시',T.life)+sec('③ '+cfg.slots.line.name+' 예시',T.line);
   return '<div class="modal" data-a="tip-close"><div class="tipcard" data-stop="1"><h3 class="hand">선생님의 취재 팁</h3>'+
@@ -612,11 +619,13 @@ function parseLinks(txt){return String(txt||'').split('\n').map(function(l){var 
   return p[1]&&/^https?:\/\//.test(p[1])?{t:p[0],u:p[1],f:p[2]||'',lv:p[3]||''}:null;}).filter(Boolean);}
 function linkBox(kind){
   if(!ui.links)return '';
-  var L=cfg.links||{}, sheets=kind==='cmp'?['past','now']:[kind];
+  var L=Object.assign({},cfg.links||{}), sheets=kind==='cmp'?['past','now']:[kind];
+  ['past','now'].forEach(function(sh){ /* 신문은 늘 맨 앞에 */
+    if(String(L[sh]||'').indexOf('news/'+sh+'.html')<0)L[sh]=DEFAULT.links[sh].split('\n')[0]+'\n'+(L[sh]||''); });
   var body=sheets.map(function(sh){var a=parseLinks(L[sh]);
     return '<h4>'+esc(cfg.sheets[sh])+' 장 자료</h4>'+(a.length?a.map(function(x){
       return '<a class="linkcard" href="'+esc(x.u)+'" target="_blank" rel="noopener noreferrer"><span class="lt">'+esc(x.t)+'</span>'+
-        (x.f?'<span class="lf">찾을 것: '+esc(x.f)+'</span>':'')+(x.lv?'<span class="lv">'+esc(x.lv)+'</span>':'')+'</a>';}).join(''):'<p class="empty">아직 자료가 없어요.</p>');}).join('');
+        (x.f?'<span class="lf">찾을 것: '+esc(x.f)+'</span>':'')+(x.lv?'<span class="lv'+(x.u.indexOf('/news/')>0?' main':'')+'">'+esc(x.lv)+'</span>':'')+'</a>';}).join(''):'<p class="empty">아직 자료가 없어요.</p>');}).join('');
   return '<div class="modal" data-a="links-close"><div class="tipcard linkpanel" data-stop="1"><h3 class="hand">취재 자료</h3>'+
     '<p class="tipgen">누르면 새 창으로 열려요. 다 읽으면 그 창을 닫고 돌아와요. 쓰던 글은 그대로 있어요.</p>'+body+
     '<div class="row" style="justify-content:flex-end"><button class="btn" data-a="links-close">닫기</button></div></div></div>';
@@ -737,9 +746,10 @@ function syncBtn(el){
   var k=el.dataset.k, ok=el.value.trim().length>0, A=document.getElementById('app');
   if(k.indexOf('f:')===0){
     var p=k.split(':'), key=p[1]+':'+p[2], b=A.querySelector('[data-a="add"][data-v="'+key+'"]');
-    var any=!!readFields('f:'+key+':');
-    if(b)b.disabled=!any||saving['new:'+key];
-    var wy=A.querySelector('[data-why="new:'+key+'"]'); if(wy)wy.textContent=any?'':'한 칸이라도 채우면 올릴 수 있어요.';
+    var miss=missingFields('f:'+key+':'), full=!miss.length;
+    if(b)b.disabled=!full||saving['new:'+key];
+    var wy=A.querySelector('[data-why="new:'+key+'"]');
+    if(wy)wy.textContent=full?'':(miss.length===6?'여섯 칸을 모두 채우면 올릴 수 있어요.':'아직 빈 칸: '+miss.join(', '));
     return;
   }
   var frame=null, btn=null;
@@ -787,6 +797,7 @@ document.addEventListener('click',async function(e){
   else if(a==='edit'){ui.edit=v;ui.del=null;render();}
   else if(a==='edit-cancel'){ui.edit=null;render();}
   else if(a==='edit-save'){var t=A.querySelector('[data-k="edit:'+v+'"]'), ef=readFields('ef|'+v+'|');
+    if(ef){var em=missingFields('ef|'+v+'|'); if(em.length){say('아직 빈 칸이 있어요: '+em.join(', '),1);return;}}
     if(ef){var c0=Object.assign({},cards[v],{f:ef,t:composeT(ef),at2:Date.now()});delete c0._local;cards[v]=c0;ui.edit=null;var ok0=await send(v,c0);if(!ok0)overlayPending();render();}
     else if(t&&t.value.trim()){var c=Object.assign({},cards[v],{t:t.value.trim(),at2:Date.now()});delete c._local;cards[v]=c;ui.edit=null;var ok=await send(v,c);if(!ok)overlayPending();render();}}
   else if(a==='del'){ui.del=v;render();}
@@ -820,7 +831,7 @@ async function saveCfgOpen(classId,open){
 async function addCard(key){
   var A=document.getElementById('app'), p=key.split(':'), s=me(); if(!s)return;
   var ta=A.querySelector('[data-k="new:'+key+'"]'), f=null, t='';
-  if(ta){t=ta.value.trim();} else {f=readFields('f:'+key+':'); if(f)t=composeT(f);}
+  if(ta){t=ta.value.trim();} else { if(missingFields('f:'+key+':').length)return; f=readFields('f:'+key+':'); if(f)t=composeT(f);}
   if(!t)return;
   var k='c:'+cid+':'+s.g+':'+p[0]+':'+p[1]+':'+newId();
   var v={t:t,by:sid,name:s.name,at:Date.now(),kinds:p[1]==='use'&&p[0]!=='cmp'?(ui.kind[key]||[]).slice():[]};
