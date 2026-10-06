@@ -32,9 +32,9 @@ mark.l{background:linear-gradient(transparent 45%,#9FD3EE 45%)}
 h2{font-family:'Gowun Batang',serif;font-weight:700;font-size:16.5pt;line-height:1.25;margin:0 0 .8mm}
 h2 .hl{background:linear-gradient(transparent 50%,var(--mark) 50%)}
 .deck{font-family:'Gowun Batang',serif;font-weight:700;font-size:11.4pt;color:var(--accent);margin:0 0 1.5mm}
-.art p{margin:0 0 1.6mm;word-break:keep-all}
+.art p{margin:0 0 1.3mm;word-break:keep-all}
 .no-tag{display:inline-block;font-family:'Black Han Sans',sans-serif;font-size:11pt;color:#fff;background:var(--accent);padding:.2mm 2mm;margin-right:1.5mm;vertical-align:2px}
-.fig{float:left;width:34%;margin:1mm 4mm 1.5mm 0;border:1px solid var(--hair);background:#F3EDE0}
+.fig{float:left;width:28%;margin:1mm 4mm 1.5mm 0;border:1px solid var(--hair);background:#F3EDE0}
 .fig.right{float:right;margin:1mm 0 1.5mm 4mm}
 .fig svg{display:block;width:100%;height:auto}
 .fig figcaption{font-size:8.8pt;color:var(--soft);padding:1mm 2mm;border-top:1px solid var(--hair);line-height:1.35}
