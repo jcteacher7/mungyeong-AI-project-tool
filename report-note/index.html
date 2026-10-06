@@ -281,6 +281,15 @@ html{scrollbar-color:#BFB49F transparent}
   .page.start.center .pick.cls{grid-template-columns:repeat(var(--n,2),minmax(0,380px))}
 }
 @media (max-width:560px){.page.start.center .pick.cls{grid-template-columns:1fr}}
+/* 취재 자료 */
+.tabs .tipbtn + .tipbtn{margin-left:6px}
+.linkpanel h4{margin:16px 0 6px}
+.linkcard{display:block;background:rgba(255,255,255,.85);border-radius:10px;padding:12px 14px;margin:8px 0;color:var(--ink);text-decoration:none;
+  border:2px solid transparent;box-shadow:0 2px 0 rgba(0,0,0,.06)}
+.linkcard:hover,.linkcard:focus-visible{border-color:var(--nowInk)}
+.linkcard .lt{display:block;font-size:18px;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(36,91,128,.4)}
+.linkcard .lf{display:block;font-size:16px;color:var(--soft);margin-top:4px}
+.linkcard .lv{display:inline-block;margin-top:6px;font-size:14px;padding:1px 10px;border-radius:999px;background:rgba(0,0,0,.08)}
 </style>
 </head>
 <body>
@@ -321,6 +330,7 @@ var DEFAULT={
     {k:'why',t:'왜',ask:'왜 그랬을까요?'},
     {k:'how',t:'어떻게',ask:'어떻게 했나요?'}
   ],
+  links:{past:'‘거인의 숲’서 깔깔, ‘백두대간’에 진지… (서울신문 2023.4.7) | https://m.seoul.co.kr/news/2023/04/07/20230407014001 | 박물관에 되살린 사택촌: 공동 우물, 목욕탕, 가게 | 쉬움\n철거 대신 보존 선택한 문경 은성광업소 (강원일보 2026.8.25) | https://v.daum.net/v/UKr7Z9rNlM | 언제·어디서 석탄을 캤나, 사택·우물·목욕탕·이발소, 인구 16만 | 보통\n문경석탄박물관 소개 (경북매일 2025.11.25) | https://www.kbmaeil.com/article/20251122500051 | 광부 가족의 집과 살림, 갱도 안의 일 | 보통',now:'눈가림 옹벽…‘죽은물’ 하천으로 ‘줄줄’ (매일신문 2005.3.12) | https://www.imaeil.com/page/view/2005031211145937448 | 폐광 뒤 땅속 물이 냇물을 누렇게 만든 일 | 어려움\n광해공단 ‘갑정탄광 수질정화시설’ (에너지경제신문 2013.5.30) | https://m.ekn.kr/view.php?key=83728 | 물풀(부들)로 물을 깨끗하게 하고 생태공원이 된 일 | 어려움\n철거 대신 보존 선택한 문경 은성광업소 (강원일보 2026.8.25) | https://v.daum.net/v/UKr7Z9rNlM | 석탄박물관(1999년)과 에코월드, 한 해 방문객 수 | 보통\n‘거인의 숲’서 깔깔, ‘백두대간’에 진지… (서울신문 2023.4.7) | https://m.seoul.co.kr/news/2023/04/07/20230407014001 | 지금 에코월드에서 할 수 있는 것 | 쉬움\n‘왕과 사는 남자’ 흥행… ‘문경 러시’ (경북매일 2026.3.26) | https://kbmaeil.com/article/20260325500242 | 문경새재 오픈세트장에 늘어난 관광객, 한복 체험 | 보통'},
   tips:{
     general:'예시는 문경이 아니라 다른 마을(부산 바닷가) 이야기예요. 문경 이야기는 여러분이 직접 취재해요!\n카드 한 장에는 한 가지 사실만 적어요.\n모르는 칸은 비워도 괜찮아요. 아는 칸부터 채워요.\n자료에서 찾은 낱말을 그대로 써도 좋아요.',
     use:'누가: 어부들\n언제: 아주 옛날부터\n어디서: 부산 앞바다\n무엇을: 물고기를 잡았다\n어떻게: 배를 타고 그물을 던져서\n왜: 바다가 가까워서',
@@ -501,7 +511,7 @@ function tabs(){
   return '<div class="tabs">'+SHEETS.map(function(x){
     return '<button data-a="sheet" data-v="'+x+'" class="t-'+x+(sh===x?' on':'')+'">'+esc(cfg.sheets[x])+' 장</button>';}).join('')+
     '<button data-a="cmp" class="t-cmp'+(sh==='cmp'?' on':'')+'">비교하기</button>'+
-    '<button class="tipbtn" data-a="tip">선생님의 취재 팁</button></div>';
+    '<button class="tipbtn" data-a="links">취재 자료</button><button class="tipbtn" data-a="tip">선생님의 취재 팁</button></div>';
 }
 function cardBody(c){return c.f?'<dl class="fx">'+w5list().filter(function(w){return c.f[w.k];}).map(function(w){return '<dt>'+esc(w.t)+'</dt><dd>'+esc(c.f[w.k])+'</dd>';}).join('')+'</dl>':'<div class="t">'+esc(c.t)+'</div>';}
 function cardHtml(c,editable){
@@ -598,11 +608,24 @@ function tipBox(kind){
     '<div class="tipgen">'+esc(T.general||'').replace(/\n/g,'<br>')+'</div>'+body+
     '<div class="row" style="justify-content:flex-end"><button class="btn" data-a="tip-close">알겠어요</button></div></div></div>';
 }
+function parseLinks(txt){return String(txt||'').split('\n').map(function(l){var p=l.split('|').map(function(x){return x.trim();});
+  return p[1]&&/^https?:\/\//.test(p[1])?{t:p[0],u:p[1],f:p[2]||'',lv:p[3]||''}:null;}).filter(Boolean);}
+function linkBox(kind){
+  if(!ui.links)return '';
+  var L=cfg.links||{}, sheets=kind==='cmp'?['past','now']:[kind];
+  var body=sheets.map(function(sh){var a=parseLinks(L[sh]);
+    return '<h4>'+esc(cfg.sheets[sh])+' 장 자료</h4>'+(a.length?a.map(function(x){
+      return '<a class="linkcard" href="'+esc(x.u)+'" target="_blank" rel="noopener noreferrer"><span class="lt">'+esc(x.t)+'</span>'+
+        (x.f?'<span class="lf">찾을 것: '+esc(x.f)+'</span>':'')+(x.lv?'<span class="lv">'+esc(x.lv)+'</span>':'')+'</a>';}).join(''):'<p class="empty">아직 자료가 없어요.</p>');}).join('');
+  return '<div class="modal" data-a="links-close"><div class="tipcard linkpanel" data-stop="1"><h3 class="hand">취재 자료</h3>'+
+    '<p class="tipgen">누르면 새 창으로 열려요. 다 읽으면 그 창을 닫고 돌아와요. 쓰던 글은 그대로 있어요.</p>'+body+
+    '<div class="row" style="justify-content:flex-end"><button class="btn" data-a="links-close">닫기</button></div></div></div>';
+}
 function scNote(){
   var s=me(); if(!s)return scWho();
   var sh=view.sheet, sl=view.slot||firstOpenSlot(sh);
   return '<div class="wrap">'+tabs()+'<div class="page '+sh+'"><div class="pagehead"><h2 class="hand">'+esc(cfg.sheets[sh])+' 취재 노트 · '+s.g+'모둠</h2>'+
-    slotPicker(sh,sl)+'</div>'+(sl==='line'?lineArea(sh):slotArea(sh,sl))+'</div></div>'+tipBox('note');
+    slotPicker(sh,sl)+'</div>'+(sl==='line'?lineArea(sh):slotArea(sh,sl))+'</div></div>'+tipBox('note')+linkBox(sh);
 }
 /* 4. 비교하기 */
 function scCmp(){
@@ -623,7 +646,7 @@ function scCmp(){
     (open?cardForm('cmp',cs,{frame:conf.frame}):'<p class="empty">선생님이 칸을 열면 쓸 수 있어요.</p>')+'</div>';
   return '<div class="wrap">'+tabs()+'<div class="page"><div class="pagehead"><h2 class="hand">과거와 현재 나란히 보기 · '+s.g+'모둠</h2>'+
     '<span class="badge '+(open?'open':'shut')+'">'+(open?'오늘 쓰는 칸':'보기만')+'</span></div>'+
-    '<div class="cmpgrid">'+side+write+'</div></div></div>'+tipBox('cmp');
+    '<div class="cmpgrid">'+side+write+'</div></div></div>'+tipBox('cmp')+linkBox('cmp');
 }
 
 /* 선생님: 암호 */
@@ -699,6 +722,9 @@ function scTeacher(){
     cfg.w5.map(function(w,i){return fld(w.t+' 단추 질문','w5.'+i+'.ask',w.ask);}).join('')+
     CMP.map(function(sl){return fld('비교: '+cfg.cmp[sl].name+' 이름','cmp.'+sl+'.name',cfg.cmp[sl].name)+fld('비교: '+cfg.cmp[sl].name+' 틀','cmp.'+sl+'.frame',cfg.cmp[sl].frame);}).join('')+
     fld('암호(숫자 네 자리)','pin',cfg.pin)+'</div>'+
+    '<div class="panel"><h3>취재 자료 (아이들 화면의 \'취재 자료\' 단추)</h3><p class="sub">한 줄에 자료 하나: <b>제목 | 주소 | 찾을 것 | 난이도</b>. 주소는 http로 시작해야 해요.</p>'+
+    [['past','과거 장 자료'],['now','현재 장 자료']].map(function(x){
+      return '<label class="f"><span>'+x[1]+'</span><textarea data-k="cfg:links.'+x[0]+'" data-set="text" style="min-height:140px;line-height:1.5;background-image:none">'+esc((cfg.links||{})[x[0]]||'')+'</textarea></label>';}).join('')+'</div>'+
     '<div class="panel"><h3>선생님의 취재 팁</h3><p class="sub">아이들이 노트 오른쪽 위 <b>선생님의 취재 팁</b>을 누르면 보이는 글이에요. 줄을 바꾸면 그대로 보여요.</p>'+
     [['general','공통 안내'],['use','① 카드 예시'],['life','② 카드 예시'],['line','③ 한 줄 예시'],['cmp','비교하기 예시']].map(function(x){
       return '<label class="f"><span>'+x[1]+'</span><textarea data-k="cfg:tips.'+x[0]+'" data-set="text" style="min-height:90px">'+esc((cfg.tips||{})[x[0]]||'')+'</textarea></label>';}).join('')+'</div>';
@@ -754,7 +780,9 @@ document.addEventListener('click',async function(e){
   else if(a==='frame'){var ta=A.querySelector('[data-k="'+v+'"]');if(ta){if(!ta.value.trim())ta.value=b.dataset.f;ta.focus();var i=ta.value.indexOf('(');if(i>=0)try{ta.setSelectionRange(i+1,i+1);}catch(err){}syncBtn(ta);}}
   else if(a==='add'){await addCard(v);}
   else if(a==='line'){await saveLine(v);}
-  else if(a==='tip'){ui.tip=true;render();}
+  else if(a==='tip'){ui.tip=true;ui.links=false;render();}
+  else if(a==='links'){ui.links=true;ui.tip=false;render();}
+  else if(a==='links-close'){ if(e.target.closest('[data-stop]')&&b.classList.contains('modal'))return; ui.links=false;render();}
   else if(a==='tip-close'){ if(e.target.closest('[data-stop]')&&b.classList.contains('modal'))return; ui.tip=false;render();}
   else if(a==='edit'){ui.edit=v;ui.del=null;render();}
   else if(a==='edit-cancel'){ui.edit=null;render();}
