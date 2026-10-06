@@ -11,6 +11,8 @@ body{background:#E7E1D5;color:var(--ink);font-family:'Gowun Dodum',system-ui,san
   box-shadow:0 10px 30px -14px rgba(40,30,15,.45);font-size:11pt;line-height:1.5}
 mark{background:linear-gradient(transparent 45%,var(--mark) 45%);color:inherit;padding:0 1px}
 mark.l{background:linear-gradient(transparent 45%,#9FD3EE 45%)}
+/* 호마다 글 양이 달라 B4 한 장에 알맞게 글자 크기를 맞춤 */
+body.past .sheet{font-size:11.6pt} body.now .sheet{font-size:10.8pt}
 .lg{font-weight:400;border-bottom:2px solid var(--rule)}
 
 /* 머리 */
@@ -80,5 +82,5 @@ h2 .hl{background:linear-gradient(transparent 50%,var(--mark) 50%)}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}   /* 형광펜·색 상자가 종이에도 나오게 */
   body{background:none}
   .tools{display:none}
-  .sheet{margin:0;box-shadow:none;width:257mm;height:364mm;overflow:hidden;zoom:1}
+  .sheet{margin:0;box-shadow:none;width:257mm;height:364mm;overflow:hidden;zoom:1;max-width:none;padding:11mm 12mm 9mm}
 }
