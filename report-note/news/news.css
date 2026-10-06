@@ -68,6 +68,8 @@ h2 .hl{background:linear-gradient(transparent 50%,var(--mark) 50%)}
   .fig{width:100%;float:none;margin:6px 0}
   h2{font-size:24px}
 }
+@media screen and (min-width:1101px){ .sheet{zoom:1.4;margin:10px auto 30px} }
+@media screen and (min-width:1500px){ .sheet{zoom:1.6} }
 @media screen and (min-width:821px) and (max-width:1100px){
   .sheet{width:auto;max-width:1000px;margin:10px auto;font-size:15px}
 }
