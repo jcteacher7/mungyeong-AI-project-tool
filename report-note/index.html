@@ -639,7 +639,7 @@ function linkBox(kind){
   var L=Object.assign({},cfg.links||{}), sheets=['past','now'].filter(function(x){return resShown(klass(cid)).indexOf(x)>=0;});
   ['past','now'].forEach(function(sh){ /* 신문은 늘 맨 앞에 */
     if(String(L[sh]||'').indexOf('news/'+sh+'.html')<0)L[sh]=DEFAULT.links[sh].split('\n')[0]+'\n'+(L[sh]||''); });
-  function card(x){return '<a class="linkcard'+(isPaper(x.u)?' paper':'')+'" href="'+esc(x.u)+'" target="_blank" rel="noopener noreferrer"><span class="lt">'+esc(x.t.replace(' (수업용으로 쉽게 다시 쓴 신문)',''))+'</span>'+
+  function card(x){return '<a class="linkcard'+(isPaper(x.u)?' paper':'')+'" href="'+esc(isPaper(x.u)?x.u.split('?')[0]+'?c='+cid:x.u)+'" target="_blank" rel="noopener noreferrer"><span class="lt">'+esc(x.t.replace(' (수업용으로 쉽게 다시 쓴 신문)',''))+'</span>'+
         (x.f?'<span class="lf">찾을 것: '+esc(x.f)+'</span>':'')+(x.lv?'<span class="lv'+(isPaper(x.u)?' main':'')+'">'+esc(x.lv)+'</span>':'')+'</a>';}
   var body=sheets.length?sheets.map(function(sh){var a=parseLinks(L[sh]);
     var paper=a.filter(function(x){return isPaper(x.u);}), real=a.filter(function(x){return !isPaper(x.u);});
