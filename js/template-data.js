@@ -1,11 +1,19 @@
-// ATL 배지 정의: 색상/아이콘/라벨을 한 곳에서 관리합니다.
+// 탐구 기능 배지 정의: 색상/아이콘/라벨을 한 곳에서 관리합니다.
+// 저장된 프로젝트에는 라벨이 아니라 키(thinking, comm ...)만 들어 있으므로,
+// 여기 라벨을 바꾸면 이미 입력된 프로젝트에도 새 이름으로 보입니다. 키는 바꾸지 마세요.
 const BADGE_DEFS = {
-  thinking: { icon: "fa-head-side-virus", label: "Thinking (사고)", classes: "bg-blue-100 text-blue-800 border-blue-200" },
-  comm: { icon: "fa-bullhorn", label: "Communication (의사소통)", classes: "bg-red-100 text-red-800 border-red-200" },
-  social: { icon: "fa-users", label: "Social (사회적)", classes: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-  self: { icon: "fa-list-check", label: "Self-Mgt (자기관리)", classes: "bg-green-100 text-green-800 border-green-200" },
-  research: { icon: "fa-magnifying-glass", label: "Research (조사)", classes: "bg-teal-100 text-teal-800 border-teal-200" },
+  thinking: { icon: "fa-head-side-virus", label: "생각기능", classes: "bg-blue-100 text-blue-800 border-blue-200" },
+  comm: { icon: "fa-bullhorn", label: "소통기능", classes: "bg-red-100 text-red-800 border-red-200" },
+  social: { icon: "fa-users", label: "협력기능", classes: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+  self: { icon: "fa-list-check", label: "자기기능", classes: "bg-green-100 text-green-800 border-green-200" },
+  research: { icon: "fa-magnifying-glass", label: "질문기능", classes: "bg-teal-100 text-teal-800 border-teal-200" },
 };
+
+// 예전 버전이 평가 계획 표에 기본으로 넣어 둔 "[ATL-AI·디지털]" 같은 태그 이름을
+// 화면에 그릴 때 새 이름으로 바꿔 보여준다 (저장된 다른 내용은 건드리지 않음).
+function renameLegacyTag(text) {
+  return String(text || "").replace(/ATL/g, "탐구 기능");
+}
 
 // 차시별 지도 계획 표의 기본 행. 각 행이 단계(stage)/소제목(sub)을 직접 들고 있어서
 // 행 단위로 자유롭게 추가/삭제할 수 있고, "탐구 단계" 텍스트도 행마다 수정할 수 있다.
@@ -77,7 +85,7 @@ function defaultProjectData() {
       rows: [
         { area: "[이해]", criterion: "", good: "", normal: "", needsWork: "" },
         { area: "[과정]", criterion: "", good: "", normal: "", needsWork: "" },
-        { area: "[ATL-AI·디지털]", criterion: "", good: "", normal: "", needsWork: "" },
+        { area: "[탐구 기능-AI·디지털]", criterion: "", good: "", normal: "", needsWork: "" },
       ],
     },
   };

@@ -392,7 +392,7 @@ function createEvalAreaTd(r) {
   const tag = el("p", "font-bold text-slate-800 mb-1");
   tag.contentEditable = "true";
   tag.dataset.field = "area";
-  tag.textContent = r.area || "";
+  tag.textContent = renameLegacyTag(r.area);
   const desc = el("p", "text-slate-600 text-xs leading-relaxed");
   desc.contentEditable = "true";
   desc.dataset.field = "criterion";
