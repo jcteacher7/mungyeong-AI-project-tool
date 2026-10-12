@@ -195,6 +195,29 @@ textarea{width:100%;min-height:76px;padding:6px 12px;border:1.5px solid #CFC6B3;
 .col-write.shut{border-color:#CFC6B3}
 .cmpgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
 .cmpgrid .col-write{grid-column:1 / -1}
+.cmpmat{grid-column:1 / -1}
+.cmpmat .colh{margin:4px 0 8px}
+.pcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:10px}
+.pcol{border-radius:12px;padding:10px 12px}
+.pcol.past{background:var(--past)} .pcol.now{background:#DDEDF7}
+.pcol h4{margin:0 0 8px;font-family:var(--hand);font-size:24px;font-weight:400}
+.pcol.now h4{color:var(--nowInk)} .pcol.past h4{color:var(--pastInk)}
+.pcol h5{margin:12px 0 4px;font-size:14px;color:var(--soft);font-weight:400}
+.lines.sm{font-size:14px}
+.pchip{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:6px;align-items:stretch;width:100%;font:inherit;color:var(--ink);text-align:left;background:#FFFDF8;border:2px solid #CFC6B3;border-radius:10px;padding:6px;margin:0 0 8px}
+button.pchip{cursor:pointer;min-height:52px}
+.pchip.on{border-color:var(--open);box-shadow:0 0 0 3px rgba(214,90,40,.3)}
+.pc-u,.pc-l{border-radius:7px;padding:6px 8px;font-size:15px;line-height:1.35;word-break:keep-all}
+.pc-u{background:#FFF6D6} .pc-l{background:#EAF5FB}
+.pc-a{align-self:center;color:var(--open);font-weight:700;font-size:18px}
+.xrow{background:#FFFDF8;border:2px solid var(--ink);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.xh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.xno{font-family:var(--hand);font-size:22px}
+.xgrid{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:6px}
+.xc{font-size:14px;color:var(--soft);text-align:center}
+.xr{align-self:center;font-size:14px;color:var(--soft);white-space:nowrap;padding-right:4px}
+.xv{border-radius:8px;padding:8px 10px;font-size:16px;line-height:1.4;word-break:keep-all}
+.xv.use{background:#FFF6D6} .xv.life{background:#EAF5FB}
 @media (orientation:landscape) and (min-width:900px){
   .wrap{max-width:1320px}
   header.top{padding:10px 0 2px} #title{font-size:28px}
@@ -204,6 +227,7 @@ textarea{width:100%;min-height:76px;padding:6px 12px;border:1.5px solid #CFC6B3;
   .split .w5grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .cmpgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.15fr);align-items:start}
   .cmpgrid .col-write{grid-column:auto;position:sticky;top:10px}
+  .cmpmat{grid-column:1 / 3}
   .pick{grid-template-columns:repeat(5,1fr)}
   .modal{justify-content:flex-end;align-items:stretch;padding:0}
   .tipcard{max-width:440px;border-radius:18px 0 0 18px;overflow:auto;max-height:100vh}
@@ -386,7 +410,7 @@ var DEFAULT={
 
 var cfg=clone(DEFAULT), cards={}, lines={}, pairs={}, connected=false, loaded=false;
 var cid=null, sid=null, view={s:'cls',sheet:'past'};
-var ui={w5:{},kind:{},edit:null,del:null,flash:null,pick:{}};
+var ui={w5:{},kind:{},edit:null,del:null,flash:null,pick:{},xpick:{},xfree:false};
 var unlocked=false, typed='', wrong=false, cfgDirty=false, tTab=1, tSheet='past', big=false, saving={};
 try{unlocked=sessionStorage.getItem('rn-teacher')==='1';}catch(e){}
 
@@ -424,11 +448,11 @@ async function loadCfg(){
 }
 async function loadData(c){
   if(!c)return;
-  var q='entries?select=key,value&group_id=eq.'+G_DATA+'&or=(key.like.c:'+c+':*,key.like.l:'+c+':*,key.like.p:'+c+':*)';
+  var q='entries?select=key,value&group_id=eq.'+G_DATA+'&or=(key.like.c:'+c+':*,key.like.l:'+c+':*,key.like.p:'+c+':*,key.like.x:'+c+':*)';
   var r=await api(q); if(!r.ok)throw new Error('HTTP '+r.status);
   var rows=await r.json(), nc={}, nl={}, np={};
   rows.forEach(function(x){ if(!x.value)return;
-    if(x.key.indexOf('c:')===0)nc[x.key]=x.value; else if(x.key.indexOf('l:')===0)nl[x.key]=x.value; else if(x.key.indexOf('p:')===0)np[x.key]=x.value; });
+    if(x.key.indexOf('c:')===0)nc[x.key]=x.value; else if(x.key.indexOf('l:')===0)nl[x.key]=x.value; else if(x.key.indexOf('p:')===0||x.key.indexOf('x:')===0)np[x.key]=x.value; });
   Object.keys(pairs).forEach(function(k){if(k.split(':')[1]!==String(c))np[k]=pairs[k];});
   pairs=np;
   /* 다른 반 기록은 그대로 두고 이 반만 바꿈 */
@@ -444,7 +468,7 @@ function setPend(a){try{localStorage.setItem('rn-pending',JSON.stringify(a));}ca
 function addPend(item){var a=pend().filter(function(x){return x.k!==item.k;});a.push(item);setPend(a);}
 function overlayPending(){ /* 지금 고른 사람이 못 보낸 글만 보여 줌 */
   pend().forEach(function(p){ if(p.sid!==sid||p.cls!==cid)return;
-    var box=p.k.indexOf('c:')===0?cards:p.k.indexOf('p:')===0?pairs:lines;
+    var box=p.k.indexOf('c:')===0?cards:(p.k.indexOf('p:')===0||p.k.indexOf('x:')===0)?pairs:lines;
     if(p.del)delete box[p.k]; else box[p.k]=Object.assign({},p.v,{_local:1}); });
 }
 async function flush(){
@@ -729,17 +753,45 @@ function scNote(){
     slotPicker(sh,sl)+'</div>'+(sl==='line'?lineArea(sh):slotArea(sh,sl))+'</div></div>'+tipBox('note')+linkBox(sh);
 }
 /* 4. 비교하기 */
+/* 비교 줄: 과거 짝 하나 ⇄ 현재 짝 하나 (모둠이 함께) */
+function headOf(key){var c=cards[key];return c?((c.f&&c.f.what)||c.t):'';}
+function xrowsOf(c,g){
+  var pre='x:'+c+':'+g+':', ok={}, seen={};
+  pairsOf(c,g,'past').concat(pairsOf(c,g,'now')).forEach(function(p){ok[p._k]=p;});
+  return Object.keys(pairs).filter(function(k){return k.indexOf(pre)===0;})
+    .map(function(k){return Object.assign({_k:k},pairs[k]);})
+    .sort(function(a,b){return (a.at||0)-(b.at||0);})
+    .filter(function(x){var id=x.p+'|'+x.n; if(!ok[x.p]||!ok[x.n]||seen[id])return false; seen[id]=1; x.P=ok[x.p]; x.N=ok[x.n]; return true;});
+}
+function cmpBoard(s,can){
+  var pp=pairsOf(cid,s.g,'past'), pn=pairsOf(cid,s.g,'now'), xs=xrowsOf(cid,s.g), xp=ui.xpick||{};
+  function chip(p,sh){var on=xp[sh]===p._k, inner='<span class="pc-u">'+esc(headOf(p.u))+'</span><span class="pc-a" aria-hidden="true">→</span><span class="pc-l">'+esc(headOf(p.l))+'</span>';
+    return can?'<button class="pchip'+(on?' on':'')+'" data-a="xpick" data-v="'+esc(p._k)+'" data-sh="'+sh+'">'+inner+'</button>':'<div class="pchip">'+inner+'</div>';}
+  function col(sh,list){
+    var lns=klass(cid).students.filter(function(x){return x.g===s.g;}).map(function(x){var l=lineOf(cid,x.id,sh);return l?'<li><b>'+esc(x.name)+'</b> '+esc(l.t)+'</li>':'';}).join('');
+    return '<div class="pcol '+sh+'"><h4>'+esc(cfg.sheets[sh])+' 짝</h4>'+
+      (list.length?list.map(function(p){return chip(p,sh);}).join(''):'<p class="empty">'+esc(cfg.sheets[sh])+' 장의 ③ 연결 한 줄 칸에서 먼저 짝을 지어요.</p>')+
+      (lns?'<h5>우리 모둠의 연결 한 줄</h5><ul class="lines sm">'+lns+'</ul>':'')+'</div>';}
+  var rows=xs.map(function(x,i){
+    return '<div class="xrow"><div class="xh"><span class="xno">비교 줄 '+(i+1)+'</span>'+(can?'<button class="lk" data-a="unx" data-v="'+esc(x._k)+'">비교 줄 지우기</button>':'')+'</div>'+
+      '<div class="xgrid"><span></span><span class="xc past">'+esc(cfg.sheets.past)+' (예전)</span><span class="xc now">'+esc(cfg.sheets.now)+' (지금)</span>'+
+      '<span class="xr">'+esc(cfg.slots.use.name)+'</span><span class="xv use">'+esc(headOf(x.P.u))+'</span><span class="xv use">'+esc(headOf(x.N.u))+'</span>'+
+      '<span class="xr">'+esc(cfg.slots.life.name)+'</span><span class="xv life">'+esc(headOf(x.P.l))+'</span><span class="xv life">'+esc(headOf(x.N.l))+'</span></div></div>';}).join('');
+  var hint=!can?'':xp.past?'이제 오른쪽에서 이 과거와 이어지는 <b>'+esc(cfg.sheets.now)+' 짝</b>을 눌러요.':xp.now?'이제 왼쪽에서 이어지는 <b>'+esc(cfg.sheets.past)+' 짝</b>을 눌러요.':
+    '<b>'+esc(cfg.sheets.past)+' 짝</b> 하나와, 시간이 지나 그것이 바뀐 <b>'+esc(cfg.sheets.now)+' 짝</b> 하나를 누르면 비교 줄이 생겨요.';
+  var free=['past','now'].map(function(sh){var inP={};pairsOf(cid,s.g,sh).forEach(function(p){inP[p.u]=inP[p.l]=1;});
+    return SLOTS.reduce(function(a,sl){return a.concat(cardsOf(cid,s.g,sh,sl).filter(function(c){return !inP[c._k];}).map(function(c){return {k:c._k,sl:sl,sh:sh};}));},[]);});
+  var nfree=free[0].length+free[1].length;
+  var freeHtml=nfree?'<button class="lk" data-a="xfree">'+(ui.xfree?'짝 없는 카드 접기':'짝 없는 카드 '+nfree+'장 보기')+'</button>'+
+    (ui.xfree?'<div class="freecols">'+free.map(function(l,i){return '<div><h5>'+esc(cfg.sheets[i?'now':'past'])+'</h5>'+(l.length?l.map(function(x){return miniCard(x.k,x.sl,false);}).join(''):'<p class="empty">없음</p>')+'</div>';}).join('')+'</div>':''):'';
+  return '<div class="cmpmat">'+(rows?'<h4 class="colh">우리 모둠의 비교 줄</h4>'+rows:'')+
+    '<h4 class="colh">'+(rows?'비교 줄 더 만들기':'비교 줄 만들기')+'</h4>'+(hint?'<p class="hint">'+hint+'</p>':'')+
+    '<div class="pcols">'+col('past',pp)+col('now',pn)+'</div>'+freeHtml+'</div>';
+}
 function scCmp(){
   var s=me(); if(!s)return scWho();
   var open=isOpen('cmp'), cs=view.cslot||'use', conf=cfg.cmp[cs], list=cardsOf(cid,s.g,'cmp',cs);
-  var side=SHEETS.map(function(sh){
-    var total=SLOTS.reduce(function(n,sl){return n+cardsOf(cid,s.g,sh,sl).length;},0);
-    if(!total)return '<div class="mini '+sh+'"><h4>'+esc(cfg.sheets[sh])+'</h4><p class="empty">'+esc(cfg.sheets[sh])+' 장에 아직 카드가 없어요.</p></div>';
-    return '<div class="mini '+sh+'"><h4>'+esc(cfg.sheets[sh])+'</h4>'+SLOTS.map(function(sl){
-      var l=cardsOf(cid,s.g,sh,sl);
-      return '<h5>'+esc(cfg.slots[sl].name)+'</h5>'+(l.length?'<ul>'+l.map(function(c){return '<li>'+esc(c.t)+'</li>';}).join('')+'</ul>':'<p class="empty">카드 없음</p>');
-    }).join('')+'</div>';
-  }).join('');
+  var side=cmpBoard(s,open);
   var pick='<div class="picker">'+CMP.map(function(x){var n=cardsOf(cid,s.g,'cmp',x).length;
     return '<button data-a="cslot" data-v="'+x+'" class="'+(cs===x?'on':'')+'">'+esc(cfg.cmp[x].name)+(n?'<span class="cnt">'+n+'</span>':'')+'</button>';}).join('')+'</div>';
   var write='<div class="col-write'+(open?'':' shut')+'">'+pick+
@@ -892,6 +944,13 @@ document.addEventListener('click',async function(e){
     if(pk.use&&pk.life){ var me_=me(), pkey='p:'+cid+':'+me_.g+':'+sh+':'+newId(), pv={u:pk.use,l:pk.life,by:sid,at:Date.now()};
       pairs[pkey]=pv; ui.pick[sh]={}; render(); var okP=await send(pkey,pv); if(!okP)pairs[pkey]=Object.assign({},pv,{_local:1}); render(); }
     else render(); }
+  else if(a==='xpick'){ if(!isOpen('cmp'))return; var sh2=b.dataset.sh, xp=ui.xpick;
+    xp[sh2]=xp[sh2]===v?null:v;
+    if(xp.past&&xp.now){ var m2=me(), xk='x:'+cid+':'+m2.g+':'+newId(), xv={p:xp.past,n:xp.now,by:sid,at:Date.now()};
+      pairs[xk]=xv; ui.xpick={}; render(); var okX=await send(xk,xv); if(!okX)pairs[xk]=Object.assign({},xv,{_local:1}); render(); }
+    else render(); }
+  else if(a==='unx'){ delete pairs[v]; render(); await send(v,null,true); render(); }
+  else if(a==='xfree'){ ui.xfree=!ui.xfree; render(); }
   else if(a==='unpair'){ delete pairs[v]; render(); await send(v,null,true); render(); }
   else if(a==='tip'){ui.tip=true;ui.links=false;render();}
   else if(a==='links'){ui.links=true;ui.tip=false;render();}
