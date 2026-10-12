@@ -196,6 +196,11 @@ textarea{width:100%;min-height:76px;padding:6px 12px;border:1.5px solid #CFC6B3;
 .cmpgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
 .cmpgrid .col-write{grid-column:1 / -1}
 .cmpmat{grid-column:1 / -1}
+.cmptip{margin-top:16px;padding-top:12px;border-top:1.5px dashed #CFC6B3}
+.cmptip h5{margin:0 0 6px;font-size:15px;color:var(--open);font-weight:700}
+.cmptip p{margin:0 0 8px;font-size:15px;line-height:1.55;word-break:keep-all}
+.cmptip .tipex{font-size:15px;line-height:1.6;word-break:keep-all}
+.exl{display:block;font-size:13px;color:var(--soft);margin-bottom:2px}
 .cmpmat .colh{margin:4px 0 8px}
 .pcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:10px}
 .pcol{border-radius:12px;padding:10px 12px}
@@ -394,7 +399,11 @@ var DEFAULT={
     use:'누가: 어부들\n언제: 아주 옛날부터\n어디서: 부산 앞바다\n무엇을: 물고기를 잡았다\n어떻게: 배를 타고 그물을 던져서\n왜: 바다가 가까워서',
     life:'누가: 어부 가족들\n언제: 고깃배가 들어오는 새벽마다\n어디서: 바닷가 마을 시장\n무엇을: 잡은 생선을 내다 팔았다\n어떻게: 생선을 손질해 좌판에 늘어놓고\n왜: 생선을 팔아 살림을 꾸리려고',
     line:'바다에서 물고기를 잡았기 때문에, 사람들은 바닷가에 모여 살며 생선을 팔았다.',
-    cmp:'달라진 이용 방식: 예전에는 (작은 배로 물고기를 잡았고), 지금은 (큰 항구에서 배로 물건을 실어 나른다).\n이어 보기: 바다를 이용하는 방식이 (무역)으로 바뀌자, 사람들의 생활은 (항구에서 일하는 사람이 많아졌다).'
+    cmp:'달라진 이용 방식: 예전에는 (작은 배로 물고기를 잡았고), 지금은 (큰 항구에서 배로 물건을 실어 나른다).\n이어 보기: 바다를 이용하는 방식이 (무역)으로 바뀌자, 사람들의 생활은 (항구에서 일하는 사람이 많아졌다).',
+    cmp_use:'비교 줄 하나를 골라 \'이용 방식\' 줄을 봐요. 예전 칸은 앞 괄호에, 지금 칸은 뒤 괄호에 넣어요.\n예: 예전에는 (작은 배를 타고 물고기를 잡았고), 지금은 (큰 항구에서 배로 물건을 실어 나른다).',
+    cmp_life:'비교 줄의 \'생활 모습\' 줄을 봐요. 예전 사람들이 어떻게 살았는지, 지금은 어떻게 사는지 넣어요.\n예: 예전에는 (어부 가족들이 새벽 시장에서 생선을 팔았고), 지금은 (항구에서 짐을 나르고 배를 고치는 사람이 많아졌다).',
+    cmp_link:'비교 줄을 위에서 아래로 읽어요. 이용 방식이 무엇으로 바뀌었는지, 그래서 생활이 어떻게 되었는지 이어요.\n예: 바다를 이용하는 방식이 (물고기 잡기에서 물건 실어 나르기)로 바뀌자, 사람들의 생활은 (생선 장사에서 항구 일로 바뀌었다).',
+    cmp_same:'예전 칸과 지금 칸에 똑같이 들어 있는 것을 찾아요. 시간이 지나도 바뀌지 않은 것이에요.\n예: 예전에도 지금도 사람들은 바다에 기대어 살아요. 바다를 이용하는 방법만 달라졌어요.'
   },
   cmp:{
     use:{name:'달라진 이용 방식',frame:'예전에는 (        ), 지금은 (        ).'},
@@ -537,7 +546,12 @@ function render(){
   var keep={}, fk=null, cs=0, ce=0, ae=document.activeElement;
   A.querySelectorAll('[data-k]').forEach(function(el){ keep[el.dataset.k]=el.value; if(el===ae){fk=el.dataset.k;cs=el.selectionStart;ce=el.selectionEnd;} });
   var f={cls:scClass,who:scWho,note:scNote,cmp:scCmp,lock:scLock,teacher:scTeacher}[view.s]||scClass;
+  /* 다시 그려도 팁 창·자료 창과 화면의 스크롤 위치를 그대로 둠 */
+  function skey(el){var c=el.querySelector('.tipcard')||el;return (el.classList.contains('modal')?'m':'c')+(c.classList.contains('linkpanel')?'l':'t');}
+  var sc={}, wy=window.scrollY; A.querySelectorAll('.modal,.tipcard').forEach(function(el){sc[skey(el)]=el.scrollTop;});
   A.innerHTML=f();
+  A.querySelectorAll('.modal,.tipcard').forEach(function(el){var v=sc[skey(el)]; if(v)el.scrollTop=v;});
+  if(window.scrollY!==wy)window.scrollTo(0,wy);
   A.querySelectorAll('[data-k]').forEach(function(el){ var v=keep[el.dataset.k]; if(v===undefined)return; el.value=v;
     if(el.dataset.k===fk){el.focus();try{el.setSelectionRange(cs,ce);}catch(e){}} });
   A.querySelectorAll('textarea[data-k]').forEach(function(el){syncBtn(el);});
@@ -788,6 +802,12 @@ function cmpBoard(s,can){
     '<h4 class="colh">'+(rows?'비교 줄 더 만들기':'비교 줄 만들기')+'</h4>'+(hint?'<p class="hint">'+hint+'</p>':'')+
     '<div class="pcols">'+col('past',pp)+col('now',pn)+'</div>'+freeHtml+'</div>';
 }
+function cmpTip(cs){
+  var t=String((cfg.tips||{})['cmp_'+cs]||DEFAULT.tips['cmp_'+cs]||''); if(!t)return '';
+  var ls=t.split('\n'), how=ls[0], ex=ls.slice(1).join('\n').replace(/^예:\s*/,'');
+  return '<div class="cmptip"><h5>선생님의 팁 · '+esc(cfg.cmp[cs].name)+'</h5><p>'+esc(how)+'</p>'+
+    (ex?'<div class="tipex"><span class="exl">다른 마을(부산 바닷가) 예시</span>'+esc(ex).replace(/\n/g,'<br>')+'</div>':'')+'</div>';
+}
 function scCmp(){
   var s=me(); if(!s)return scWho();
   var open=isOpen('cmp'), cs=view.cslot||'use', conf=cfg.cmp[cs], list=cardsOf(cid,s.g,'cmp',cs);
@@ -796,7 +816,7 @@ function scCmp(){
     return '<button data-a="cslot" data-v="'+x+'" class="'+(cs===x?'on':'')+'">'+esc(cfg.cmp[x].name)+(n?'<span class="cnt">'+n+'</span>':'')+'</button>';}).join('')+'</div>';
   var write='<div class="col-write'+(open?'':' shut')+'">'+pick+
     (conf.frame?'<p class="ask">'+esc(conf.frame)+'</p>':'')+cardList(list,open,'아직 카드가 없어요.')+
-    (open?cardForm('cmp',cs,{frame:conf.frame}):'<p class="empty">선생님이 칸을 열면 쓸 수 있어요.</p>')+'</div>';
+    (open?cardForm('cmp',cs,{frame:conf.frame}):'<p class="empty">선생님이 칸을 열면 쓸 수 있어요.</p>')+cmpTip(cs)+'</div>';
   return '<div class="wrap">'+tabs()+'<div class="page"><div class="pagehead"><h2 class="hand">과거와 현재 나란히 보기 · '+s.g+'모둠</h2>'+
     '<span class="badge '+(open?'open':'shut')+'">'+(open?'오늘 쓰는 칸':'보기만')+'</span></div>'+
     '<div class="cmpgrid">'+side+write+'</div></div></div>'+tipBox('cmp')+linkBox('cmp');
@@ -883,7 +903,7 @@ function scTeacher(){
     [['past','과거 장 자료'],['now','현재 장 자료']].map(function(x){
       return '<label class="f"><span>'+x[1]+'</span><textarea data-k="cfg:links.'+x[0]+'" data-set="text" style="min-height:140px;line-height:1.5;background-image:none">'+esc((cfg.links||{})[x[0]]||'')+'</textarea></label>';}).join('')+'</div>'+
     '<div class="panel"><h3>선생님의 취재 팁</h3><p class="sub">아이들이 노트 오른쪽 위 <b>선생님의 취재 팁</b>을 누르면 보이는 글이에요. 줄을 바꾸면 그대로 보여요.</p>'+
-    [['general','공통 안내'],['use','① 카드 예시'],['life','② 카드 예시'],['line','③ 한 줄 예시'],['cmp','비교하기 예시']].map(function(x){
+    [['general','공통 안내'],['use','① 카드 예시'],['life','② 카드 예시'],['line','③ 한 줄 예시'],['cmp','비교하기 예시(팁 창)'],['cmp_use','비교하기 쓰는 칸 아래 · 달라진 이용 방식'],['cmp_life','비교하기 쓰는 칸 아래 · 달라진 생활 모습'],['cmp_link','비교하기 쓰는 칸 아래 · 이어 보기'],['cmp_same','비교하기 쓰는 칸 아래 · 그대로인 것']].map(function(x){
       return '<label class="f"><span>'+x[1]+'</span><textarea data-k="cfg:tips.'+x[0]+'" data-set="text" style="min-height:90px">'+esc((cfg.tips||{})[x[0]]||'')+'</textarea></label>';}).join('')+'</div>';
   html+='<div class="row" style="position:sticky;bottom:12px;justify-content:flex-end"><span class="why">'+(cfgDirty?'저장하지 않은 바뀐 내용이 있어요.':'')+'</span><button class="btn" data-a="csave">설정 저장</button></div></div>';
   return html;
