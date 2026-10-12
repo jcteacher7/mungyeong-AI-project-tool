@@ -111,6 +111,8 @@ textarea.plain{font-family:var(--sans);font-size:15px;min-height:96px;line-heigh
 .entries li{padding:16px 0;border-top:1px solid var(--line)}
 .entries .st{font-size:12.5px;color:var(--soft);margin-bottom:3px}
 .entries .tx{font-family:var(--serif);font-size:17.5px;line-height:1.7}
+.entries .tx.ai{margin-top:8px;font-size:16px;color:var(--ink);opacity:.9}
+.qtag{display:block;font-family:var(--sans);font-size:12.5px;color:var(--soft);letter-spacing:.04em;margin:0 0 4px}
 .marks{display:inline-flex;gap:4px;vertical-align:1px;margin-left:8px}
 .mk{width:7px;height:7px;border-radius:50%;background:var(--line);display:inline-block}
 .mk.v1{background:#D6DEDB}.mk.v2{background:var(--far)}.mk.v3{background:var(--near)}
@@ -196,12 +198,14 @@ function stageATL(st){
 var DEFAULT={
   pin:'1234',
   atl:[
-    {k:'think',   label:'사고기능',    ask:'견주어 보고 까닭을 찾았나요?'},
-    {k:'research',label:'조사기능',    ask:'필요한 자료를 스스로 찾았나요?'},
-    {k:'comm',    label:'의사소통기능', ask:'내 생각을 친구가 알아듣게 말했나요?'},
-    {k:'team',    label:'협업기능',    ask:'모둠에서 내 몫을 했나요?'},
-    {k:'self',    label:'자기관리기능', ask:'스스로 계획하고 끝까지 해냈나요?'}
+    {k:'think',   label:'생각기능', ask:'견주어 보고 까닭을 찾았나요?'},
+    {k:'research',label:'질문기능', ask:'필요한 자료를 스스로 찾았나요?'},
+    {k:'comm',    label:'소통기능', ask:'내 생각을 친구가 알아듣게 말했나요?'},
+    {k:'team',    label:'협력기능', ask:'모둠에서 내 몫을 했나요?'},
+    {k:'self',    label:'자기기능', ask:'스스로 계획하고 끝까지 해냈나요?'}
   ],
+  /* 모든 단계 공통 질문: AI·디지털 도구 (단계마다 켜고 끄기, 단계마다 고쳐 쓰기 가능) */
+  aiQ:'AI·디지털 도구를 어떻게 활용했나요? 활용하면서 어떤 것을 느꼈나요?',
   classes:[
     {id:1,name:'4학년 1반',cur:1,students:[]},
     {id:2,name:'4학년 2반',cur:1,students:[]}
@@ -244,11 +248,16 @@ async function loadAll(){
   if(!r.ok)throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,120));
   var rows=await r.json(), nr={};
   rows.forEach(function(x){
-    if(x.group_id===G_CFG&&x.key===CKEY&&x.value)cfg=Object.assign(clone(DEFAULT),x.value);
+    if(x.group_id===G_CFG&&x.key===CKEY&&x.value){cfg=Object.assign(clone(DEFAULT),x.value);renameSkills();}
     else if(x.group_id===G_DATA&&x.key.indexOf('r:')===0)nr[x.key.slice(2)]=x.value||{};
   });
   recs=nr; connected=true;
 }
+/* 예전 이름으로 저장된 기능 이름을 새 이름으로 바꿔 보여 줌 */
+var OLDNAME={'사고기능':'생각기능','조사기능':'질문기능','의사소통기능':'소통기능','자기관리기능':'자기기능','사회적기능':'협력기능','협업기능':'협력기능'};
+function renameSkills(){(cfg.atl||[]).forEach(function(a){if(OLDNAME[a.label])a.label=OLDNAME[a.label];});}
+function aiOn(st){return !!st&&st.ai!==false;}
+function aiQ(st){return (st&&st.aiq)||cfg.aiQ||DEFAULT.aiQ;}
 function saveCfg(){return put(G_CFG,CKEY,cfg);}
 function saveRec(c,s,st,v){recs[c+':'+s+':'+st]=v;return put(G_DATA,'r:'+c+':'+s+':'+st,v);}
 
@@ -272,7 +281,7 @@ function ridgeIcon(v){
 /* ── 화면 ── */
 /* 설정 칸을 구분하는 이름 — 화면을 다시 그려도 쓰던 글을 되돌려 놓는 데 씀 */
 function fkey(el){
-  var names=['cname','croster','sname','sshort','sq','alabel','aask','pin'];
+  var names=['cname','croster','sname','sshort','sq','saiq','aiq','alabel','aask','pin'];
   for(var i=0;i<names.length;i++)
     if(el.dataset[names[i]]!==undefined)return names[i]+':'+el.dataset[names[i]];
   return null;
@@ -359,7 +368,8 @@ function scHome(ro){
         return '<li><p class="st">'+esc(st.t)+
           '<span class="marks">'+stageATL(st).map(function(a){
             return '<i class="mk v'+(r[a.k]||0)+'" title="'+esc(a.label)+'"></i>';}).join('')+'</span></p>'+
-          '<p class="tx">'+(r.note?esc(r.note):'<span class="quiet">쓴 글 없음</span>')+'</p></li>';
+          '<p class="tx">'+(r.note?esc(r.note):'<span class="quiet">쓴 글 없음</span>')+'</p>'+
+          (r.ai?'<p class="tx ai"><span class="qtag">AI · 디지털 도구</span>'+esc(r.ai)+'</p>':'')+'</li>';
       }).join('')+'</ul>';
   }
   if(!ro){
@@ -425,16 +435,19 @@ function scWrite(){
   var st=stage(view.st), old=rec(cid,sid,view.st);
   var list=stageATL(st);
   if(draft.__st!==view.st){
-    draft={__st:view.st,note:old&&old.note||''};
+    draft={__st:view.st,note:old&&old.note||'',ai:old&&old.ai||''};
     list.forEach(function(a){draft[a.k]=old&&old[a.k]||0;});
   }
   var ready=list.every(function(a){return draft[a.k];});
   return '<div class="wrap">'+
     '<p class="quiet">'+esc(st.t)+'</p>'+
+    '<p class="qtag">이해 · 과정</p>'+
     '<h2>'+esc(st.q)+'</h2>'+
     '<textarea id="note" placeholder="떠오르는 대로 적어 보세요.">'+esc(draft.note)+'</textarea>'+
+    (aiOn(st)?'<p class="qtag" style="margin-top:30px">AI · 디지털 도구</p><h2>'+esc(aiQ(st))+'</h2>'+
+      '<textarea id="note2" placeholder="어떤 도구를 어디에 썼는지, 써 보니 어땠는지 적어 보세요.">'+esc(draft.ai)+'</textarea>':'')+
     '<hr class="rule">'+
-    '<p class="quiet">이번 단계에서 나는 어땠나요?</p>'+
+    '<p class="quiet">이번 단계에서 나의 탐구 기능은 어땠나요?</p>'+
     list.map(function(a){
       return '<div class="ask"><p class="skill">'+esc(a.label)+'</p><q>'+esc(a.ask)+'</q>'+
         '<div class="scale">'+LEVELS.map(function(l){
@@ -497,19 +510,19 @@ function scTeacher(){
     (function(){
       var vs=stage(tStage)||stage(k.cur)||cfg.stages[0];
       if(!vs||!k.students.length)return '';
-      var wrote=k.students.filter(function(s){var r=rec(k.id,s.id,vs.id);return r&&r.note;});
+      var wrote=k.students.filter(function(s){var r=rec(k.id,s.id,vs.id);return r&&(r.note||r.ai);});
       var blank=k.students.filter(function(s){return !rec(k.id,s.id,vs.id);});
       return '<hr class="rule"><h3>아이들이 적은 글</h3>'+
         '<div class="chips" style="margin:12px 0">'+cfg.stages.map(function(s){
           return '<button data-vs="'+s.id+'" aria-pressed="'+(s.id===vs.id)+'">'+esc(s.s)+'</button>';
         }).join('')+'</div>'+
-        '<p class="quiet">'+esc(vs.t)+' · '+esc(vs.q)+'</p>'+
+        '<p class="quiet">'+esc(vs.t)+' · '+esc(vs.q)+(aiOn(vs)?'<br>AI · 디지털 도구 · '+esc(aiQ(vs)):'')+'</p>'+
         (wrote.length?'<ul class="entries">'+wrote.map(function(s){
           var r=rec(k.id,s.id,vs.id);
           return '<li><p class="st">'+esc(s.name)+
             '<span class="marks">'+stageATL(vs).map(function(a){
               return '<i class="mk v'+(r[a.k]||0)+'" title="'+esc(a.label)+'"></i>';}).join('')+'</span></p>'+
-            '<p class="tx">'+esc(r.note)+'</p></li>';
+            '<p class="tx">'+esc(r.note||'')+'</p>'+(r.ai?'<p class="tx ai"><span class="qtag">AI · 디지털 도구</span>'+esc(r.ai)+'</p>':'')+'</li>';
         }).join('')+'</ul>':'<p class="quiet" style="margin-top:10px">아직 적은 글이 없습니다.</p>')+
         (blank.length?'<p class="quiet" style="margin-top:14px">아직 안 한 사람 '+blank.length+'명 — '+
           esc(blank.map(function(s){return s.name;}).join(', '))+'</p>':
@@ -527,14 +540,20 @@ function scTeacher(){
 
     '<h3 style="margin-top:26px">단계와 성찰 질문</h3>'+
     '<p class="quiet">질문은 그대로 학생 화면에 나옵니다. 고쳐 쓰셔도 기록은 이어집니다.</p>'+
+    '<div class="setblock"><p class="lbl">AI · 디지털 도구 공통 질문 — 단계마다 따로 고치지 않은 곳에 모두 나옵니다</p>'+
+    '<textarea data-aiq style="min-height:62px">'+esc(cfg.aiQ||DEFAULT.aiQ)+'</textarea></div>'+
     cfg.stages.map(function(s,i){
       return '<div class="setblock">'+
         '<input class="t" data-sname="'+i+'" value="'+esc(s.t)+'">'+
         '<p class="lbl" style="margin-top:12px">그래프에 쓸 짧은 이름</p>'+
         '<input class="t" data-sshort="'+i+'" value="'+esc(s.s)+'" style="font-size:15px;font-family:var(--sans)">'+
-        '<p class="lbl" style="margin-top:12px">성찰 질문</p>'+
+        '<p class="lbl" style="margin-top:12px">성찰 질문 ① 이해 · 과정</p>'+
         '<textarea data-sq="'+i+'" style="min-height:76px">'+esc(s.q)+'</textarea>'+
-        '<p class="lbl" style="margin-top:14px">이 단계에서 물어볼 기능</p>'+
+        '<p class="lbl" style="margin-top:12px">성찰 질문 ② AI · 디지털 도구 (모든 단계 공통)</p>'+
+        '<div class="chips" style="margin:6px 0 8px"><button data-ai="'+i+'" aria-pressed="'+aiOn(s)+'">'+(aiOn(s)?'켜짐 · 이 단계에서 물어요':'꺼짐 · 이 단계에서는 묻지 않아요')+'</button></div>'+
+        (aiOn(s)?'<textarea data-saiq="'+i+'" style="min-height:62px">'+esc(aiQ(s))+'</textarea>'+
+          (s.aiq?'<p class="quiet" style="margin-top:6px">이 단계만 따로 고친 질문이에요. 공통 질문과 똑같이 맞추면 다시 공통 질문을 따라가요.</p>':''):'')+
+        '<p class="lbl" style="margin-top:14px">이 단계에서 물어볼 탐구 기능</p>'+
         '<div class="chips">'+ATLS().map(function(a){
           var on=stageATL(s).some(function(x){return x.k===a.k;});
           return '<button data-use="'+i+'" data-k="'+a.k+'" aria-pressed="'+on+'" '+
@@ -542,7 +561,7 @@ function scTeacher(){
             esc(a.label)+'</button>';
         }).join('')+'</div></div>';
     }).join('')+
-    '<h3 style="margin-top:26px">스스로 재어 보는 '+ATLS().length+'가지</h3>'+
+    '<h3 style="margin-top:26px">탐구 기능 '+ATLS().length+'가지 · 스스로 재어 보기</h3>'+
     '<p class="quiet">모든 단계에 똑같이 나옵니다. 아이가 '+ATLS().length+'번 눌러야 하니, 이름과 묻는 말은 되도록 짧게 두세요.</p>'+
     ATLS().map(function(a,i){
       return '<div class="setblock">'+
@@ -575,6 +594,7 @@ function wire(){
     var t=b.dataset.back; if(t==='teacher'){view.see=0;go('teacher');} else go(t);};});
   A.querySelectorAll('[data-k]').forEach(function(b){b.onclick=function(){
     var t=document.getElementById('note'); if(t)draft.note=t.value;
+    var t2=document.getElementById('note2'); if(t2)draft.ai=t2.value;
     draft[b.dataset.k]=+b.dataset.v; render();};});
   A.querySelectorAll('[data-tab]').forEach(function(b){b.onclick=function(){tTab=+b.dataset.tab;tStage=0;render();};});
   A.querySelectorAll('[data-vs]').forEach(function(b){b.onclick=function(){tStage=+b.dataset.vs;render();};});
@@ -587,7 +607,9 @@ function wire(){
   var sv=A.querySelector('#save');
   if(sv)sv.onclick=async function(){
     var t=document.getElementById('note');
+    var t2=document.getElementById('note2'), old2=rec(cid,sid,draft.__st);
     var v={note:t?t.value.trim():'',ts:Date.now()};
+    if(t2)v.ai=t2.value.trim(); else if(old2&&old2.ai)v.ai=old2.ai;
     stageATL(stage(draft.__st)).forEach(function(a){v[a.k]=draft[a.k]||0;});
     sv.textContent='남기는 중…';
     var st=draft.__st, ok=true;
@@ -615,6 +637,8 @@ function wire(){
     }
     render();
   };});
+  A.querySelectorAll('[data-ai]').forEach(function(b){b.onclick=function(){
+    var s=cfg.stages[+b.dataset.ai]; s.ai=!aiOn(s); cfgDirty=true; render();};});
   A.querySelectorAll('[data-use]').forEach(function(b){b.onclick=function(){
     var s=cfg.stages[+b.dataset.use], k=b.dataset.k;
     if(!s.use||!s.use.length)s.use=ATLS().map(function(a){return a.k;});
@@ -649,6 +673,11 @@ function wire(){
       var a=A.querySelector('[data-sname="'+i+'"]'), b=A.querySelector('[data-sshort="'+i+'"]'),
           q=A.querySelector('[data-sq="'+i+'"]');
       if(a)s.t=a.value.trim()||s.t; if(b)s.s=b.value.trim()||s.s; if(q)s.q=q.value.trim()||s.q;
+    });
+    var oldQ=cfg.aiQ||DEFAULT.aiQ, cq=A.querySelector('[data-aiq]'); if(cq&&cq.value.trim())cfg.aiQ=cq.value.trim();
+    cfg.stages.forEach(function(s,i){
+      var e=A.querySelector('[data-saiq="'+i+'"]'); if(!e)return;
+      var v=e.value.trim(); if(!v||v===cfg.aiQ||(!s.aiq&&v===oldQ))delete s.aiq; else s.aiq=v;
     });
     if(!cfg.atl||!cfg.atl.length)cfg.atl=clone(DEFAULT.atl);
     cfg.atl.forEach(function(a,i){
