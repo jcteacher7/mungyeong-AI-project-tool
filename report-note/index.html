@@ -31,6 +31,7 @@
   --body:'Gowun Dodum',system-ui,sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{overflow-wrap:anywhere}
 html,body{margin:0;padding:0}
 body{background:var(--desk);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.65;padding:0 16px 120px}
 .wrap{max-width:760px;margin:0 auto}
@@ -531,7 +532,9 @@ function w5ask(k){var w=cfg.w5.filter(function(x){return x.k===k;})[0];return w?
 /* ── 화면 그리기 (쓰던 글·커서를 지킴) ── */
 var composing=false, pendingRender=false;
 document.addEventListener('compositionstart',function(){composing=true;});
-document.addEventListener('compositionend',function(){composing=false;if(pendingRender){pendingRender=false;setTimeout(function(){if(!composing)render();},0);}});
+document.addEventListener('compositionend',function(){composing=false;lastKey=Date.now();
+  /* 바로 다시 그리면 이어서 누른 띄어쓰기가 사라질 수 있어, 손을 멈출 때까지 기다림 */
+  if(pendingRender){pendingRender=false;(function wait(){setTimeout(function(){if(composing)return; if(busy())wait(); else render();},800);})();}});
 function typing(){ if(composing)return true; var a=document.activeElement; return !!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); }
 var lastKey=0;
 document.addEventListener('keydown',function(){lastKey=Date.now();});
@@ -549,7 +552,9 @@ function render(){
   /* 다시 그려도 팁 창·자료 창과 화면의 스크롤 위치를 그대로 둠 */
   function skey(el){var c=el.querySelector('.tipcard')||el;return (el.classList.contains('modal')?'m':'c')+(c.classList.contains('linkpanel')?'l':'t');}
   var sc={}, wy=window.scrollY; A.querySelectorAll('.modal,.tipcard').forEach(function(el){sc[skey(el)]=el.scrollTop;});
+  var keepEl=(ae&&fk&&A.contains(ae))?ae:null;
   A.innerHTML=f();
+  if(keepEl){var nu=A.querySelector('[data-k="'+fk.replace(/"/g,'\\"')+'"]'); if(nu&&nu.tagName===keepEl.tagName){nu.replaceWith(keepEl);}}
   A.querySelectorAll('.modal,.tipcard').forEach(function(el){var v=sc[skey(el)]; if(v)el.scrollTop=v;});
   if(window.scrollY!==wy)window.scrollTo(0,wy);
   A.querySelectorAll('[data-k]').forEach(function(el){ var v=keep[el.dataset.k]; if(v===undefined)return; el.value=v;
