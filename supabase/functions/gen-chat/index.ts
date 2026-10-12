@@ -71,6 +71,7 @@ const SAFE_REPLY = [
   '스스로 다듬으면 훨씬 멋진 문장이 될 거예요. 예상 문장에서 문경에만 맞는 말을 찾아, 누구에게나 맞는 말로 바꿔 볼래요?',
 ];
 const DEFAULT_PASS_TEXT = '미션 성공이에요! 오른쪽 칸에 우리 모둠 생각을 정리해 남기고, 선생님이 다음 단계를 열어 줄 때까지 모둠끼리 한 번 더 이야기해 봐요.';
+const LAST_PASS_TEXT = '미션 성공이에요! 오른쪽 칸에 최종 결론과 증거 두 개를 남기고, 우리 모둠 결론을 발표할 준비를 해요.';
 const DEFAULT_PRAISE = '모둠이 함께 생각해서 까닭까지 잘 말해 주었어요.';
 
 type Row = { group_id: number; key: string; value: Record<string, unknown> };
@@ -265,7 +266,7 @@ Deno.serve(async (req) => {
       if (pass) {
         let praise = out.praise.split(/(?<=[.!?。])\s+/).filter((x) => x && !x.includes('?')).join(' ').trim();
         if (!praise || praise.length > 120 || leaked(praise).length) praise = DEFAULT_PRAISE;
-        out = { ...out, text: `${praise} ${cfg.passText || DEFAULT_PASS_TEXT}` };
+        out = { ...out, text: `${praise} ${step === 3 ? LAST_PASS_TEXT : (cfg.passText || DEFAULT_PASS_TEXT)}` };
       }
       value = { ...base, a: out.text, pass, model: out.model, ...(guard ? { guard } : {}) };
     } catch (e) {

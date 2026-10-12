@@ -261,6 +261,9 @@ function keep(c,g,st){return (data['k:'+c+':'+g+':'+st]||{});}
 function val(c,g,st,k){var v=keep(c,g,st);return (v.f&&v.f[k])||'';}
 function chats(c,g){var pre='m:'+c+':'+g+':';return Object.keys(data).filter(function(k){return k.indexOf(pre)===0;}).map(function(k){return data[k];}).sort(function(a,b){return (a.at||0)-(b.at||0);});}
 function passed(c,g,st){return chats(c,g).some(function(m){return m.step===st&&m.pass;});}
+/* 마지막 단계는 '다음 단계'가 없으니 미션 성공 끝말을 바꿔 보여 줌 */
+var LAST_PASS='미션 성공이에요! 오른쪽 칸에 최종 결론과 증거 두 개를 남기고, 우리 모둠 결론을 발표할 준비를 해요.';
+function aText(m){var a=String(m.a||'');if((m.step||1)===3&&m.pass){[cfg.passText,DEFAULT.passText].forEach(function(pt){if(pt&&a.indexOf(pt)>=0)a=a.replace(pt,LAST_PASS);});}return a;}
 function stage(i){return cfg.stages[i-1]||DEFAULT.stages[i-1];}
 
 /* ── 한글 입력 보호 ── */
@@ -333,7 +336,7 @@ function chatBox(cur){
   list.forEach(function(m){ var s=m.step||1;
     if(s!==last){h+='<span class="sep">'+s+'. '+esc(stage(s).name)+'</span>'; if(s===cur)h+=''; last=s;}
     h+='<div class="bub me"><span class="who">우리 모둠</span>'+br(m.q)+'</div>';
-    if(m.a)h+='<div class="bub ai'+(m.pass?' pass':'')+'"><span class="who">생각 짝꿍</span>'+br(m.a)+'</div>';
+    if(m.a)h+='<div class="bub ai'+(m.pass?' pass':'')+'"><span class="who">생각 짝꿍</span>'+br(aText(m))+'</div>';
   });
   if(last!==cur)h+='<span class="sep">'+cur+'. '+esc(st.name)+'</span>';
   if(!list.some(function(m){return (m.step||1)===cur;}))h+='<div class="bub ai"><span class="who">생각 짝꿍</span>'+br(st.question)+'</div>';
@@ -434,7 +437,7 @@ function scTeacher(){
         '<button class="tog'+((k.show||[]).indexOf(g)>=0?' on':'')+'" data-a="tshow" data-v="'+g+'" style="margin-top:6px">발표 '+((k.show||[]).indexOf(g)>=0?'열림':'열기')+'</button><br>'+
         '<button class="lk" data-a="tlog" data-v="'+g+'">대화 보기 ('+chats(tTab,g).length+')</button></td></tr>';}).join('')+'</tbody></table></div>':'<p class="empty">취재 노트에서 이 반의 모둠 편성을 먼저 해 주세요.</p>')+'</div>';
   if(ui.log){var lg=ui.log;h+='<div class="panel"><h3>'+lg+'모둠 챗봇 대화 <button class="lk" data-a="tlog" data-v="0">닫기</button></h3><div class="dlog">'+
-    (chats(tTab,lg).map(function(m){return '<span class="sep">'+(m.step||1)+'단계 · '+new Date(m.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+'</span><div class="bub me">'+br(m.q)+'</div>'+(m.a?'<div class="bub ai'+(m.pass?' pass':'')+'">'+br(m.a)+'</div>':'<div class="bub ai" style="color:var(--bad)">(AI가 대답하지 못함)</div>');}).join('')||'<p class="empty">아직 대화가 없어요.</p>')+'</div></div>';}
+    (chats(tTab,lg).map(function(m){return '<span class="sep">'+(m.step||1)+'단계 · '+new Date(m.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+'</span><div class="bub me">'+br(m.q)+'</div>'+(m.a?'<div class="bub ai'+(m.pass?' pass':'')+'">'+br(aText(m))+'</div>':'<div class="bub ai" style="color:var(--bad)">(AI가 대답하지 못함)</div>');}).join('')||'<p class="empty">아직 대화가 없어요.</p>')+'</div></div>';}
   /* 설정 */
   h+='<div class="panel set"><h3>문구 설정 (모든 반 같이)</h3><p class="why">고친 뒤 맨 아래 <b>설정 저장</b>을 눌러요. 수업 도중에는 되도록 바꾸지 않아요.</p>'+
     '<label>공간 문장</label><textarea data-k="c:subs.space">'+esc(cfg.subs.space)+'</textarea>'+
