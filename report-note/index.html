@@ -76,6 +76,7 @@ h2.hand{font-family:var(--hand);font-size:36px;font-weight:400;margin:0 0 6px;li
 .tabs button.on{transform:none;color:var(--ink);font-weight:400;box-shadow:0 -2px 6px -4px rgba(60,50,30,.4)}
 .tabs button.t-past.on{background:var(--past)} .tabs button.t-now.on{background:var(--now)} .tabs button.t-cmp.on{background:var(--paper)}
 .tabs button.t-past{border-top:3px solid #5A4E40} .tabs button.t-now{border-top:3px solid #5B8DB0} .tabs button.t-cmp{border-top:3px solid #CDBF9F}
+.tabs button.t-gen{border-top:3px solid var(--open)} .tabs button.t-gen.on{background:var(--paper)}
 .tabs .tipbtn{margin-left:auto;align-self:center;transform:none;border-radius:4px 4px 12px 4px;border:1px solid #E2CF6E;border-bottom:1px solid #E2CF6E}
 .wrap > .page{border-top-left-radius:0}
 .tabs button.on:not([class*="t-"]){background:#fff}
@@ -197,6 +198,36 @@ textarea{width:100%;min-height:76px;padding:6px 12px;border:1.5px solid #CFC6B3;
 .cmpgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
 .cmpgrid .col-write{grid-column:1 / -1}
 .cmpmat{grid-column:1 / -1}
+.gcard{background:#FFFDF8;border:2px solid #CFC6B3;border-radius:14px;padding:14px 18px;margin-bottom:12px}
+.gcard.mine{border-color:var(--open);background:rgba(255,255,255,.8)}
+.gcard h4{margin:0 0 6px;font-family:var(--hand);font-size:24px;font-weight:400}
+.gsent{font-size:20px;line-height:2.1;margin:0 0 8px;word-break:keep-all}
+.gsent.edit{font-size:21px;line-height:2.4}
+.gb{display:inline-block;min-width:4.5em;padding:0 .35em;margin:0 .15em;border-bottom:3px solid var(--open);background:#FFF6D6;border-radius:6px 6px 0 0;font-weight:700;line-height:1.5}
+.gb.empty{background:transparent}
+.gin{font:inherit;font-weight:700;width:auto;min-width:5.5em;field-sizing:content;max-width:100%;padding:2px 8px;margin:0 .2em;border:none;border-bottom:3px solid var(--open);background:#FFF6D6;border-radius:6px 6px 0 0;line-height:1.5;color:var(--ink)}
+.gin:focus{outline:2px solid var(--open);outline-offset:1px}
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:12px}
+.tgen{margin-top:12px}
+.tgrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;border-bottom:1px solid var(--rule);padding:6px 0}
+.tgrow .gsent{font-size:16px;margin:0;line-height:1.9}
+.tgn{font-weight:700}
+.tgbtn{font:inherit;font-size:15px;border:2px solid #CFC6B3;background:#fff;border-radius:10px;padding:8px 14px;min-height:44px;cursor:pointer}
+.tgbtn.on{background:var(--open);border-color:var(--open);color:#fff}
+body.presenting header.top{display:none}
+body.presenting{background:#1F1D1A}
+.present{height:100vh;box-sizing:border-box;overflow:hidden;display:flex;flex-direction:column;padding:2vh 2.5vw;gap:2vh;color:#1F1D1A}
+.ptop{display:flex;align-items:center;gap:12px}
+.ptop h2{flex:1;margin:0;color:#FBF8F1;font-family:var(--hand);font-weight:400;font-size:min(3vw,5vh)}
+.pgrid{flex:1;min-height:0;overflow:hidden;display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:2vh 1.6vw;align-content:safe center}
+.pcard{background:#FBF8F1;border-radius:18px;padding:2.2vh 2vw;font-size:var(--fs)}
+.pcard h4{margin:0 0 .3em;font-family:var(--hand);font-weight:400;font-size:.8em;color:var(--open)}
+.gsent.big{font-size:1em;line-height:1.9;margin:0}
+.gsent.big .gb{border-bottom-width:.12em}
+.pempty{color:#FBF8F1;font-size:min(2.4vw,4vh);text-align:center;opacity:.8}
+.pbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.pbtn{font:inherit;font-size:16px;background:rgba(251,248,241,.12);color:#FBF8F1;border:1.5px solid rgba(251,248,241,.4);border-radius:10px;padding:8px 14px;min-height:44px;cursor:pointer}
+.pbtn.on{background:var(--open);border-color:var(--open)}
 .cmptip{margin-top:16px;padding-top:12px;border-top:1.5px dashed #CFC6B3}
 .cmptip h5{margin:0 0 6px;font-size:15px;color:var(--open);font-weight:700}
 .cmptip p{margin:0 0 8px;font-size:15px;line-height:1.55;word-break:keep-all}
@@ -375,7 +406,8 @@ html{scrollbar-color:#BFB49F transparent}
    ──────────────────────────────────────────────────────────────── */
 var CFG=window.NOTE_CFG||{}, G_DATA=910, G_CFG=911, CKEY='cfg', G_REFLECT=901;
 var SHEETS=['past','now'], SLOTS=['use','life'], CMP=['use','life','link','same'];
-var OPEN_KEYS=['past:use','past:life','past:line','now:use','now:life','now:line','cmp'];
+var OPEN_KEYS=['past:use','past:life','past:line','now:use','now:life','now:line','cmp','gen'];
+var GEN={name:'일반화하기',parts:['사람들이 ','을 ','하는 방식이 달라지면, ','의 흐름에 따라 사람들의 ','도 ','한다.']};
 
 var DEFAULT={
   pin:'1234',
@@ -420,7 +452,7 @@ var DEFAULT={
 
 var cfg=clone(DEFAULT), cards={}, lines={}, pairs={}, connected=false, loaded=false;
 var cid=null, sid=null, view={s:'cls',sheet:'past'};
-var ui={w5:{},kind:{},edit:null,del:null,flash:null,pick:{},xpick:{},xfree:false};
+var ui={w5:{},kind:{},edit:null,del:null,flash:null,pick:{},xpick:{},xfree:false,genDirty:{}};
 var unlocked=false, typed='', wrong=false, cfgDirty=false, tTab=1, tSheet='past', big=false, saving={};
 try{unlocked=sessionStorage.getItem('rn-teacher')==='1';}catch(e){}
 
@@ -458,11 +490,11 @@ async function loadCfg(){
 }
 async function loadData(c){
   if(!c)return;
-  var q='entries?select=key,value&group_id=eq.'+G_DATA+'&or=(key.like.c:'+c+':*,key.like.l:'+c+':*,key.like.p:'+c+':*,key.like.x:'+c+':*)';
+  var q='entries?select=key,value&group_id=eq.'+G_DATA+'&or=(key.like.c:'+c+':*,key.like.l:'+c+':*,key.like.p:'+c+':*,key.like.x:'+c+':*,key.like.g:'+c+':*)';
   var r=await api(q); if(!r.ok)throw new Error('HTTP '+r.status);
   var rows=await r.json(), nc={}, nl={}, np={};
   rows.forEach(function(x){ if(!x.value)return;
-    if(x.key.indexOf('c:')===0)nc[x.key]=x.value; else if(x.key.indexOf('l:')===0)nl[x.key]=x.value; else if(x.key.indexOf('p:')===0||x.key.indexOf('x:')===0)np[x.key]=x.value; });
+    if(x.key.indexOf('c:')===0)nc[x.key]=x.value; else if(x.key.indexOf('l:')===0)nl[x.key]=x.value; else if(/^[pxg]:/.test(x.key))np[x.key]=x.value; });
   Object.keys(pairs).forEach(function(k){if(k.split(':')[1]!==String(c))np[k]=pairs[k];});
   pairs=np;
   /* 다른 반 기록은 그대로 두고 이 반만 바꿈 */
@@ -478,7 +510,7 @@ function setPend(a){try{localStorage.setItem('rn-pending',JSON.stringify(a));}ca
 function addPend(item){var a=pend().filter(function(x){return x.k!==item.k;});a.push(item);setPend(a);}
 function overlayPending(){ /* 지금 고른 사람이 못 보낸 글만 보여 줌 */
   pend().forEach(function(p){ if(p.sid!==sid||p.cls!==cid)return;
-    var box=p.k.indexOf('c:')===0?cards:(p.k.indexOf('p:')===0||p.k.indexOf('x:')===0)?pairs:lines;
+    var box=p.k.indexOf('c:')===0?cards:/^[pxg]:/.test(p.k)?pairs:lines;
     if(p.del)delete box[p.k]; else box[p.k]=Object.assign({},p.v,{_local:1}); });
 }
 async function flush(){
@@ -548,7 +580,8 @@ function render(){
   document.getElementById('state').innerHTML=(k&&view.s!=='teacher'&&view.s!=='lock'?esc(k.name)+(s?' · '+s.g+'모둠 · <b>'+esc(s.name)+'</b>'+((view.s==='note'||view.s==='cmp')?'<button class="swap" data-a="back-who">이름 바꾸기</button>':''):''):'')+(connected?'':' · <span style="color:var(--bad)">인터넷 연결을 확인해 주세요</span>');
   var keep={}, fk=null, cs=0, ce=0, ae=document.activeElement;
   A.querySelectorAll('[data-k]').forEach(function(el){ keep[el.dataset.k]=el.value; if(el===ae){fk=el.dataset.k;cs=el.selectionStart;ce=el.selectionEnd;} });
-  var f={cls:scClass,who:scWho,note:scNote,cmp:scCmp,lock:scLock,teacher:scTeacher}[view.s]||scClass;
+  var f={cls:scClass,who:scWho,note:scNote,cmp:scCmp,gen:scGen,lock:scLock,teacher:scTeacher,present:scPresent}[view.s]||scClass;
+  document.body.classList.toggle('presenting',view.s==='present');
   /* 다시 그려도 팁 창·자료 창과 화면의 스크롤 위치를 그대로 둠 */
   function skey(el){var c=el.querySelector('.tipcard')||el;return (el.classList.contains('modal')?'m':'c')+(c.classList.contains('linkpanel')?'l':'t');}
   var sc={}, wy=window.scrollY; A.querySelectorAll('.modal,.tipcard').forEach(function(el){sc[skey(el)]=el.scrollTop;});
@@ -559,6 +592,8 @@ function render(){
   if(window.scrollY!==wy)window.scrollTo(0,wy);
   A.querySelectorAll('[data-k]').forEach(function(el){ var v=keep[el.dataset.k]; if(v===undefined)return; el.value=v;
     if(el.dataset.k===fk){el.focus();try{el.setSelectionRange(cs,ce);}catch(e){}} });
+  A.querySelectorAll('input[data-k^="gen:"]').forEach(function(el){var i=el.dataset.k.slice(4), s2=me(); if(!ui.genDirty[i]&&s2)el.value=genVal(cid,s2.g,i); el.size=ginSize(el.value);});
+  if(view.s==='present')fitPresent();
   A.querySelectorAll('textarea[data-k]').forEach(function(el){syncBtn(el);});
   var seen={}; A.querySelectorAll('input[data-k^="f:"]').forEach(function(el){var p=el.dataset.k.split(':');var key=p[1]+':'+p[2];if(!seen[key]){seen[key]=1;syncBtn(el);}});
 }
@@ -590,10 +625,11 @@ function scWho(){
 
 /* 3. 취재 노트 */
 function tabs(){
-  var sh=view.s==='cmp'?'cmp':view.sheet;
+  var sh=view.s==='cmp'?'cmp':view.s==='gen'?'gen':view.sheet;
   return '<div class="tabs">'+SHEETS.map(function(x){
     return '<button data-a="sheet" data-v="'+x+'" class="t-'+x+(sh===x?' on':'')+'">'+esc(cfg.sheets[x])+' 장</button>';}).join('')+
     '<button data-a="cmp" class="t-cmp'+(sh==='cmp'?' on':'')+'">비교하기</button>'+
+    '<button data-a="gen" class="t-gen'+(view.s==='gen'?' on':'')+'">'+esc(GEN.name)+'</button>'+
     '<button class="tipbtn" data-a="links">취재 자료</button><button class="tipbtn" data-a="tip">선생님의 취재 팁</button></div>';
 }
 function cardBody(c){return c.f?'<dl class="fx">'+w5list().filter(function(w){return c.f[w.k];}).map(function(w){return '<dt>'+esc(w.t)+'</dt><dd>'+esc(c.f[w.k])+'</dd>';}).join('')+'</dl>':'<div class="t">'+esc(c.t)+'</div>';}
@@ -813,6 +849,56 @@ function cmpTip(cs){
   return '<div class="cmptip"><h5>선생님의 팁 · '+esc(cfg.cmp[cs].name)+'</h5><p>'+esc(how)+'</p>'+
     (ex?'<div class="tipex"><span class="exl">다른 마을(부산 바닷가) 예시</span>'+esc(ex).replace(/\n/g,'<br>')+'</div>':'')+'</div>';
 }
+/* 5. 일반화하기: 모둠이 함께 빈칸 다섯 개를 채움 */
+function ginSize(t){return Math.max(6,Math.round(String(t||'').length*2.1)+2);}
+function genVal(c,g,i){var v=pairs['g:'+c+':'+g+':'+i];return v&&v.t||'';}
+function genLast(c,g){var b=null;for(var i=0;i<5;i++){var v=pairs['g:'+c+':'+g+':'+i];if(v&&(!b||(v.at||0)>(b.at||0)))b=v;}return b;}
+function genSentence(c,g,cls){
+  var P=GEN.parts, h='';
+  for(var i=0;i<5;i++){var t=genVal(c,g,i); h+=esc(P[i])+'<span class="gb'+(t?'':' empty')+'">'+(t?esc(t):'&nbsp;')+'</span>';}
+  return '<p class="gsent'+(cls?' '+cls:'')+'">'+h+esc(P[5])+'</p>';
+}
+function groupsOf(k){var o=[];for(var g=1;g<=k.groups;g++){if(k.students.some(function(x){return x.g===g;}))o.push(g);}return o;}
+function scGen(){
+  var s=me(); if(!s)return scWho();
+  var k=klass(cid), open=isOpen('gen'), P=GEN.parts, mine='';
+  if(open){
+    for(var i=0;i<5;i++)mine+=esc(P[i])+'<input class="gin" data-k="gen:'+i+'" value="'+esc(genVal(cid,s.g,i))+'" size="'+ginSize(genVal(cid,s.g,i))+'" autocomplete="off">';
+    mine='<p class="gsent edit">'+mine+esc(P[5])+'</p>';
+  } else mine=genSentence(cid,s.g);
+  var last=genLast(cid,s.g), dirty=Object.keys(ui.genDirty).some(function(x){return ui.genDirty[x];});
+  var act=open?'<div class="row"><button class="btn" data-a="gsave"'+(dirty?'':' disabled')+'>우리 모둠 문장 저장</button>'+
+    '<span class="why">'+(dirty?'저장하지 않은 글이 있어요.':(last?'마지막으로 고친 사람: '+esc(last.name||''):'모둠 친구 누구나 빈칸을 채우고 고칠 수 있어요.'))+'</span>'+flashHtml('gen')+'</div>':
+    '<p class="empty">선생님이 칸을 열면 쓸 수 있어요.</p>';
+  var shown=(k.show||[]).filter(function(g){return g!==s.g;}).sort(function(a,b){return a-b;});
+  var others=shown.length?shown.map(function(g){return '<div class="gcard"><h4>'+g+'모둠</h4>'+genSentence(cid,g)+'</div>';}).join(''):
+    '<p class="empty">선생님이 열면 다른 모둠의 문장이 여기에 보여요.</p>';
+  return '<div class="wrap">'+tabs()+'<div class="page gen"><div class="pagehead"><h2 class="hand">'+esc(GEN.name)+' · '+s.g+'모둠</h2>'+
+    '<span class="badge '+(open?'open':'shut')+'">'+(open?'오늘 쓰는 칸':'보기만')+'</span></div>'+
+    '<p class="ask">지금까지 짝 짓고 비교한 것을 떠올리며, 모둠이 함께 빈칸을 채워 한 문장을 만들어요.</p>'+
+    '<div class="gcard mine"><h4>우리 모둠 문장</h4>'+mine+act+'</div>'+
+    '<h4 class="colh" style="margin-top:20px">다른 모둠의 문장</h4><div class="ggrid">'+others+'</div></div></div>'+tipBox('cmp')+linkBox('cmp');
+}
+/* 선생님: 발표 화면 */
+/* 발표 화면: 한 화면에 꽉 차되 넘치지 않게 글씨 크기를 맞춤 */
+function fitPresent(){
+  var g=document.querySelector('.pgrid'); if(!g)return; var fs=parseFloat(getComputedStyle(document.querySelector('.pcard')||g).fontSize)||40;
+  for(var n=0;n<40&&g.scrollHeight>g.clientHeight+1&&fs>14;n++){fs*=0.94;g.style.setProperty('--fs',fs+'px');}
+}
+window.addEventListener('resize',function(){if(view.s==='present')render();});
+document.addEventListener('fullscreenchange',function(){if(view.s==='present')setTimeout(render,120);});
+function scPresent(){
+  if(!unlocked)return scLock();
+  var k=klass(tTab)||cfg.classes[0], gs=groupsOf(k), show=(k.show||[]).slice().sort(function(a,b){return a-b;});
+  var n=show.length, cols=n<=2?1:2, fs=n<=1?'min(4.6vw,8vh)':n<=2?'min(3.6vw,6vh)':n<=4?'min(2.4vw,4.6vh)':n<=6?'min(2.1vw,3.6vh)':'min(1.8vw,2.8vh)';
+  var cards=n?show.map(function(g){return '<div class="pcard"><h4>'+g+'모둠</h4>'+genSentence(k.id,g,'big')+'</div>';}).join(''):
+    '<p class="pempty">아래에서 모둠을 열면 그 모둠의 문장이 여기에 크게 보여요.</p>';
+  return '<div class="present"><div class="ptop"><h2>'+esc(k.name)+' · 우리 반이 찾은 문장</h2>'+
+    '<button class="pbtn" data-a="pfull">전체 화면</button><button class="pbtn" data-a="pexit">선생님 화면으로</button></div>'+
+    '<div class="pgrid" style="--cols:'+cols+';--fs:'+fs+'">'+cards+'</div>'+
+    '<div class="pbar">'+gs.map(function(g){var on=show.indexOf(g)>=0;return '<button class="pbtn'+(on?' on':'')+'" data-a="gshow" data-v="'+g+'">'+g+'모둠 '+(on?'닫기':'열기')+'</button>';}).join('')+
+    '<button class="pbtn" data-a="gshow-all">모두 열기</button><button class="pbtn" data-a="gshow-none">모두 닫기</button></div></div>';
+}
 function scCmp(){
   var s=me(); if(!s)return scWho();
   var open=isOpen('cmp'), cs=view.cslot||'use', conf=cfg.cmp[cs], list=cardsOf(cid,s.g,'cmp',cs);
@@ -844,7 +930,7 @@ function scTeacher(){
 
   /* 오늘 열 칸 */
   var labels={'past:use':'과거 ① '+cfg.slots.use.name,'past:life':'과거 ② '+cfg.slots.life.name,'past:line':'과거 ③ '+cfg.slots.line.name,
-    'now:use':'현재 ① '+cfg.slots.use.name,'now:life':'현재 ② '+cfg.slots.life.name,'now:line':'현재 ③ '+cfg.slots.line.name,'cmp':'비교하기'};
+    'now:use':'현재 ① '+cfg.slots.use.name,'now:life':'현재 ② '+cfg.slots.life.name,'now:line':'현재 ③ '+cfg.slots.line.name,'cmp':'비교하기','gen':GEN.name};
   html+='<div class="panel"><h3>오늘 열 칸</h3><p class="sub">누르면 바로 열리고 닫혀요. 여러 칸을 함께 열 수 있어요. 열린 칸만 아이들이 쓸 수 있어요.</p><div class="toggles">'+
     OPEN_KEYS.map(function(x){return '<button data-a="open" data-v="'+x+'" class="'+(k.open.indexOf(x)>=0?'on':'')+'">'+esc(labels[x])+'</button>';}).join('')+'</div></div>';
   var shown=resShown(k);
@@ -874,6 +960,13 @@ function scTeacher(){
     html+='</div>';
   }
   html+='</div></div>';
+
+  /* 모둠별 하위 일반화 카드 */
+  var gsh=k.show||[];
+  html+='<div class="panel"><h3>모둠별 하위 일반화 카드 · '+esc(GEN.name)+'</h3><p class="sub">아이들은 처음에 자기 모둠 문장만 봐요. <b>열기</b>를 누른 모둠의 문장은 모든 아이들 화면과 발표 화면에 보여요.</p>'+
+    '<div class="row"><button class="btn" data-a="present">발표 화면으로 전환</button><button class="btn ghost" data-a="gshow-all">모두 열기</button><button class="btn ghost" data-a="gshow-none">모두 닫기</button></div>'+
+    '<div class="tgen">'+groupsOf(k).map(function(g){var on=gsh.indexOf(g)>=0;
+      return '<div class="tgrow"><span class="tgn">'+g+'모둠</span>'+genSentence(k.id,g)+'<button class="tgbtn'+(on?' on':'')+'" data-a="gshow" data-v="'+g+'">'+(on?'열림 · 닫기':'열기')+'</button></div>';}).join('')+'</div></div>';
 
   /* 아이들 글 보기 */
   var on=k.students.filter(function(s){return s.g>0;}).sort(function(a,b){return a.g-b.g;});
@@ -939,6 +1032,9 @@ document.addEventListener('input',function(e){
   var el=e.target; if(!el.dataset)return;
   if(el.tagName==='TEXTAREA'||(el.dataset.k&&el.dataset.k.indexOf('f:')===0))syncBtn(el);
   if(view.s==='teacher'&&el.dataset.set==='text')cfgDirty=true;
+  if(el.dataset.k&&el.dataset.k.indexOf('gen:')===0){ ui.genDirty[el.dataset.k.slice(4)]=1; el.size=ginSize(el.value);
+    var gb=document.querySelector('[data-a="gsave"]'); if(gb)gb.disabled=false;
+    var gw=gb&&gb.parentNode.querySelector('.why'); if(gw)gw.textContent='저장하지 않은 글이 있어요.'; }
 });
 document.addEventListener('change',function(e){
   var el=e.target; if(!el.dataset||view.s!=='teacher')return;
@@ -959,6 +1055,15 @@ document.addEventListener('click',async function(e){
   else if(a==='slot'){view.slot=v;ui.edit=null;ui.del=null;render();}
   else if(a==='cslot'){view.cslot=v;ui.edit=null;ui.del=null;render();}
   else if(a==='cmp'){go('cmp');}
+  else if(a==='gen'){ui.genDirty={};go('gen');}
+  else if(a==='gsave'){ await saveGen(); }
+  else if(a==='present'){ if(cfgDirty){say('저장하지 않은 설정이 있어요. 먼저 설정 저장을 눌러 주세요.',1);return;} go('present'); }
+  else if(a==='pexit'){ if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(function(){}); go('teacher'); }
+  else if(a==='pfull'){ var de=document.documentElement; if(document.fullscreenElement){document.exitFullscreen().catch(function(){});} else if(de.requestFullscreen){de.requestFullscreen().catch(function(){});} }
+  else if(a==='gshow'||a==='gshow-all'||a==='gshow-none'){ var kg=klass(tTab); if(!kg)return; var cur2=(kg.show||[]).slice();
+    if(a==='gshow-all')cur2=groupsOf(kg); else if(a==='gshow-none')cur2=[]; else { var gi=cur2.indexOf(+v); if(gi>=0)cur2.splice(gi,1); else cur2.push(+v); }
+    cur2.sort(function(x,y){return x-y;}); kg.show=cur2; render();
+    try{ await saveClassField(kg.id,'show',cur2); }catch(err){ say('저장하지 못했어요. '+err.message,1); } }
   else if(a==='kind'){var ks=(ui.kind[b.dataset.slot]||[]).slice(),ix=ks.indexOf(v);if(ix>=0)ks.splice(ix,1);else ks.push(v);ui.kind[b.dataset.slot]=ks;render();}
   else if(a==='frame'){var ta=A.querySelector('[data-k="'+v+'"]');if(ta){if(!ta.value.trim())ta.value=b.dataset.f;ta.focus();var i=ta.value.indexOf('(');if(i>=0)try{ta.setSelectionRange(i+1,i+1);}catch(err){}syncBtn(ta);}}
   else if(a==='add'){await addCard(v);}
@@ -1051,6 +1156,16 @@ async function addCard(key){
   ui.flash={key:key,at:Date.now(),local:!ok}; render();
   setTimeout(function(){if(!busy())render();},4200);
 }
+async function saveGen(){
+  var A=document.getElementById('app'), s=me(); if(!s)return; var all=true;
+  for(var i=0;i<5;i++){ if(!ui.genDirty[i])continue; var el=A.querySelector('[data-k="gen:'+i+'"]'); if(!el)continue;
+    var t=el.value.trim(), key='g:'+cid+':'+s.g+':'+i;
+    if(t){var v={t:t,by:sid,name:s.name,at:Date.now()}; pairs[key]=v; if(!(await send(key,v))){all=false;pairs[key]=Object.assign({},v,{_local:1});}}
+    else { delete pairs[key]; if(!(await send(key,null,true)))all=false; }
+    ui.genDirty[i]=0; }
+  if(document.activeElement)document.activeElement.blur();
+  ui.flash={key:'gen',at:Date.now(),local:!all}; render(); setTimeout(function(){if(!busy())render();},4200);
+}
 async function saveLine(sheet){
   var A=document.getElementById('app'), ta=A.querySelector('[data-k="line:'+sheet+'"]'); if(!ta)return;
   var t=ta.value.trim(); if(!t)return; var s=me();
@@ -1119,7 +1234,7 @@ async function saveSettings(){
     try{
       await flush();
       await loadCfg();
-      var c=view.s==='teacher'?tTab:cid;
+      var c=(view.s==='teacher'||view.s==='present')?tTab:cid;
       if(c)await loadData(c);
       if(!busy()&&!ui.edit&&!(view.s==='teacher'&&cfgDirty))render();
     }catch(e){ connected=false; if(!busy())render(); }
