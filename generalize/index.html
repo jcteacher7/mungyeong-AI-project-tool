@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>생각 잇기 · 일반화 탐구</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<style>
+:root{
+  --desk:#E9E4DA; --paper:#FBF8F1; --rule:#E3DCCB; --ink:#2B2A27; --soft:#5C564E;
+  --open:#D9622B; --ok:#3E7D4E; --bad:#B23A2E;
+  --s1:#B88A10; --s1bg:#FFF4D2;   /* 예상하기 */
+  --s2:#2F6E99; --s2bg:#E6F1F8;   /* 따져 보기 */
+  --s3:#C2531F; --s3bg:#FBE6DB;   /* 결론 내리기 */
+  --space:#5C8A4B; --time:#8C5A3C;
+  --hand:'Nanum Pen Script',cursive;
+  --body:'Gowun Dodum',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--desk);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.65;padding:0 16px 80px;overflow-wrap:anywhere}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;cursor:pointer;padding:0}
+button:disabled{cursor:not-allowed;opacity:.5}
+input,textarea{font-family:inherit;font-size:17px;color:var(--ink)}
+:focus-visible{outline:2.5px solid var(--s2);outline-offset:2px;border-radius:4px}
+.wrap{max-width:760px;margin:0 auto}
+.wide{max-width:1280px;margin:0 auto}
+header.top{max-width:1280px;margin:0 auto;display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:16px 0 8px}
+#title{font-family:var(--hand);font-size:36px;line-height:1;margin:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#state{font-size:15px;color:var(--soft);text-align:right}
+#state b{color:var(--ink)}
+.msg{max-width:1280px;margin:6px auto;padding:10px 14px;border-radius:10px;background:#E4F0E6;color:var(--ok);font-size:15px}
+.msg.bad{background:#F7E1DD;color:var(--bad)}
+.page{background:var(--paper);border-radius:6px 14px 14px 6px;padding:20px 22px 24px 48px;border-left:10px solid #CDBF9F;
+  box-shadow:0 1px 0 #d8d0bf,0 10px 24px -14px rgba(60,50,30,.35);
+  background-image:linear-gradient(to right,transparent 0 30px,#E9B4A8 30px 31.5px,transparent 31.5px)}
+h2.hand{font-family:var(--hand);font-size:40px;font-weight:400;margin:0 0 6px;line-height:1.1}
+.sub{color:var(--soft);font-size:16px;margin:0 0 14px}
+.center{text-align:center}
+.pick{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,240px));justify-content:center;gap:14px;margin-top:18px}
+.pick button{background:#fff;border:2px solid #CFC6B3;border-radius:12px;padding:18px 12px;font-size:24px;min-height:84px;box-shadow:0 2px 0 rgba(0,0,0,.06)}
+.pick button:active{transform:translateY(2px)}
+.pick button span{display:block;font-size:14px;color:var(--soft);margin-top:2px}
+.btn{background:var(--ink);color:#FBF8F1;border:2px solid var(--ink);border-radius:10px;padding:10px 20px;font-size:17px;min-height:48px}
+.btn.ghost{background:#fff;color:var(--ink);border-color:#CFC6B3}
+.btn.sm{padding:6px 12px;min-height:38px;font-size:15px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.why{font-size:15px;color:var(--soft)}
+.saved{color:var(--ok);font-size:15px}
+.local-note{color:var(--bad);font-size:15px}
+.empty{color:var(--soft);font-size:15px}
+.lk{font-size:14px;text-decoration:underline;color:var(--soft);padding:4px 2px}
+
+/* 단계 띠 */
+.steps{display:flex;gap:6px;margin:4px 0 12px;flex-wrap:wrap;align-items:center}
+.steps button{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;border:2px solid #CFC6B3;background:#fff;font-size:17px;min-height:46px}
+.steps button .no{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#E3DCCB;font-size:14px}
+.steps button.on{color:#fff}
+.steps button.s1.on{background:var(--s1);border-color:var(--s1)} .steps button.s2.on{background:var(--s2);border-color:var(--s2)} .steps button.s3.on{background:var(--s3);border-color:var(--s3)}
+.steps button.on .no{background:rgba(255,255,255,.3)}
+.steps button.lock{opacity:.45}
+.steps button .star{color:#E0A400}
+.steps button.res{border-style:dashed}
+.steps button.res.on{background:var(--ink);border-color:var(--ink);border-style:solid}
+
+/* 탐구 화면 */
+.main{display:grid;grid-template-columns:1fr;gap:16px}
+@media (orientation:landscape) and (min-width:900px){ .main{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start} .col-r{position:sticky;top:10px} }
+.subs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:640px){.subs{grid-template-columns:1fr}}
+.subcard{border-radius:12px;padding:10px 14px;background:#fff;border:2px solid #E3DCCB}
+.subcard h4{margin:0 0 2px;font-family:var(--hand);font-size:26px;font-weight:400}
+.subcard.space h4{color:var(--space)} .subcard.time h4{color:var(--time)}
+.subcard p{margin:0;font-size:17px;line-height:1.55;word-break:keep-all}
+
+.chat{margin-top:14px;background:#fff;border:2px solid #E3DCCB;border-radius:14px;display:flex;flex-direction:column;min-height:360px}
+.chat .head{padding:10px 14px;border-bottom:1.5px solid #EFE9DC;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chat .head b{font-family:var(--hand);font-size:26px;font-weight:400}
+.log{flex:1;overflow-y:auto;max-height:max(220px,calc(100vh - 470px));padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.bub{max-width:88%;padding:9px 13px;border-radius:14px;line-height:1.55;word-break:keep-all;font-size:17px}
+.bub.ai{align-self:flex-start;background:#F3EFE6;border-bottom-left-radius:4px}
+.bub.me{align-self:flex-end;background:var(--s2bg);border-bottom-right-radius:4px}
+.bub.pass{background:#E7F3E9;border:2px solid var(--ok)}
+.bub .who{display:block;font-size:13px;color:var(--soft);margin-bottom:1px}
+.sep{align-self:center;font-size:13px;color:var(--soft);background:#F3EFE6;border-radius:999px;padding:2px 12px}
+.think{align-self:flex-start;color:var(--soft);font-size:15px}
+.think i{display:inline-block;animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){.think i{animation:none}}
+.compose{border-top:1.5px solid #EFE9DC;padding:10px 12px;display:flex;gap:8px;align-items:flex-end}
+.compose textarea{flex:1;min-height:52px;max-height:140px;resize:vertical;border:1.5px solid #CFC6B3;border-radius:10px;padding:8px 10px;line-height:1.5}
+.compose .btn{min-width:84px}
+.retry{padding:6px 14px 10px;font-size:15px;color:var(--bad)}
+.mission{display:flex;align-items:center;gap:10px;background:#E7F3E9;border:2px solid var(--ok);color:var(--ok);border-radius:12px;padding:8px 14px;margin:10px 0 0;font-size:17px}
+.mission .big{font-size:26px;color:#E0A400}
+
+.fields{border-radius:14px;padding:14px 16px;border:2px solid}
+.fields.s1{background:var(--s1bg);border-color:#EBD58E} .fields.s2{background:var(--s2bg);border-color:#A9CBE2} .fields.s3{background:var(--s3bg);border-color:#EDB89C}
+.fields h3{margin:0 0 4px;font-family:var(--hand);font-size:32px;font-weight:400;line-height:1.1}
+.fields .desc{margin:0 0 10px;font-size:15.5px;color:var(--soft)}
+.fld{margin-top:12px}
+.fld label{display:block;font-weight:700;font-size:17px}
+.fld .help{display:block;font-size:14.5px;color:var(--soft);margin:2px 0 4px;line-height:1.5}
+.fld textarea{width:100%;min-height:72px;border:1.5px solid #CFC6B3;border-radius:10px;padding:8px 12px;line-height:1.6;background:#fff;resize:vertical}
+.frame{font-size:15px;background:#fff;border:1.5px dashed var(--s3);border-radius:8px;padding:6px 10px;margin:4px 0 6px}
+.closed{background:#fff;border-radius:14px;padding:26px;text-align:center;color:var(--soft)}
+
+/* 결론 카드 */
+.result{background:#fff;border-radius:16px;padding:22px 26px;border:3px solid var(--s3)}
+.result h3{margin:0 0 8px;font-family:var(--hand);font-size:32px;font-weight:400;color:var(--s3)}
+.result .fin{font-size:24px;line-height:1.6;font-weight:700;margin:0 0 12px;word-break:keep-all}
+.result .ev{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:18px}
+.result .ev b{color:var(--soft);font-weight:400;white-space:nowrap}
+
+/* 선생님 */
+.panel{background:#fff;border-radius:14px;padding:16px 18px;margin-top:14px;box-shadow:0 1px 0 #d8d0bf}
+.panel h3{margin:0 0 6px;font-size:20px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tabs button{padding:8px 16px;border-radius:10px;border:2px solid #CFC6B3;background:#fff;min-height:44px}
+.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tabs .sp{flex:1}
+.tog{padding:8px 14px;border-radius:10px;border:2px solid #CFC6B3;background:#fff;min-height:42px;font-size:15px}
+.tog.on{background:var(--open);border-color:var(--open);color:#fff}
+.tbl{width:100%;border-collapse:collapse;font-size:15px}
+.tbl th,.tbl td{border-bottom:1px solid #E3DCCB;padding:8px 6px;text-align:left;vertical-align:top}
+.tbl th{font-weight:400;color:var(--soft);font-size:14px}
+.tbl td.g{font-weight:700;white-space:nowrap}
+.tbl .k{display:block;font-size:12.5px;color:var(--soft)}
+.tbl .v{display:block;margin-bottom:6px;word-break:keep-all}
+.star{color:#E0A400}
+.set label{display:block;margin-top:10px;font-size:14px;color:var(--soft)}
+.set input,.set textarea{width:100%;border:1.5px solid #CFC6B3;border-radius:8px;padding:7px 10px;font-size:16px;background:#FFFDF8}
+.set textarea{min-height:60px;line-height:1.5}
+.set .stg{border-top:1.5px dashed #E3DCCB;margin-top:14px;padding-top:6px}
+.dlog{max-height:60vh;overflow:auto;border:1.5px solid #E3DCCB;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;background:#FFFDF8}
+.lockbox{max-width:340px;margin:30px auto;text-align:center}
+.dots{font-size:30px;letter-spacing:10px;margin:10px 0}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pad button{background:#fff;border:2px solid #CFC6B3;border-radius:10px;font-size:24px;min-height:60px}
+
+/* 발표 화면 */
+body.presenting{background:#1F1D1A;padding:0}
+body.presenting header.top,body.presenting #msg{display:none}
+.present{height:100vh;display:flex;flex-direction:column;padding:2vh 2.5vw;gap:2vh;overflow:hidden}
+.ptop{display:flex;align-items:center;gap:12px}
+.ptop h2{flex:1;margin:0;color:#FBF8F1;font-family:var(--hand);font-weight:400;font-size:min(3vw,5vh)}
+.pgrid{flex:1;min-height:0;overflow:hidden;display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:2vh 1.6vw;align-content:safe center}
+.pcard{background:#FBF8F1;border-radius:18px;padding:2.2vh 2vw;font-size:var(--fs)}
+.pcard h4{margin:0 0 .25em;font-family:var(--hand);font-weight:400;font-size:.85em;color:var(--s3)}
+.pcard .fin{font-weight:700;line-height:1.5;margin:0 0 .4em;word-break:keep-all}
+.pcard .ev{font-size:.72em;line-height:1.5;margin:0;color:#3a3833;word-break:keep-all}
+.pcard .ev b{color:var(--s3);font-weight:400}
+.pempty{color:#FBF8F1;font-size:min(2.4vw,4vh);text-align:center;opacity:.8}
+.pbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.pbtn{font-size:16px;background:rgba(251,248,241,.12);color:#FBF8F1;border:1.5px solid rgba(251,248,241,.4);border-radius:10px;padding:8px 14px;min-height:44px}
+.pbtn.on{background:var(--open);border-color:var(--open)}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1 id="title">생각 잇기</h1>
+  <span id="state"></span>
+</header>
+<div id="msg"></div>
+<main id="app"></main>
+
+<script src="config.js?v=1"></script>
+<script>
+/* ────────────────────────────────────────────────────────────────
+   저장 (취재 노트와 같은 entries 표, 새 SQL 없음)
+     921 / 'cfg'                  이 앱 설정
+     920 / 'k:<반>:<모둠>:<단계>'   모둠이 남긴 칸 {f:{칸:글}, at}
+     920 / 'm:<반>:<모둠>:<번호>'   챗봇 대화(중계 함수가 저장)
+     911 / 'cfg'                  취재 노트 설정(반 이름, 모둠 편성) — 읽기만
+   ──────────────────────────────────────────────────────────────── */
+var C=window.GEN_CFG||{}, G_DATA=920, G_CFG=921, G_NOTE=911;
+var DEFAULT={
+  pin:'1234',
+  subs:{
+    space:'사람들이 사는 공간(자연환경 및 인문환경)의 특징에 따라 서로 다른 생활 모습으로 변화한다.',
+    time:'사람들이 환경을 이용하는 방식이 달라지면, 시간의 흐름에 따라 사람들의 생활 모습도 변화한다.'
+  },
+  stages:[
+    {name:'예상하기',desc:'두 문장에서 같은 점을 찾고, 둘을 하나로 이어 "아마 이럴 거야" 하는 예상 문장을 만들어요.',
+     question:'두 문장을 모둠이 함께 소리 내어 읽어 봐요. 두 문장이 똑같이 말하고 있는 것은 무엇인가요?',
+     fields:[{k:'same',label:'두 문장의 같은 점',help:'두 문장이 똑같이 말하는 것을 한 가지 적어요.'},
+             {k:'guess',label:'우리 모둠 예상 문장',help:'예상 문장은 "아마 이럴 거야" 하고 우리가 짐작해 보는 문장이에요. 아직 맞는지 모르니까, 다음 단계에서 증거로 따져 봐요.'}]},
+    {name:'따져 보기',desc:'우리 조사에서 예상 문장이 맞다는 증거를 찾고, 아닐 수도 있는 경우도 생각해요.',
+     question:'우리 모둠의 예상 문장이 맞다는 걸 보여 주는 우리 조사 내용이 있나요? 문경의 옛날과 지금, 다른 고장의 모습을 떠올려 봐요.',
+     fields:[{k:'proof',label:'예상 문장을 뒷받침하는 증거',help:'우리가 조사한 실제 이야기에서 찾아요. 어디의, 언제 이야기인지 적어요.'},
+             {k:'other',label:'아닐 수도 있는 경우',help:'예상과 다른 경우나, 다른 까닭으로 생활이 바뀐 경우가 있을까요?'}]},
+    {name:'결론 내리기',desc:'예상 문장을 다듬어 누구에게나 맞는 최종 결론 한 문장을 만들고, 증거 두 개를 골라요.',
+     question:'예상 문장을 다듬어서, 어느 곳에 사는 누구에게나 맞는 한 문장으로 만들어 봐요. 어떤 말을 바꾸면 더 넓게 말할 수 있을까요?',
+     fields:[{k:'final',label:'최종 결론',help:'우리 모둠이 다듬은 한 문장이에요.'},
+             {k:'ev1',label:'증거 1',help:'결론이 맞다는 것을 보여 주는 우리 조사 내용 하나'},
+             {k:'ev2',label:'증거 2',help:'또 다른 증거 하나. 증거 1과 다른 이야기(다른 곳이나 다른 때)면 더 좋아요.'}]}
+  ],
+  frame:'우리가 살고 있는 (        )과 (        )은 우리가 살아가는 (        )을 변화시킨다.',
+  passText:'미션 성공이에요! 오른쪽 칸에 우리 모둠 생각을 정리해 남기고, 선생님이 다음 단계를 열어 줄 때까지 모둠끼리 한 번 더 이야기해 봐요.',
+  classes:[]
+};
+var cfg=clone(DEFAULT), note={classes:[]}, data={}, connected=false;
+var cid=null, gid=null, view={s:'cls'}, ui={dirty:{},flash:null,tab:null,chat:{},log:null,clr:null};
+var unlocked=false, typed='', wrong=false, tTab=null, cfgDirty=false;
+try{unlocked=sessionStorage.getItem('gz-teacher')==='1';}catch(e){}
+
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function br(s){return esc(s).replace(/\n/g,'<br>');}
+function say(t,bad){document.getElementById('msg').innerHTML=t?'<p class="msg'+(bad?' bad':'')+'">'+esc(t)+'</p>':'';}
+function merge(a,b){var o=clone(a);Object.keys(b||{}).forEach(function(k){
+  if(b[k]&&typeof b[k]==='object'&&!Array.isArray(b[k])&&a[k]&&typeof a[k]==='object'&&!Array.isArray(a[k]))o[k]=merge(a[k],b[k]); else o[k]=b[k];});return o;}
+
+/* ── 서버 ── */
+function api(p,o){o=o||{};var h=Object.assign({'apikey':C.key,'Authorization':'Bearer '+C.key,'Content-Type':'application/json'},o.headers||{});
+  return fetch(String(C.url||'').replace(/\/$/,'')+'/rest/v1/'+p,Object.assign({},o,{headers:h}));}
+async function put(g,k,v){
+  var r=await api('entries?on_conflict=group_id,key',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+    body:JSON.stringify([{group_id:g,key:k,value:v,updated_at:new Date().toISOString()}])});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+}
+async function del(g,k){var r=await api('entries?group_id=eq.'+g+'&key=eq.'+encodeURIComponent(k),{method:'DELETE',headers:{'Prefer':'return=minimal'}});if(!r.ok)throw new Error('HTTP '+r.status);}
+async function delLike(g,pat){var r=await api('entries?group_id=eq.'+g+'&key=like.'+encodeURIComponent(pat),{method:'DELETE',headers:{'Prefer':'return=minimal'}});if(!r.ok)throw new Error('HTTP '+r.status);}
+async function loadCfg(){
+  var r=await api('entries?select=group_id,key,value&or=(and(group_id.eq.'+G_CFG+',key.eq.cfg),and(group_id.eq.'+G_NOTE+',key.eq.cfg))');
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  var rows=await r.json();
+  rows.forEach(function(x){ if(!x.value)return;
+    if(x.group_id===G_CFG)cfg=merge(DEFAULT,x.value); else if(x.group_id===G_NOTE)note=x.value; });
+  connected=true;
+}
+async function loadData(c,g){
+  if(!c)return;
+  var pre=g?(':'+c+':'+g+':'):(':'+c+':');
+  var r=await api('entries?select=key,value&group_id=eq.'+G_DATA+'&or=(key.like.k'+pre+'*,key.like.m'+pre+'*)');
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  var rows=await r.json(), nd={};
+  Object.keys(data).forEach(function(k){if(k.split(':')[1]!==String(c))nd[k]=data[k];});
+  rows.forEach(function(x){if(x.value)nd[x.key]=x.value;});
+  data=nd; overlayPending(); connected=true;
+}
+/* 못 보낸 칸: 이 기기에만 잠깐 보관했다가 다시 보냄 */
+function pend(){try{return JSON.parse(localStorage.getItem('gz-pending')||'{}');}catch(e){return {};}}
+function setPend(o){try{localStorage.setItem('gz-pending',JSON.stringify(o));}catch(e){}}
+function overlayPending(){var p=pend();Object.keys(p).forEach(function(k){data[k]=Object.assign({},p[k],{_local:1});});}
+async function flush(){var p=pend(),ks=Object.keys(p);if(!ks.length)return;
+  for(var i=0;i<ks.length;i++){try{await put(G_DATA,ks[i],p[ks[i]]);delete p[ks[i]];}catch(e){}} setPend(p);}
+
+/* ── 조회 ── */
+function nclass(id){return (note.classes||[]).filter(function(c){return c.id===id;})[0]||null;}
+function classes(){return (note.classes||[]).filter(function(c){return (c.students||[]).length;}).length?(note.classes||[]):(note.classes||[]);}
+function kstate(id){var k=(cfg.classes||[]).filter(function(c){return c.id===id;})[0];return k||{id:id,step:1,chat:false,frameOn:[],show:[]};}
+function groupsOf(id){var n=nclass(id),o=[];if(!n)return o;for(var g=1;g<=(n.groups||4);g++){if((n.students||[]).some(function(s){return s.g===g;}))o.push(g);}return o;}
+function members(id,g){var n=nclass(id);return n?(n.students||[]).filter(function(s){return s.g===g;}).map(function(s){return s.name;}):[];}
+function keep(c,g,st){return (data['k:'+c+':'+g+':'+st]||{});}
+function val(c,g,st,k){var v=keep(c,g,st);return (v.f&&v.f[k])||'';}
+function chats(c,g){var pre='m:'+c+':'+g+':';return Object.keys(data).filter(function(k){return k.indexOf(pre)===0;}).map(function(k){return data[k];}).sort(function(a,b){return (a.at||0)-(b.at||0);});}
+function passed(c,g,st){return chats(c,g).some(function(m){return m.step===st&&m.pass;});}
+function stage(i){return cfg.stages[i-1]||DEFAULT.stages[i-1];}
+
+/* ── 한글 입력 보호 ── */
+var composing=false, pendingRender=false, lastKey=0;
+document.addEventListener('compositionstart',function(){composing=true;});
+document.addEventListener('compositionend',function(){composing=false;lastKey=Date.now();
+  if(pendingRender){pendingRender=false;(function wait(){setTimeout(function(){if(composing)return;if(busy())wait();else render();},800);})();}});
+document.addEventListener('keydown',function(){lastKey=Date.now();});
+document.addEventListener('input',function(){lastKey=Date.now();},true);
+function typing(){var a=document.activeElement;return !!(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName));}
+function busy(){if(composing)return true;if(!typing())return false;return Date.now()-lastKey<3000;}
+
+/* ── 그리기 ── */
+function render(){
+  if(composing){pendingRender=true;return;}
+  var A=document.getElementById('app'), n=nclass(cid);
+  document.body.classList.toggle('presenting',view.s==='present');
+  document.getElementById('state').innerHTML=(n&&view.s!=='teacher'&&view.s!=='lock'&&view.s!=='present'?esc(n.name)+(gid?' · <b>'+gid+'모둠</b> <button class="lk" data-a="back-grp">모둠 바꾸기</button>':''):'')+(connected?'':' · <span style="color:var(--bad)">인터넷 연결을 확인해 주세요</span>');
+  var keepV={}, fk=null, cs=0, ce=0, ae=document.activeElement, sc={}, wy=window.scrollY;
+  A.querySelectorAll('[data-k]').forEach(function(el){keepV[el.dataset.k]=el.value;if(el===ae){fk=el.dataset.k;cs=el.selectionStart;ce=el.selectionEnd;}});
+  A.querySelectorAll('.log,.dlog').forEach(function(el){sc[el.className]=el.scrollTop+'|'+(el.scrollHeight-el.clientHeight-el.scrollTop<30?'end':'');});
+  var keepEl=(ae&&fk&&A.contains(ae))?ae:null;
+  var f={cls:scClass,grp:scGroup,main:scMain,lock:scLock,teacher:scTeacher,present:scPresent}[view.s]||scClass;
+  A.innerHTML=f();
+  if(keepEl){var nu=A.querySelector('[data-k="'+fk+'"]');if(nu&&nu.tagName===keepEl.tagName)nu.replaceWith(keepEl);}
+  A.querySelectorAll('[data-k]').forEach(function(el){var k=el.dataset.k;
+    if(k.indexOf('f:')===0&&!ui.dirty[k.slice(2)]){ if(el!==keepEl)return; }
+    if(keepV[k]!==undefined)el.value=keepV[k];
+    if(k===fk){el.focus();try{el.setSelectionRange(cs,ce);}catch(e){}}});
+  A.querySelectorAll('.log,.dlog').forEach(function(el){var s=sc[el.className];
+    if(!s||s.split('|')[1]==='end')el.scrollTop=el.scrollHeight; else el.scrollTop=+s.split('|')[0];});
+  syncSave();
+  if(window.scrollY!==wy&&view.s!=='present')window.scrollTo(0,wy);
+  if(view.s==='present')fitPresent();
+}
+function go(s,o){view=Object.assign({s:s},o||{});say('');render();window.scrollTo(0,0);}
+function remember(){try{sessionStorage.setItem('gz-me',JSON.stringify({c:cid,g:gid}));}catch(e){}}
+
+/* 1. 반 */
+function scClass(){
+  var cl=note.classes||[];
+  if(!cl.length)return '<div class="wrap page center"><h2 class="hand">반 정보를 불러오는 중이에요</h2><p class="sub">잠깐 기다려도 안 나오면 인터넷 연결을 확인해 주세요.</p></div>';
+  return '<div class="wrap page center"><h2 class="hand">어느 반인가요?</h2><p class="sub">우리 반을 눌러요.</p><div class="pick" style="--n:'+cl.length+'">'+
+    cl.map(function(c){var n=groupsOf(c.id).length;return '<button data-a="cls" data-v="'+c.id+'">'+esc(c.name)+'<span>'+(n?n+'모둠':'모둠 편성 전')+'</span></button>';}).join('')+'</div></div>';
+}
+/* 2. 모둠 */
+function scGroup(){
+  var n=nclass(cid); if(!n)return scClass();
+  var gs=groupsOf(cid);
+  if(!gs.length)return '<div class="wrap page center"><h2 class="hand">'+esc(n.name)+'</h2><p class="sub">아직 모둠 편성이 없어요. 선생님께 말씀드려요.</p><button class="btn ghost" data-a="back-cls">반 다시 고르기</button></div>';
+  return '<div class="wrap page center"><h2 class="hand">'+esc(n.name)+' · 우리 모둠은?</h2><p class="sub">우리 모둠을 눌러요. 모둠이 태블릿 하나로 함께 써요.</p><div class="pick" style="--n:'+Math.min(gs.length,4)+'">'+
+    gs.map(function(g){return '<button data-a="grp" data-v="'+g+'">'+g+'모둠<span>'+esc(members(cid,g).join(' · '))+'</span></button>';}).join('')+'</div>'+
+    '<div class="row" style="justify-content:center;margin-top:20px"><button class="btn ghost" data-a="back-cls">반 다시 고르기</button></div></div>';
+}
+/* 3. 탐구 화면 */
+function scMain(){
+  if(!gid)return scGroup();
+  var k=kstate(cid), cur=k.step||1, tab=ui.tab||cur; if(tab!=='res'&&tab>cur)tab=cur;
+  var steps='<div class="steps">'+[1,2,3].map(function(i){var lock=i>cur, st=stage(i);
+    return '<button class="s'+i+(tab===i?' on':'')+(lock?' lock':'')+'" data-a="tab" data-v="'+i+'"'+(lock?' disabled':'')+'><span class="no">'+i+'</span>'+esc(st.name)+(passed(cid,gid,i)?' <span class="star">★</span>':'')+(i===cur?' · 지금':'')+'</button>';}).join('')+
+    (cur>=3?'<button class="res'+(tab==='res'?' on':'')+'" data-a="tab" data-v="res">우리 모둠 결론</button>':'')+'</div>';
+  if(tab==='res')return '<div class="wide">'+steps+resultCard(cid,gid)+'</div>';
+  var subs='<div class="subs"><div class="subcard space"><h4>공간에서 찾은 문장</h4><p>'+esc(cfg.subs.space)+'</p></div>'+
+    '<div class="subcard time"><h4>시간에서 찾은 문장</h4><p>'+esc(cfg.subs.time)+'</p></div></div>';
+  return '<div class="wide">'+steps+'<div class="main"><div class="col-l">'+subs+chatBox(cur)+'</div><div class="col-r">'+fieldBox(tab)+'</div></div></div>';
+}
+function chatBox(cur){
+  var k=kstate(cid), st=stage(cur), list=chats(cid,gid), c=ui.chat, h='';
+  var last=0;
+  list.forEach(function(m){ var s=m.step||1;
+    if(s!==last){h+='<span class="sep">'+s+'. '+esc(stage(s).name)+'</span>'; if(s===cur)h+=''; last=s;}
+    h+='<div class="bub me"><span class="who">우리 모둠</span>'+br(m.q)+'</div>';
+    if(m.a)h+='<div class="bub ai'+(m.pass?' pass':'')+'"><span class="who">생각 짝꿍</span>'+br(m.a)+'</div>';
+  });
+  if(last!==cur)h+='<span class="sep">'+cur+'. '+esc(st.name)+'</span>';
+  if(!list.some(function(m){return (m.step||1)===cur;}))h+='<div class="bub ai"><span class="who">생각 짝꿍</span>'+br(st.question)+'</div>';
+  if(c.wait)h+='<div class="bub me"><span class="who">우리 모둠</span>'+br(c.wait)+'</div><p class="think">AI가 생각 중이에요 <i>●</i><i>●</i><i>●</i></p>';
+  var ok=passed(cid,gid,cur);
+  var foot;
+  if(!k.chat)foot='<p class="retry" style="color:var(--soft)">선생님이 챗봇을 열면 이야기할 수 있어요. 오른쪽 칸은 지금도 쓸 수 있어요.</p>';
+  else foot=(c.err?'<p class="retry">'+esc(c.err)+(c.text?' <button class="btn sm ghost" data-a="resend">다시 보내기</button>':'')+'</p>':'')+
+    '<div class="compose"><textarea data-k="chat" maxlength="200" placeholder="모둠이 함께 의논해서 써요. (200자까지)"'+(c.wait?' disabled':'')+'></textarea>'+
+    '<button class="btn" data-a="send"'+(c.wait?' disabled':'')+'>보내기</button></div>';
+  return '<div class="chat"><div class="head"><b>생각 짝꿍</b><span class="why">AI는 정답을 알려 주지 않아요. 질문으로 함께 생각해요.</span></div>'+
+    '<div class="log">'+h+'</div>'+foot+'</div>'+
+    (ok?'<div class="mission"><span class="big">★</span><b>미션 성공!</b> '+esc(st.name)+' 단계의 생각을 잘 찾았어요.</div>':'');
+}
+function fieldBox(i){
+  var st=stage(i), k=kstate(cid), v=keep(cid,gid,i), frameOn=(k.frameOn||[]).indexOf(gid)>=0;
+  var html='<div class="fields s'+i+'"><h3>'+i+'. '+esc(st.name)+' · 우리 모둠이 남길 칸</h3><p class="desc">'+esc(st.desc)+'</p>'+
+    st.fields.map(function(f){var key=i+':'+f.k;
+      return '<div class="fld"><label for="f'+i+f.k+'">'+esc(f.label)+'</label><span class="help">'+esc(f.help)+'</span>'+
+        (i===3&&f.k==='final'&&frameOn?'<div class="frame">문장 틀: '+esc(cfg.frame)+' <button class="lk" data-a="useframe">틀 가져오기</button></div>':'')+
+        '<textarea id="f'+i+f.k+'" data-k="f:'+key+'">'+esc((v.f&&v.f[f.k])||'')+'</textarea></div>';}).join('')+
+    '<div class="row"><button class="btn" data-a="save" data-v="'+i+'">남기기</button><span class="why" id="savewhy"></span>'+
+    (ui.flash&&ui.flash.st===i&&Date.now()-ui.flash.at<4500?(ui.flash.local?'<span class="local-note">서버에 못 보냈어요. 이 기기에만 남아 있고, 연결되면 저절로 보내요.</span>':'<span class="saved">남겼어요 ✓</span>'):'')+
+    (v._local?'<span class="local-note">아직 이 기기에만 남아 있어요.</span>':'')+'</div></div>';
+  return html;
+}
+function syncSave(){
+  var b=document.querySelector('[data-a="save"]'); if(!b)return;
+  var i=+b.dataset.v, st=stage(i), empty=st.fields.filter(function(f){var el=document.querySelector('[data-k="f:'+i+':'+f.k+'"]');return !el||!el.value.trim();});
+  var dirty=st.fields.some(function(f){return ui.dirty[i+':'+f.k];});
+  b.disabled=!!empty.length||!dirty;
+  var w=document.getElementById('savewhy'); if(w)w.textContent=empty.length?'아직 빈 칸: '+empty.map(function(f){return f.label;}).join(', '):(dirty?'':'바꾼 내용이 없어요.');
+  var sb=document.querySelector('[data-a="send"]'), ta=document.querySelector('[data-k="chat"]');
+  if(sb&&ta&&!ui.chat.wait)sb.disabled=!ta.value.trim();
+}
+function resultCard(c,g){
+  var fin=val(c,g,3,'final'), e1=val(c,g,3,'ev1'), e2=val(c,g,3,'ev2'), gs=val(c,g,1,'guess');
+  if(!fin)return '<div class="closed">아직 최종 결론을 남기지 않았어요. <b>3. '+esc(stage(3).name)+'</b> 칸에서 남겨요.</div>';
+  return '<div class="result"><h3>'+g+'모둠의 최종 결론</h3><p class="fin">'+br(fin)+'</p><div class="ev"><b>증거 1</b><span>'+br(e1)+'</span><b>증거 2</b><span>'+br(e2)+'</span>'+
+    (gs?'<b>처음 예상</b><span style="color:var(--soft)">'+br(gs)+'</span>':'')+'</div></div>';
+}
+
+/* 챗봇 보내기 */
+async function sendChat(text){
+  var c=ui.chat; c.err=''; c.wait=text; c.text=text; render();
+  var tries=0;
+  while(true){
+    try{
+      var r=await fetch(C.fn,{method:'POST',headers:{'Content-Type':'application/json','apikey':C.key,'Authorization':'Bearer '+C.key},body:JSON.stringify({cls:cid,g:gid,text:text})});
+      var j={}; try{j=await r.json();}catch(e){}
+      if(r.ok&&j.ok){ data[j.key]=j.value; c.wait=''; c.text=''; c.err=''; var ta=document.querySelector('[data-k="chat"]'); if(ta)ta.value=''; render(); return; }
+      if(j.error==='busy'&&tries<3){tries++; await new Promise(function(res){setTimeout(res,6000);}); continue;}
+      c.err={closed:'선생님이 챗봇을 닫았어요.',rate:'조금 천천히 보내요. 잠깐 뒤에 다시 보내기를 눌러요.',limit:'오늘 보낼 수 있는 만큼 다 보냈어요. 선생님께 말씀드려요.',
+        roster:'이 모둠은 명단에 없어요. 선생님께 말씀드려요.',bad:'글이 너무 길거나 비어 있어요. 200자 안으로 써요.',busy:'AI가 바빠요. 잠깐 뒤에 다시 보내기를 눌러요.'}[j.error]||
+        (r.status===404?'지금은 AI를 쓸 수 없어요. 오른쪽 칸은 그대로 쓸 수 있어요.':'AI가 대답하지 못했어요. 다시 보내기를 눌러요.');
+    }catch(e){ c.err='지금은 AI에 연결할 수 없어요. 인터넷을 확인하고 다시 보내기를 눌러요. 오른쪽 칸은 그대로 쓸 수 있어요.'; }
+    c.wait=''; render();
+    var ta2=document.querySelector('[data-k="chat"]'); if(ta2&&!ta2.value)ta2.value=text; syncSave();
+    try{await loadData(cid,gid);render();}catch(e){}
+    return;
+  }
+}
+async function saveFields(i){
+  var st=stage(i), f={}, A=document.getElementById('app');
+  st.fields.forEach(function(x){var el=A.querySelector('[data-k="f:'+i+':'+x.k+'"]');f[x.k]=el?el.value.trim():'';});
+  var key='k:'+cid+':'+gid+':'+i, v={f:f,at:Date.now()}, ok=true;
+  data[key]=v;
+  try{await put(G_DATA,key,v);}catch(e){ok=false;var p=pend();p[key]=v;setPend(p);data[key]=Object.assign({},v,{_local:1});}
+  st.fields.forEach(function(x){ui.dirty[i+':'+x.k]=0;});
+  if(document.activeElement)document.activeElement.blur();
+  ui.flash={st:i,at:Date.now(),local:!ok}; render(); setTimeout(function(){if(!busy())render();},4600);
+}
+
+/* 4. 선생님 */
+function scLock(){
+  return '<div class="lockbox page"><h2 class="hand">선생님 화면</h2><p class="sub">네 자리 암호를 눌러 주세요.</p>'+
+    '<div class="dots">'+'●'.repeat(typed.length)+'○'.repeat(4-typed.length)+'</div>'+(wrong?'<p class="msg bad">암호가 맞지 않아요.</p>':'')+
+    '<div class="pad">'+[1,2,3,4,5,6,7,8,9,'',0,'←'].map(function(d){return d===''?'<span></span>':'<button data-a="pin" data-v="'+d+'">'+d+'</button>';}).join('')+'</div>'+
+    '<div class="row" style="justify-content:center"><button class="btn ghost" data-a="leave">학생 화면으로</button></div></div>';
+}
+function scTeacher(){
+  if(!unlocked)return scLock();
+  var cl=note.classes||[]; if(!tTab&&cl[0])tTab=cl[0].id;
+  var n=nclass(tTab)||{name:''}, k=kstate(tTab), gs=groupsOf(tTab);
+  var h='<div class="wide"><div class="tabs">'+cl.map(function(c){return '<button data-a="ttab" data-v="'+c.id+'" class="'+(c.id===tTab?'on':'')+'">'+esc(c.name)+'</button>';}).join('')+
+    '<span class="sp"></span><button class="lk" data-a="leave">학생 화면으로</button><button class="lk" data-a="lockout">잠그기</button></div>';
+  h+='<div class="panel"><h3>수업 진행 · '+esc(n.name)+'</h3><p class="why">누르면 바로 아이들 화면에 반영돼요(몇 초 안).</p>'+
+    '<div class="row"><b style="font-size:15px">지금 단계</b>'+[1,2,3].map(function(i){return '<button class="tog'+((k.step||1)===i?' on':'')+'" data-a="tstep" data-v="'+i+'">'+i+'. '+esc(stage(i).name)+'</button>';}).join('')+'</div>'+
+    '<div class="row"><b style="font-size:15px">AI 챗봇</b><button class="tog'+(k.chat?' on':'')+'" data-a="tchat">'+(k.chat?'켜짐 · 아이들이 이야기할 수 있어요':'꺼짐 · 누르면 켜져요')+'</button>'+
+    '<button class="btn" data-a="present" style="margin-left:auto">발표 화면으로 전환</button></div></div>';
+  /* 한눈에 보기 */
+  h+='<div class="panel"><h3>한눈에 보기</h3><p class="why">★는 그 단계에서 챗봇 미션 성공. 문장 틀은 결론 칸에 틀을 보여 줄 모둠만 켜요. 열기를 누른 모둠의 결론이 발표 화면에 나와요.</p>'+
+    (gs.length?'<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>모둠</th>'+[1,2,3].map(function(i){return '<th>'+i+'. '+esc(stage(i).name)+'</th>';}).join('')+'<th>설정</th></tr></thead><tbody>'+
+    gs.map(function(g){
+      return '<tr><td class="g">'+g+'모둠<span class="k">'+esc(members(tTab,g).join(' · '))+'</span></td>'+[1,2,3].map(function(i){
+        return '<td>'+(passed(tTab,g,i)?'<span class="star">★ 미션 성공</span>':'')+stage(i).fields.map(function(f){var t=val(tTab,g,i,f.k);return t?'<span class="k">'+esc(f.label)+'</span><span class="v">'+br(t)+'</span>':'';}).join('')+'</td>';}).join('')+
+        '<td style="white-space:nowrap"><button class="tog'+((k.frameOn||[]).indexOf(g)>=0?' on':'')+'" data-a="tframe" data-v="'+g+'">문장 틀 '+((k.frameOn||[]).indexOf(g)>=0?'켜짐':'꺼짐')+'</button><br>'+
+        '<button class="tog'+((k.show||[]).indexOf(g)>=0?' on':'')+'" data-a="tshow" data-v="'+g+'" style="margin-top:6px">발표 '+((k.show||[]).indexOf(g)>=0?'열림':'열기')+'</button><br>'+
+        '<button class="lk" data-a="tlog" data-v="'+g+'">대화 보기 ('+chats(tTab,g).length+')</button></td></tr>';}).join('')+'</tbody></table></div>':'<p class="empty">취재 노트에서 이 반의 모둠 편성을 먼저 해 주세요.</p>')+'</div>';
+  if(ui.log){var lg=ui.log;h+='<div class="panel"><h3>'+lg+'모둠 챗봇 대화 <button class="lk" data-a="tlog" data-v="0">닫기</button></h3><div class="dlog">'+
+    (chats(tTab,lg).map(function(m){return '<span class="sep">'+(m.step||1)+'단계 · '+new Date(m.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+'</span><div class="bub me">'+br(m.q)+'</div>'+(m.a?'<div class="bub ai'+(m.pass?' pass':'')+'">'+br(m.a)+'</div>':'<div class="bub ai" style="color:var(--bad)">(AI가 대답하지 못함)</div>');}).join('')||'<p class="empty">아직 대화가 없어요.</p>')+'</div></div>';}
+  /* 설정 */
+  h+='<div class="panel set"><h3>문구 설정 (모든 반 같이)</h3><p class="why">고친 뒤 맨 아래 <b>설정 저장</b>을 눌러요. 수업 도중에는 되도록 바꾸지 않아요.</p>'+
+    '<label>공간 문장</label><textarea data-k="c:subs.space">'+esc(cfg.subs.space)+'</textarea>'+
+    '<label>시간 문장</label><textarea data-k="c:subs.time">'+esc(cfg.subs.time)+'</textarea>'+
+    [0,1,2].map(function(i){var s=cfg.stages[i];return '<div class="stg"><label>'+(i+1)+'단계 이름</label><input data-k="c:stages.'+i+'.name" value="'+esc(s.name)+'">'+
+      '<label>설명(남길 칸 위)</label><textarea data-k="c:stages.'+i+'.desc">'+esc(s.desc)+'</textarea>'+
+      '<label>챗봇 첫 질문</label><textarea data-k="c:stages.'+i+'.question">'+esc(s.question)+'</textarea>'+
+      s.fields.map(function(f,j){return '<label>남길 칸 '+(j+1)+' 이름 / 도움말</label><input data-k="c:stages.'+i+'.fields.'+j+'.label" value="'+esc(f.label)+'"><textarea data-k="c:stages.'+i+'.fields.'+j+'.help" style="min-height:44px;margin-top:4px">'+esc(f.help)+'</textarea>';}).join('')+'</div>';}).join('')+
+    '<div class="stg"><label>결론 문장 틀 (문장 틀을 켠 모둠에만 보여요)</label><input data-k="c:frame" value="'+esc(cfg.frame)+'">'+
+    '<label>미션 성공 때 챗봇이 덧붙이는 말</label><textarea data-k="c:passText">'+esc(cfg.passText)+'</textarea>'+
+    '<label>암호(숫자 네 자리)</label><input data-k="c:pin" value="'+esc(cfg.pin)+'" inputmode="numeric" maxlength="4"></div>'+
+    '<div class="row"><button class="btn" data-a="csave">설정 저장</button><span class="why">'+(cfgDirty?'저장하지 않은 바뀐 내용이 있어요.':'')+'</span></div></div>';
+  h+='<div class="panel"><h3>지우기</h3><p class="why">'+esc(n.name)+'의 이 앱 기록(남긴 칸, 챗봇 대화)만 지워요. 취재 노트 기록은 그대로예요. 학기가 끝나면 써요.</p>'+
+    '<button class="btn ghost" data-a="tclear" style="color:var(--bad)">'+(ui.clr===tTab?'정말 지우기 (한 번 더 누르면 지워져요)':esc(n.name)+' 기록 지우기')+'</button></div>';
+  return h+'</div>';
+}
+/* 발표 화면 */
+function fitPresent(){var g=document.querySelector('.pgrid');if(!g)return;var p=document.querySelector('.pcard');if(!p)return;
+  var fs=parseFloat(getComputedStyle(p).fontSize)||40;for(var i=0;i<40&&g.scrollHeight>g.clientHeight+1&&fs>14;i++){fs*=0.94;g.style.setProperty('--fs',fs+'px');}}
+window.addEventListener('resize',function(){if(view.s==='present')render();});
+document.addEventListener('fullscreenchange',function(){if(view.s==='present')setTimeout(render,120);});
+function scPresent(){
+  if(!unlocked)return scLock();
+  var n=nclass(tTab)||{name:''}, k=kstate(tTab), gs=groupsOf(tTab), show=(k.show||[]).slice().sort(function(a,b){return a-b;});
+  var cnt=show.length, cols=cnt<=2?1:2, fs=cnt<=1?'min(4.2vw,7vh)':cnt<=2?'min(3.2vw,5.4vh)':cnt<=4?'min(2.3vw,4.2vh)':'min(1.9vw,3vh)';
+  var cards=cnt?show.map(function(g){var fin=val(tTab,g,3,'final');
+    return '<div class="pcard"><h4>'+g+'모둠</h4><p class="fin">'+(fin?br(fin):'<span style="opacity:.5">아직 결론을 남기지 않았어요</span>')+'</p>'+
+      (fin?'<p class="ev"><b>증거 1</b> '+br(val(tTab,g,3,'ev1'))+'<br><b>증거 2</b> '+br(val(tTab,g,3,'ev2'))+'</p>':'')+'</div>';}).join(''):
+    '<p class="pempty">아래에서 모둠을 열면 그 모둠의 최종 결론이 여기에 크게 보여요.</p>';
+  return '<div class="present"><div class="ptop"><h2>'+esc(n.name)+' · 우리 반이 내린 결론</h2>'+
+    '<button class="pbtn" data-a="pfull">전체 화면</button><button class="pbtn" data-a="pexit">선생님 화면으로</button></div>'+
+    '<div class="pgrid" style="--cols:'+cols+';--fs:'+fs+'">'+cards+'</div>'+
+    '<div class="pbar">'+gs.map(function(g){var on=show.indexOf(g)>=0;return '<button class="pbtn'+(on?' on':'')+'" data-a="tshow" data-v="'+g+'">'+g+'모둠 '+(on?'닫기':'열기')+'</button>';}).join('')+
+    '<button class="pbtn" data-a="tshow-all">모두 열기</button><button class="pbtn" data-a="tshow-none">모두 닫기</button></div></div>';
+}
+
+/* 반 하나의 값만 바꿔 저장: 서버에 있는 설정 그대로에 그 값만 넣음 */
+async function saveClassField(id,field,v){
+  var r=await api('entries?select=value&group_id=eq.'+G_CFG+'&key=eq.cfg'); var rows=r.ok?await r.json():[];
+  var base=rows.length&&rows[0].value?rows[0].value:{};
+  base.classes=base.classes||[];
+  var c=base.classes.filter(function(x){return x.id===id;})[0]; if(!c){c={id:id,step:1,chat:false,frameOn:[],show:[]};base.classes.push(c);}
+  c[field]=v; await put(G_CFG,'cfg',base);
+  var mine=(cfg.classes||[]).filter(function(x){return x.id===id;})[0]; if(!mine){cfg.classes=cfg.classes||[];cfg.classes.push(Object.assign({},c));} else mine[field]=v;
+}
+async function setClass(field,v){
+  var k=kstate(tTab); k[field]=v; if(!(cfg.classes||[]).some(function(x){return x.id===tTab;})){cfg.classes=cfg.classes||[];k.id=tTab;cfg.classes.push(k);} render();
+  try{await saveClassField(tTab,field,v);}catch(e){say('저장하지 못했어요. '+e.message,1);}
+}
+function toggleIn(arr,g){arr=(arr||[]).slice();var i=arr.indexOf(g);if(i>=0)arr.splice(i,1);else arr.push(g);return arr.sort(function(a,b){return a-b;});}
+
+/* ── 누르기 ── */
+document.addEventListener('input',function(e){var el=e.target,k=el.dataset&&el.dataset.k;if(!k)return;
+  if(k.indexOf('f:')===0)ui.dirty[k.slice(2)]=1;
+  if(k.indexOf('c:')===0)cfgDirty=true;
+  syncSave();});
+document.addEventListener('click',async function(e){
+  var b=e.target.closest('[data-a]'); if(!b||b.disabled)return;
+  var a=b.dataset.a, v=b.dataset.v;
+  if(a==='cls'){cid=+v;gid=null;remember();go('grp');}
+  else if(a==='back-cls'){cid=null;gid=null;remember();go('cls');}
+  else if(a==='grp'){gid=+v;ui.tab=null;ui.dirty={};ui.chat={};remember();try{await loadData(cid,gid);}catch(err){}go('main');}
+  else if(a==='back-grp'){gid=null;remember();go('grp');}
+  else if(a==='tab'){ui.tab=v==='res'?'res':+v;render();}
+  else if(a==='save'){await saveFields(+v);}
+  else if(a==='useframe'){var ta=document.querySelector('[data-k="f:3:final"]');if(ta&&!ta.value.trim()){ta.value=cfg.frame;ui.dirty['3:final']=1;ta.focus();syncSave();}}
+  else if(a==='send'){var t=document.querySelector('[data-k="chat"]');var tx=t?t.value.trim():'';if(!tx)return;if(document.activeElement)document.activeElement.blur();await sendChat(tx.slice(0,200));}
+  else if(a==='resend'){if(ui.chat.text)await sendChat(ui.chat.text);}
+  else if(a==='pin'){if(v==='←')typed=typed.slice(0,-1);else if(typed.length<4)typed+=v;wrong=false;
+    if(typed.length===4){if(typed===String(cfg.pin||'1234')){unlocked=true;try{sessionStorage.setItem('gz-teacher','1');}catch(err){}typed='';try{await loadData(tTab);}catch(err){}}else{wrong=true;typed='';}}
+    render();}
+  else if(a==='leave'){go(cid?(gid?'main':'grp'):'cls');}
+  else if(a==='lockout'){unlocked=false;try{sessionStorage.removeItem('gz-teacher');}catch(err){}go(cid?(gid?'main':'grp'):'cls');}
+  else if(a==='ttab'){if(cfgDirty){say('저장하지 않은 설정이 있어요. 먼저 설정 저장을 눌러 주세요.',1);return;}tTab=+v;ui.log=null;ui.clr=null;try{await loadData(tTab);}catch(err){}render();}
+  else if(a==='tstep'){await setClass('step',+v);}
+  else if(a==='tchat'){await setClass('chat',!kstate(tTab).chat);}
+  else if(a==='tframe'){await setClass('frameOn',toggleIn(kstate(tTab).frameOn,+v));}
+  else if(a==='tshow'){await setClass('show',toggleIn(kstate(tTab).show,+v));}
+  else if(a==='tshow-all'){await setClass('show',groupsOf(tTab));}
+  else if(a==='tshow-none'){await setClass('show',[]);}
+  else if(a==='tlog'){ui.log=+v||null;render();}
+  else if(a==='present'){if(cfgDirty){say('저장하지 않은 설정이 있어요. 먼저 설정 저장을 눌러 주세요.',1);return;}go('present');}
+  else if(a==='pexit'){if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(function(){});go('teacher');}
+  else if(a==='pfull'){var de=document.documentElement;if(document.fullscreenElement)document.exitFullscreen().catch(function(){});else if(de.requestFullscreen)de.requestFullscreen().catch(function(){});}
+  else if(a==='csave'){await saveSettings();}
+  else if(a==='tclear'){ if(ui.clr!==tTab){ui.clr=tTab;render();return;} ui.clr=null;
+    try{await delLike(G_DATA,'k:'+tTab+':%');await delLike(G_DATA,'m:'+tTab+':%');
+      Object.keys(data).forEach(function(k2){if(k2.split(':')[1]===String(tTab))delete data[k2];});say((nclass(tTab)||{}).name+'의 기록을 지웠어요.');}
+    catch(err){say('지우지 못했어요. '+err.message,1);} render(); }
+});
+async function saveSettings(){
+  var A=document.getElementById('app'), next=clone(cfg);
+  A.querySelectorAll('[data-k^="c:"]').forEach(function(el){
+    var path=el.dataset.k.slice(2).split('.'), v=el.value.trim();
+    if(path[0]==='pin'){var p=v.replace(/\D/g,'').slice(0,4);if(p.length===4)next.pin=p;return;}
+    if(!v)return; var o=next; for(var i=0;i<path.length-1;i++)o=o[path[i]]; o[path[path.length-1]]=v;});
+  try{
+    var r=await api('entries?select=value&group_id=eq.'+G_CFG+'&key=eq.cfg'); var rows=r.ok?await r.json():[];
+    var base=rows.length&&rows[0].value?rows[0].value:{};
+    ['subs','stages','frame','passText','pin'].forEach(function(k){base[k]=next[k];});
+    await put(G_CFG,'cfg',base); cfg=merge(DEFAULT,base); cfgDirty=false; say('설정을 저장했어요.');
+  }catch(e){say('설정을 저장하지 못했어요. '+e.message,1);}
+  render();
+}
+
+/* 숨은 입구 — 제목을 1초쯤 누르고 있기 */
+(function(){
+  var T=document.getElementById('title'), t=null;
+  function open(){ if(view.s==='teacher')return; typed='';wrong=false; tTab=cid||((note.classes||[])[0]||{}).id; go('teacher'); loadData(tTab).then(render).catch(function(){}); }
+  T.addEventListener('pointerdown',function(){clearTimeout(t);t=setTimeout(open,900);});
+  ['pointerup','pointerleave','pointercancel'].forEach(function(ev){T.addEventListener(ev,function(){clearTimeout(t);});});
+  T.addEventListener('contextmenu',function(e){e.preventDefault();});
+})();
+
+/* ── 시작 ── */
+(async function(){
+  try{await loadCfg();}catch(e){say('서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.',1);}
+  if(/[?&]start=1/.test(location.search)){try{sessionStorage.removeItem('gz-me');}catch(e){}}
+  else{try{var m=JSON.parse(sessionStorage.getItem('gz-me')||'null');if(m&&nclass(m.c)){cid=m.c;if(m.g&&groupsOf(m.c).indexOf(m.g)>=0)gid=m.g;}}catch(e){}}
+  if(/[?&]t=1/.test(location.search)){tTab=cid||((note.classes||[])[0]||{}).id;try{await loadData(tTab);}catch(e){}go('teacher');}
+  else{if(cid&&gid){try{await loadData(cid,gid);}catch(e){}go('main');}else go(cid?'grp':'cls');}
+  setInterval(async function(){
+    if(document.hidden||busy()||ui.chat.wait)return;
+    if(view.s==='teacher'&&cfgDirty)return;
+    if(view.s==='lock')return;
+    try{
+      await flush(); await loadCfg();
+      var tv=view.s==='teacher'||view.s==='present';
+      if(tv&&tTab)await loadData(tTab); else if(cid&&gid)await loadData(cid,gid);
+      if(!busy()&&!ui.chat.wait&&!(view.s==='teacher'&&cfgDirty))render();
+    }catch(e){connected=false;if(!busy())render();}
+  },5000);
+})();
+</script>
+</body>
+</html>
