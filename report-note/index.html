@@ -107,6 +107,27 @@ h2.hand{font-family:var(--hand);font-size:36px;font-weight:400;margin:0 0 6px;li
 .tag.w{background:#fff;border:1px solid rgba(0,0,0,.15)}
 .lk{font-size:13px;text-decoration:underline;color:var(--soft);padding:4px 2px}
 .lk.danger{color:var(--bad)}
+.pairboard{border-radius:12px;padding:10px 12px}
+.pairboard.past{background:var(--past)} .pairboard.now{background:#DDEDF7}
+.pb-h{margin:6px 0 8px;font-size:15px;color:var(--soft);font-weight:400}
+.pb-hint{margin:0 0 8px}
+.pair{display:grid;grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:stretch;margin-bottom:10px;position:relative}
+.pair .lk{grid-column:2 / -1;justify-self:end;margin-top:-4px}
+.pno{align-self:center;font-family:var(--hand);font-size:22px;color:var(--soft);writing-mode:horizontal-tb;white-space:nowrap}
+.parr{align-self:center;font-size:26px;color:var(--open);font-weight:700}
+.freecols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.freecols h5{margin:0 0 6px;font-size:15px;color:var(--soft);font-weight:400}
+.mc{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;font:inherit;color:var(--ink);background:#FFFDF8;border:2px solid #CFC6B3;border-radius:10px;padding:8px 10px;margin:0 0 8px;box-shadow:0 2px 6px -4px rgba(60,40,10,.35)}
+.pair .mc{margin:0}
+.mc.use{background:#FFF6D6;border-color:#E9CF7E} .mc.life{background:#EAF5FB;border-color:#9FCBE6}
+button.mc{cursor:pointer;min-height:48px}
+button.mc:active{transform:translateY(1px)}
+.mc.on{border-color:var(--open);box-shadow:0 0 0 3px rgba(214,90,40,.3)}
+.mc-h{font-size:17px;font-weight:700;line-height:1.35;word-break:keep-all}
+.mc-m{display:flex;flex-direction:column;gap:1px;font-size:13.5px;color:var(--soft);line-height:1.4;word-break:keep-all}
+.mc-m b{font-weight:700;color:var(--soft);background:none;margin-right:2px}
+@media (orientation:landscape) and (min-width:900px){ .split.wideread{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)} }
+@media (max-width:640px){ .pair{grid-template-columns:1fr} .parr{transform:rotate(90deg);justify-self:center} .freecols{grid-template-columns:1fr} }
 td.tl{min-width:220px}
 .tl-t{white-space:pre-wrap;word-break:keep-all}
 .tl-mark{display:inline-block;font-size:12px;color:var(--soft);border:1px solid var(--rule);border-radius:6px;padding:0 5px;margin-left:4px}
@@ -363,9 +384,9 @@ var DEFAULT={
   ]
 };
 
-var cfg=clone(DEFAULT), cards={}, lines={}, connected=false, loaded=false;
+var cfg=clone(DEFAULT), cards={}, lines={}, pairs={}, connected=false, loaded=false;
 var cid=null, sid=null, view={s:'cls',sheet:'past'};
-var ui={w5:{},kind:{},edit:null,del:null,flash:null};
+var ui={w5:{},kind:{},edit:null,del:null,flash:null,pick:{}};
 var unlocked=false, typed='', wrong=false, cfgDirty=false, tTab=1, tSheet='past', big=false, saving={};
 try{unlocked=sessionStorage.getItem('rn-teacher')==='1';}catch(e){}
 
@@ -403,11 +424,13 @@ async function loadCfg(){
 }
 async function loadData(c){
   if(!c)return;
-  var q='entries?select=key,value&group_id=eq.'+G_DATA+'&or=(key.like.c:'+c+':*,key.like.l:'+c+':*)';
+  var q='entries?select=key,value&group_id=eq.'+G_DATA+'&or=(key.like.c:'+c+':*,key.like.l:'+c+':*,key.like.p:'+c+':*)';
   var r=await api(q); if(!r.ok)throw new Error('HTTP '+r.status);
-  var rows=await r.json(), nc={}, nl={};
+  var rows=await r.json(), nc={}, nl={}, np={};
   rows.forEach(function(x){ if(!x.value)return;
-    if(x.key.indexOf('c:')===0)nc[x.key]=x.value; else if(x.key.indexOf('l:')===0)nl[x.key]=x.value; });
+    if(x.key.indexOf('c:')===0)nc[x.key]=x.value; else if(x.key.indexOf('l:')===0)nl[x.key]=x.value; else if(x.key.indexOf('p:')===0)np[x.key]=x.value; });
+  Object.keys(pairs).forEach(function(k){if(k.split(':')[1]!==String(c))np[k]=pairs[k];});
+  pairs=np;
   /* 다른 반 기록은 그대로 두고 이 반만 바꿈 */
   Object.keys(cards).forEach(function(k){if(k.split(':')[1]!==String(c))nc[k]=cards[k];});
   Object.keys(lines).forEach(function(k){if(k.split(':')[1]!==String(c))nl[k]=lines[k];});
@@ -421,7 +444,7 @@ function setPend(a){try{localStorage.setItem('rn-pending',JSON.stringify(a));}ca
 function addPend(item){var a=pend().filter(function(x){return x.k!==item.k;});a.push(item);setPend(a);}
 function overlayPending(){ /* 지금 고른 사람이 못 보낸 글만 보여 줌 */
   pend().forEach(function(p){ if(p.sid!==sid||p.cls!==cid)return;
-    var box=p.k.indexOf('c:')===0?cards:lines;
+    var box=p.k.indexOf('c:')===0?cards:p.k.indexOf('p:')===0?pairs:lines;
     if(p.del)delete box[p.k]; else box[p.k]=Object.assign({},p.v,{_local:1}); });
 }
 async function flush(){
@@ -603,6 +626,37 @@ function tLineCell(c,s,sheet){
     '<div class="tl-acts"><button class="lk" data-a="tline-edit" data-v="'+esc(key)+'">고치기</button> '+
     '<button class="lk danger" data-a="tline-del" data-v="'+esc(key)+'">'+(ui.del===key?'정말 지우기':'지우기')+'</button></div>';
 }
+/* 짝 짓기: 이용 방식 카드 하나 ⇄ 생활 모습 카드 하나 (모둠이 함께) */
+function pairsOf(c,g,sheet){
+  var pre='p:'+c+':'+g+':'+sheet+':', used={};
+  return Object.keys(pairs).filter(function(k){return k.indexOf(pre)===0;})
+    .map(function(k){return Object.assign({_k:k},pairs[k]);})
+    .sort(function(a,b){return (a.at||0)-(b.at||0);})
+    .filter(function(p){ if(!cards[p.u]||!cards[p.l]||used[p.u]||used[p.l])return false; used[p.u]=used[p.l]=1; return true; });
+}
+function miniCard(key,slot,act,on){
+  var c=cards[key], f=c.f||{}, L={}; w5list().forEach(function(w){L[w.k]=w.t;});
+  var head=f.what||c.t, a=['who','when','where'].filter(function(k){return f[k];}).map(function(k){return '<b>'+esc(L[k])+'</b> '+esc(f[k]);}).join(' · ');
+  var body=(f.what?(a?'<span>'+a+'</span>':'')+['how','why'].filter(function(k){return f[k];}).map(function(k){return '<span><b>'+esc(L[k])+'</b> '+esc(f[k])+'</span>';}).join(''):'');
+  var inner='<span class="mc-h">'+esc(head)+'</span>'+(body?'<span class="mc-m">'+body+'</span>':'');
+  return act?'<button class="mc '+slot+(on?' on':'')+'" data-a="pick" data-v="'+esc(key)+'">'+inner+'</button>':'<div class="mc '+slot+'">'+inner+'</div>';
+}
+function pairBoard(sheet,can){
+  var s=me(), use=cardsOf(cid,s.g,sheet,'use'), life=cardsOf(cid,s.g,sheet,'life'), ps=pairsOf(cid,s.g,sheet), inP={};
+  ps.forEach(function(p){inP[p.u]=inP[p.l]=1;});
+  var pk=ui.pick[sheet]||{};
+  var rows=ps.map(function(p,i){
+    return '<div class="pair"><span class="pno">짝 '+(i+1)+'</span>'+miniCard(p.u,'use',false)+'<span class="parr" aria-hidden="true">→</span>'+miniCard(p.l,'life',false)+
+      (can?'<button class="lk" data-a="unpair" data-v="'+esc(p._k)+'">짝 풀기</button>':'')+'</div>';}).join('');
+  var fu=use.filter(function(c){return !inP[c._k];}), fl=life.filter(function(c){return !inP[c._k];});
+  var hint=!can?'':pk.use?'좋아요! 이제 오른쪽에서 그 때문에 생긴 <b>생활 모습</b> 카드를 눌러요.':pk.life?'이제 왼쪽에서 이 생활의 까닭이 된 <b>이용 방식</b> 카드를 눌러요.':
+    '<b>이용 방식</b> 카드 하나와, 그래서 생긴 <b>생활 모습</b> 카드 하나를 차례로 누르면 짝이 돼요.';
+  var free=(fu.length||fl.length)?'<div class="freecols"><div><h5>'+SLOTNO.use+' '+esc(cfg.slots.use.name)+'</h5>'+(fu.length?fu.map(function(c){return miniCard(c._k,'use',can,pk.use===c._k);}).join(''):'<p class="empty">남은 카드 없음</p>')+'</div>'+
+    '<div><h5>'+SLOTNO.life+' '+esc(cfg.slots.life.name)+'</h5>'+(fl.length?fl.map(function(c){return miniCard(c._k,'life',can,pk.life===c._k);}).join(''):'<p class="empty">남은 카드 없음</p>')+'</div></div>':'';
+  if(!use.length&&!life.length)return '<p class="empty">이 장에 아직 카드가 없어요.</p>';
+  return '<div class="pairboard '+sheet+'">'+(rows?'<h5 class="pb-h">우리 모둠이 지은 짝</h5>'+rows:'')+
+    (free?'<h5 class="pb-h">'+(rows?'아직 짝이 없는 카드':'짝 지을 카드')+'</h5>'+(hint?'<p class="hint pb-hint">'+hint+'</p>':'')+free:'')+'</div>';
+}
 function lineArea(sheet){
   var s=me(), k=klass(cid), key=sheet+':line', open=isOpen(key), conf=cfg.slots.line, my=lineOf(cid,sid,sheet);
   var mini=SLOTS.map(function(sl){var l=cardsOf(cid,s.g,sheet,sl);
@@ -621,8 +675,8 @@ function lineArea(sheet){
       '<span class="why" data-why="line:'+sheet+'">글을 쓰면 남길 수 있어요.</span>'+flashHtml(key)+'</div>'+
       (my&&my._local?'<p class="local-note">아직 이 기기에만 남아 있어요.</p>':'')+(my&&my.byT?'<p class="local-note">선생님이 내 한 줄을 고쳐 주셨어요.</p>':'');
   } else write=my?'<div class="card mine"><div class="t">'+esc(my.t)+'</div></div>':'<p class="empty">아직 내 한 줄이 없어요.</p>';
-  return askRow(conf.ask,open)+'<div class="split">'+
-    '<div class="col-read"><h4 class="colh">이 장에서 모은 카드</h4><div class="mini '+sheet+'">'+mini+'</div>'+
+  return askRow(conf.ask,open)+'<div class="split wideread">'+
+    '<div class="col-read"><h4 class="colh">이 장에서 모은 카드 · 짝 짓기</h4>'+pairBoard(sheet,open)+
       '<h4 class="colh" style="margin-top:14px">우리 모둠 친구들의 한 줄</h4>'+friends+'</div>'+
     '<div class="col-write'+(open?'':' shut')+'"><h4 class="colh">내 한 줄</h4>'+write+'</div></div>';
 }
@@ -832,6 +886,13 @@ document.addEventListener('click',async function(e){
   else if(a==='frame'){var ta=A.querySelector('[data-k="'+v+'"]');if(ta){if(!ta.value.trim())ta.value=b.dataset.f;ta.focus();var i=ta.value.indexOf('(');if(i>=0)try{ta.setSelectionRange(i+1,i+1);}catch(err){}syncBtn(ta);}}
   else if(a==='add'){await addCard(v);}
   else if(a==='line'){await saveLine(v);}
+  else if(a==='pick'){ var sh=view.sheet, pp=v.split(':'), sl=pp[4], pk=ui.pick[sh]=ui.pick[sh]||{};
+    if(!isOpen(sh+':line'))return;
+    pk[sl]=pk[sl]===v?null:v;
+    if(pk.use&&pk.life){ var me_=me(), pkey='p:'+cid+':'+me_.g+':'+sh+':'+newId(), pv={u:pk.use,l:pk.life,by:sid,at:Date.now()};
+      pairs[pkey]=pv; ui.pick[sh]={}; render(); var okP=await send(pkey,pv); if(!okP)pairs[pkey]=Object.assign({},pv,{_local:1}); render(); }
+    else render(); }
+  else if(a==='unpair'){ delete pairs[v]; render(); await send(v,null,true); render(); }
   else if(a==='tip'){ui.tip=true;ui.links=false;render();}
   else if(a==='links'){ui.links=true;ui.tip=false;render();}
   else if(a==='links-close'){ if(e.target.closest('[data-stop]')&&b.classList.contains('modal'))return; ui.links=false;render();}
