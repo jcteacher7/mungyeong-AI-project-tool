@@ -107,6 +107,12 @@ h2.hand{font-family:var(--hand);font-size:36px;font-weight:400;margin:0 0 6px;li
 .tag.w{background:#fff;border:1px solid rgba(0,0,0,.15)}
 .lk{font-size:13px;text-decoration:underline;color:var(--soft);padding:4px 2px}
 .lk.danger{color:var(--bad)}
+td.tl{min-width:220px}
+.tl-t{white-space:pre-wrap;word-break:keep-all}
+.tl-mark{display:inline-block;font-size:12px;color:var(--soft);border:1px solid var(--rule);border-radius:6px;padding:0 5px;margin-left:4px}
+.tl-acts{margin-top:4px;gap:6px}
+.tline-ta{min-height:90px;font-size:16px}
+.btn.sm{padding:6px 12px;min-height:36px;font-size:14px}
 .empty{color:var(--soft);font-size:15px;margin:6px 0}
 
 /* 쓰기 */
@@ -586,6 +592,17 @@ function slotArea(sheet,slot){
     (open?'<div class="col-write"><h4 class="colh">내가 쓰는 카드</h4>'+cardForm(sheet,slot,{w5:true,kind:slot==='use'})+'</div>':'')+
     '</div>';
 }
+/* 선생님: 아이의 연결 한 줄 고치기·지우기 */
+function tLineCell(c,s,sheet){
+  var key='l:'+c+':'+s+':'+sheet, l=lines[key];
+  if(!l)return '<span class="empty">—</span>';
+  if(ui.tline===key)return '<textarea data-k="tline:'+esc(key)+'" class="tline-ta">'+esc(l.t)+'</textarea>'+
+    '<div class="row tl-acts"><button class="btn sm" data-a="tline-save" data-v="'+esc(key)+'">고친 글 저장</button>'+
+    '<button class="btn ghost sm" data-a="tline-cancel">그만두기</button></div>';
+  return '<div class="tl-t">'+esc(l.t)+(l.byT?' <span class="tl-mark">선생님이 고침</span>':'')+'</div>'+
+    '<div class="tl-acts"><button class="lk" data-a="tline-edit" data-v="'+esc(key)+'">고치기</button> '+
+    '<button class="lk danger" data-a="tline-del" data-v="'+esc(key)+'">'+(ui.del===key?'정말 지우기':'지우기')+'</button></div>';
+}
 function lineArea(sheet){
   var s=me(), k=klass(cid), key=sheet+':line', open=isOpen(key), conf=cfg.slots.line, my=lineOf(cid,sid,sheet);
   var mini=SLOTS.map(function(sl){var l=cardsOf(cid,s.g,sheet,sl);
@@ -602,7 +619,7 @@ function lineArea(sheet){
       '<div class="row"><button class="btn ghost" data-a="frame" data-v="line:'+sheet+'" data-f="'+esc(conf.frame)+'">틀 가져오기</button>'+
       '<button class="btn" data-a="line" data-v="'+sheet+'" disabled>'+(my?'고친 한 줄 남기기':'내 한 줄 남기기')+'</button>'+
       '<span class="why" data-why="line:'+sheet+'">글을 쓰면 남길 수 있어요.</span>'+flashHtml(key)+'</div>'+
-      (my&&my._local?'<p class="local-note">아직 이 기기에만 남아 있어요.</p>':'');
+      (my&&my._local?'<p class="local-note">아직 이 기기에만 남아 있어요.</p>':'')+(my&&my.byT?'<p class="local-note">선생님이 내 한 줄을 고쳐 주셨어요.</p>':'');
   } else write=my?'<div class="card mine"><div class="t">'+esc(my.t)+'</div></div>':'<p class="empty">아직 내 한 줄이 없어요.</p>';
   return askRow(conf.ask,open)+'<div class="split">'+
     '<div class="col-read"><h4 class="colh">이 장에서 모은 카드</h4><div class="mini '+sheet+'">'+mini+'</div>'+
@@ -733,7 +750,7 @@ function scTeacher(){
     on.map(function(s){
       function cnt(sh){var n=0;Object.keys(cards).forEach(function(key){var p=key.split(':');if(p[1]===String(k.id)&&p[3]===sh&&cards[key].by===s.id)n++;});return n;}
       var lp=lineOf(k.id,s.id,'past'), ln=lineOf(k.id,s.id,'now');
-      return '<tr><td>'+s.g+'</td><td>'+esc(s.name)+'</td><td>'+cnt('past')+'</td><td>'+cnt('now')+'</td><td>'+cnt('cmp')+'</td><td>'+(lp?esc(lp.t):'<span class="empty">—</span>')+'</td><td>'+(ln?esc(ln.t):'<span class="empty">—</span>')+'</td></tr>';
+      return '<tr><td>'+s.g+'</td><td>'+esc(s.name)+'</td><td>'+cnt('past')+'</td><td>'+cnt('now')+'</td><td>'+cnt('cmp')+'</td><td class="tl">'+tLineCell(k.id,s.id,'past')+'</td><td class="tl">'+tLineCell(k.id,s.id,'now')+'</td></tr>';
     }).join('')+'</tbody></table></div>':'<p class="empty">모둠 편성을 먼저 해 주세요.</p>')+'</div>';
 
   /* 모둠 편성 */
@@ -837,6 +854,14 @@ document.addEventListener('click',async function(e){
   else if(a==='ttab'){if(cfgDirty){say('저장하지 않은 설정이 있어요. 먼저 설정 저장을 눌러 주세요.',1);return;}tTab=+v;ui.del=null;try{await loadData(tTab);}catch(err){}render();}
   else if(a==='tsheet'){tSheet=v;render();}
   else if(a==='big'){big=!big;render();}
+  else if(a==='tline-edit'){ ui.tline=v; ui.del=null; render(); var ta=document.querySelector('[data-k="tline:'+v+'"]'); if(ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);} }
+  else if(a==='tline-cancel'){ ui.tline=null; render(); }
+  else if(a==='tline-save'){ var tt=document.querySelector('[data-k="tline:'+v+'"]'); var nt=tt?tt.value.trim():'';
+    if(!nt){ say('글이 비어 있어요. 지우려면 지우기를 눌러 주세요.',1); return; }
+    var nv=Object.assign({},lines[v],{t:nt,byT:1,at:Date.now()}); delete nv._local; lines[v]=nv; ui.tline=null; render();
+    var okL=await send(v,nv); say(okL?'연결 한 줄을 고쳤어요.':'연결이 끊겨 이 기기에 잠시 두었어요. 다시 연결되면 저장돼요.',!okL); render(); }
+  else if(a==='tline-del'){ if(ui.del!==v){ui.del=v;render();return;} delete lines[v]; ui.del=null; ui.tline=null;
+    var okD=await send(v,null,true); say(okD?'연결 한 줄을 지웠어요.':'연결이 끊겨 다시 연결되면 지워져요.',!okD); render(); }
   else if(a==='tdel'){ if(ui.del!==v){ui.del=v;render();return;} delete cards[v];ui.del=null;await send(v,null,true);render(); }
   else if(a==='res'){ var kr=klass(tTab); var cur=resShown(kr).slice(); var ir=cur.indexOf(v); if(ir>=0)cur.splice(ir,1); else cur.push(v);
     cur=['past','now'].filter(function(x){return cur.indexOf(x)>=0;}); kr.res=cur; render();
@@ -943,7 +968,7 @@ async function saveSettings(){
   if(/[?&]t=1/.test(location.search)){ tTab=cid||cfg.classes[0].id; try{await loadData(tTab);}catch(e){} go('teacher'); }
   else { var fs0=firstOpenSheet(); go(cid?(sid?'note':'who'):'cls', sid?{sheet:fs0,slot:firstOpenSlot(fs0)}:null); }
   setInterval(async function(){
-    if(document.hidden||busy()||ui.edit)return;
+    if(document.hidden||busy()||ui.edit||ui.tline)return;
     if(view.s==='teacher'&&cfgDirty)return;
     if(view.s==='lock')return;
     try{
