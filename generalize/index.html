@@ -109,6 +109,9 @@ h2.hand{font-family:var(--hand);font-size:40px;font-weight:400;margin:0 0 6px;li
 .fld label{display:block;font-weight:700;font-size:17px}
 .fld .help{display:block;font-size:14.5px;color:var(--soft);margin:2px 0 4px;line-height:1.5}
 .fld textarea{width:100%;min-height:72px;border:1.5px solid #CFC6B3;border-radius:10px;padding:8px 12px;line-height:1.6;background:#fff;resize:vertical}
+.tip{background:rgba(255,255,255,.75);border-radius:8px;padding:6px 10px;margin:2px 0 6px;font-size:14.5px;line-height:1.55;word-break:keep-all}
+.tip .tl{display:inline-block;font-size:12.5px;color:#fff;background:var(--soft);border-radius:999px;padding:0 8px;margin-right:2px}
+.tip .tf{display:block;margin-top:3px;color:var(--ink)}
 .checks{background:rgba(255,255,255,.7);border-radius:10px;padding:8px 12px;margin:0 0 6px}
 .checks b{font-size:15.5px}
 .checks ul{margin:4px 0 0;padding-left:0;list-style:none}
@@ -283,6 +286,16 @@ var EX={
   2:{proof:'우리 학교 벚나무는 4월에 꽃이 피었고, 10월에는 잎이 빨갛게 물들었다.',other:'소나무는 날씨가 바뀌어도 늘 초록색이다. 모든 식물이 똑같이 바뀌지는 않는다.'},
   3:{final:'날씨의 변화는 식물이 살아가는 모습을 바꾼다.',ev1:'벚나무는 따뜻한 봄에 꽃을 피운다.',ev2:'단풍나무는 서늘한 가을에 잎을 물들인다.'}
 };
+/* 칸마다 쓰는 팁과 문장 틀(정답이 아니라 쓰는 모양만) */
+var TIP={
+  1:{same:{tip:'두 문장에 똑같이 나오는 말을 찾아봐요. "둘 다 ~라고 한다"로 쓰면 쉬워요.',frame:'두 문장은 둘 다 (          )라고 말한다.'},
+     guess:{tip:'두 문장의 앞부분(무엇이 달라지면)과 뒷부분(무엇이 바뀐다)을 하나로 합쳐 봐요. 아직 짐작이니 "~일 것이다"로 끝내요.',frame:'(          )이/가 달라지면, 사람들의 (          )도 달라질 것이다.'}},
+  2:{proof:{tip:'어디에서, 언제, 무엇이 어떻게 바뀌었는지 넣어요. 취재 노트의 비교 줄이나 공간 조사에서 찾아요.',frame:'(어디)에서는 (언제) (          )였는데, (          ).'},
+     other:{tip:'예상과 맞지 않는 예를 하나 떠올려 봐요. "하지만 ~한 경우도 있다"로 쓰고 까닭도 붙여요.',frame:'하지만 (          )한 경우도 있다. 왜냐하면 (          ) 때문이다.'}},
+  3:{final:{tip:'"문경", "탄광"처럼 한 곳에만 맞는 말은 빼고, 누구에게나 맞는 말로 바꿔요. 두 문장의 내용이 모두 들어가야 해요. 끝은 "~한다"로 써요.',frame:''},
+     ev1:{tip:'사는 곳이 달라서 생활이 다른 예를 써요.',frame:'(어디)는 (          )라서, 사람들이 (          ).'},
+     ev2:{tip:'때가 바뀌어서 생활이 바뀐 예를 써요.',frame:'(어디)는 옛날에 (          )였지만, 지금은 (          ).'}}
+};
 var CHECK={
   1:['두 문장에서 같은 점을 찾아 우리 말로 말해요.','두 문장을 하나로 이은 예상 문장을 말해요.'],
   2:['우리 조사에서 예상 문장을 뒷받침하는 증거를 찾아요. (어디의, 언제 이야기인지)','예상과 다를 수 있는 경우를 하나 생각해요.'],
@@ -388,7 +401,10 @@ function fieldBox(i){
     '<button class="lk" data-a="ex" data-v="'+i+'">'+(exOn?'예시 접기':'예시 보기 (다른 이야기로 든 예)')+'</button>'+
     (exOn?'<div class="exbox"><p class="why" style="margin:0 0 6px">'+esc(EX_INTRO)+'</p>'+st.fields.map(function(f){var e=(EX[i]||{})[f.k];return e?'<p><b>'+esc(f.label)+'</b> '+esc(e)+'</p>':'';}).join('')+'</div>':'')+
     st.fields.map(function(f){var key=i+':'+f.k;
+      var tp=(TIP[i]||{})[f.k];
       return '<div class="fld"><label for="f'+i+f.k+'">'+esc(f.label)+'</label><span class="help">'+esc(f.help)+'</span>'+
+        (tp?'<div class="tip"><span class="tl">이렇게 써 봐요</span> '+esc(tp.tip)+
+          (tp.frame?'<span class="tf">틀: '+esc(tp.frame)+' <button class="lk" data-a="tipframe" data-v="'+i+':'+f.k+'">틀 가져오기</button></span>':'')+'</div>':'')+
         (i===3&&f.k==='final'&&frameOn?'<div class="frame">문장 틀: '+esc(cfg.frame)+' <button class="lk" data-a="useframe">틀 가져오기</button></div>':'')+
         '<textarea id="f'+i+f.k+'" data-k="f:'+key+'">'+esc((v.f&&v.f[f.k])||'')+'</textarea></div>';}).join('')+
     '<div class="row"><button class="btn" data-a="save" data-v="'+i+'">남기기</button><span class="why" id="savewhy"></span>'+
@@ -537,6 +553,8 @@ document.addEventListener('click',async function(e){
   else if(a==='ex'){ui.ex=ui.ex||{};ui.ex[+v]=!ui.ex[+v];render();}
   else if(a==='tab'){ui.tab=v==='res'?'res':+v;render();}
   else if(a==='save'){await saveFields(+v);}
+  else if(a==='tipframe'){var pp=v.split(':'),tp2=(TIP[pp[0]]||{})[pp[1]],ta2=document.querySelector('[data-k="f:'+v+'"]');
+    if(tp2&&ta2){ if(ta2.value.trim()){say('이미 쓴 글이 있어서 틀을 넣지 않았어요. 틀을 쓰려면 칸을 비운 뒤 눌러요.');return;} ta2.value=tp2.frame;ui.dirty[v]=1;ta2.focus();syncSave();}}
   else if(a==='useframe'){var ta=document.querySelector('[data-k="f:3:final"]');if(ta&&!ta.value.trim()){ta.value=cfg.frame;ui.dirty['3:final']=1;ta.focus();syncSave();}}
   else if(a==='send'){var t=document.querySelector('[data-k="chat"]');var tx=t?t.value.trim():'';if(!tx)return;if(document.activeElement)document.activeElement.blur();await sendChat(tx.slice(0,200));}
   else if(a==='resend'){if(ui.chat.text)await sendChat(ui.chat.text);}
