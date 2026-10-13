@@ -76,12 +76,14 @@ h2.hand{font-family:var(--hand);font-size:40px;font-weight:400;margin:0 0 6px;li
 .subcard{border-radius:12px;padding:10px 14px;background:#fff;border:2px solid #E3DCCB}
 .subcard h4{margin:0 0 2px;font-family:var(--hand);font-size:26px;font-weight:400}
 .subcard.space h4{color:var(--space)} .subcard.time h4{color:var(--time)}
-.subcard p{margin:0;font-size:17px;line-height:1.55;word-break:keep-all}
+.subcard p{margin:0;font-size:15.5px;line-height:1.5;word-break:keep-all}
+.subcard h4{font-size:22px!important}
+.bub.first{border:1.5px dashed #CFC6B3;background:#FBF8F1}
 
 .chat{margin-top:14px;background:#fff;border:2px solid #E3DCCB;border-radius:14px;display:flex;flex-direction:column;min-height:360px}
 .chat .head{padding:10px 14px;border-bottom:1.5px solid #EFE9DC;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .chat .head b{font-family:var(--hand);font-size:26px;font-weight:400}
-.log{flex:1;overflow-y:auto;max-height:max(220px,calc(100vh - 470px));padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.log{flex:1;overflow-y:auto;max-height:max(320px,calc(100vh - 360px));padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 .bub{max-width:88%;padding:9px 13px;border-radius:14px;line-height:1.55;word-break:keep-all;font-size:17px}
 .bub.ai{align-self:flex-start;background:#F3EFE6;border-bottom-left-radius:4px}
 .bub.me{align-self:flex-end;background:var(--s2bg);border-bottom-right-radius:4px}
@@ -107,6 +109,16 @@ h2.hand{font-family:var(--hand);font-size:40px;font-weight:400;margin:0 0 6px;li
 .fld label{display:block;font-weight:700;font-size:17px}
 .fld .help{display:block;font-size:14.5px;color:var(--soft);margin:2px 0 4px;line-height:1.5}
 .fld textarea{width:100%;min-height:72px;border:1.5px solid #CFC6B3;border-radius:10px;padding:8px 12px;line-height:1.6;background:#fff;resize:vertical}
+.checks{background:rgba(255,255,255,.7);border-radius:10px;padding:8px 12px;margin:0 0 6px}
+.checks b{font-size:15.5px}
+.checks ul{margin:4px 0 0;padding-left:0;list-style:none}
+.checks li{font-size:15px;padding-left:24px;position:relative;line-height:1.5;margin:2px 0}
+.checks li::before{content:'';position:absolute;left:2px;top:4px;width:14px;height:14px;border:2px solid var(--soft);border-radius:4px}
+.checks li.done::before{background:var(--ok);border-color:var(--ok)}
+.checks li.done::after{content:'';position:absolute;left:7px;top:6px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.exbox{background:#fff;border:1.5px dashed #CFC6B3;border-radius:10px;padding:8px 12px;margin:6px 0 4px}
+.exbox p{margin:3px 0;font-size:15px;line-height:1.55;word-break:keep-all}
+.exbox b{display:inline-block;color:var(--soft);font-weight:400;margin-right:4px}
 .frame{font-size:15px;background:#fff;border:1.5px dashed var(--s3);border-radius:8px;padding:6px 10px;margin:4px 0 6px}
 .closed{background:#fff;border-radius:14px;padding:26px;text-align:center;color:var(--soft)}
 
@@ -264,6 +276,18 @@ function passed(c,g,st){return chats(c,g).some(function(m){return m.step===st&&m
 /* 마지막 단계는 '다음 단계'가 없으니 미션 성공 끝말을 바꿔 보여 줌 */
 var LAST_PASS='미션 성공이에요! 오른쪽 칸에 최종 결론과 증거 두 개를 남기고, 우리 모둠 결론을 발표할 준비를 해요.';
 function aText(m){var a=String(m.a||'');if((m.step||1)===3&&m.pass){[cfg.passText,DEFAULT.passText].forEach(function(pt){if(pt&&a.indexOf(pt)>=0)a=a.replace(pt,LAST_PASS);});}return a;}
+/* 단계별 예시(다른 이야기)와 미션 성공 조건 — 정답이 드러나지 않도록 '날씨와 식물' 이야기로 보여 줌 */
+var EX_INTRO='예시는 우리 이야기가 아니라 다른 이야기예요. 두 문장 "봄에는 따뜻해서 꽃이 핀다." / "가을에는 서늘해져서 잎이 빨갛게 물든다."로 해 본 것이에요. 쓰는 방법만 보고, 우리 문장은 우리 조사로 써요.';
+var EX={
+  1:{same:'둘 다 날씨가 바뀌면 식물의 모습이 바뀐다고 한다.',guess:'날씨가 달라지면 식물의 모습도 달라질 것이다.'},
+  2:{proof:'우리 학교 벚나무는 4월에 꽃이 피었고, 10월에는 잎이 빨갛게 물들었다.',other:'소나무는 날씨가 바뀌어도 늘 초록색이다. 모든 식물이 똑같이 바뀌지는 않는다.'},
+  3:{final:'날씨의 변화는 식물이 살아가는 모습을 바꾼다.',ev1:'벚나무는 따뜻한 봄에 꽃을 피운다.',ev2:'단풍나무는 서늘한 가을에 잎을 물들인다.'}
+};
+var CHECK={
+  1:['두 문장에서 같은 점을 찾아 우리 말로 말해요.','두 문장을 하나로 이은 예상 문장을 말해요.'],
+  2:['우리 조사에서 예상 문장을 뒷받침하는 증거를 찾아요. (어디의, 언제 이야기인지)','예상과 다를 수 있는 경우를 하나 생각해요.'],
+  3:['예상 문장을 어느 곳 누구에게나 맞는 한 문장으로 다듬어요.','두 문장의 내용이 결론에 모두 담겼는지 확인해요.','결론을 뒷받침하는 증거를 두 개 골라요.']
+};
 function stage(i){return cfg.stages[i-1]||DEFAULT.stages[i-1];}
 
 /* ── 한글 입력 보호 ── */
@@ -332,14 +356,18 @@ function scMain(){
 }
 function chatBox(cur){
   var k=kstate(cid), st=stage(cur), list=chats(cid,gid), c=ui.chat, h='';
-  var last=0;
-  list.forEach(function(m){ var s=m.step||1;
-    if(s!==last){h+='<span class="sep">'+s+'. '+esc(stage(s).name)+'</span>'; if(s===cur)h+=''; last=s;}
-    h+='<div class="bub me"><span class="who">우리 모둠</span>'+br(m.q)+'</div>';
-    if(m.a)h+='<div class="bub ai'+(m.pass?' pass':'')+'"><span class="who">생각 짝꿍</span>'+br(aText(m))+'</div>';
-  });
-  if(last!==cur)h+='<span class="sep">'+cur+'. '+esc(st.name)+'</span>';
-  if(!list.some(function(m){return (m.step||1)===cur;}))h+='<div class="bub ai"><span class="who">생각 짝꿍</span>'+br(st.question)+'</div>';
+  var maxS=cur; list.forEach(function(m){if((m.step||1)>maxS)maxS=m.step||1;});
+  for(var s=1;s<=maxS;s++){
+    var ms=list.filter(function(m){return (m.step||1)===s;});
+    if(s<cur&&!ms.length)continue;
+    h+='<span class="sep">'+s+'. '+esc(stage(s).name)+'</span>';
+    h+='<div class="bub ai first"><span class="who">생각 짝꿍 · 이 단계의 질문</span>'+br(stage(s).question)+'</div>';
+    ms.forEach(function(m){
+      h+='<div class="bub me"><span class="who">우리 모둠</span>'+br(m.q)+'</div>';
+      if(m.a)h+='<div class="bub ai'+(m.pass?' pass':'')+'"><span class="who">생각 짝꿍</span>'+br(aText(m))+'</div>';
+      else h+='<div class="bub ai" style="color:var(--soft)"><span class="who">생각 짝꿍</span>(이때는 AI가 대답하지 못했어요)</div>';
+    });
+  }
   if(c.wait)h+='<div class="bub me"><span class="who">우리 모둠</span>'+br(c.wait)+'</div><p class="think">AI가 생각 중이에요 <i>●</i><i>●</i><i>●</i></p>';
   var ok=passed(cid,gid,cur);
   var foot;
@@ -353,7 +381,12 @@ function chatBox(cur){
 }
 function fieldBox(i){
   var st=stage(i), k=kstate(cid), v=keep(cid,gid,i), frameOn=(k.frameOn||[]).indexOf(gid)>=0;
+  var ok=passed(cid,gid,i), exOn=!!(ui.ex&&ui.ex[i]);
   var html='<div class="fields s'+i+'"><h3>'+i+'. '+esc(st.name)+' · 우리 모둠이 남길 칸</h3><p class="desc">'+esc(st.desc)+'</p>'+
+    '<div class="checks"><b>'+(ok?'★ 미션 성공!':'미션 성공 조건')+'</b><ul>'+(CHECK[i]||[]).map(function(t){return '<li class="'+(ok?'done':'')+'">'+esc(t)+'</li>';}).join('')+'</ul>'+
+    '<p class="why" style="margin:4px 0 0">생각 짝꿍과 이야기하며 이 조건을 채우면 미션 성공이 떠요.</p></div>'+
+    '<button class="lk" data-a="ex" data-v="'+i+'">'+(exOn?'예시 접기':'예시 보기 (다른 이야기로 든 예)')+'</button>'+
+    (exOn?'<div class="exbox"><p class="why" style="margin:0 0 6px">'+esc(EX_INTRO)+'</p>'+st.fields.map(function(f){var e=(EX[i]||{})[f.k];return e?'<p><b>'+esc(f.label)+'</b> '+esc(e)+'</p>':'';}).join('')+'</div>':'')+
     st.fields.map(function(f){var key=i+':'+f.k;
       return '<div class="fld"><label for="f'+i+f.k+'">'+esc(f.label)+'</label><span class="help">'+esc(f.help)+'</span>'+
         (i===3&&f.k==='final'&&frameOn?'<div class="frame">문장 틀: '+esc(cfg.frame)+' <button class="lk" data-a="useframe">틀 가져오기</button></div>':'')+
@@ -501,6 +534,7 @@ document.addEventListener('click',async function(e){
   else if(a==='back-cls'){cid=null;gid=null;remember();go('cls');}
   else if(a==='grp'){gid=+v;ui.tab=null;ui.dirty={};ui.chat={};remember();try{await loadData(cid,gid);}catch(err){}go('main');}
   else if(a==='back-grp'){gid=null;remember();go('grp');}
+  else if(a==='ex'){ui.ex=ui.ex||{};ui.ex[+v]=!ui.ex[+v];render();}
   else if(a==='tab'){ui.tab=v==='res'?'res':+v;render();}
   else if(a==='save'){await saveFields(+v);}
   else if(a==='useframe'){var ta=document.querySelector('[data-k="f:3:final"]');if(ta&&!ta.value.trim()){ta.value=cfg.frame;ui.dirty['3:final']=1;ta.focus();syncSave();}}
