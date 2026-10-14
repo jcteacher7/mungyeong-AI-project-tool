@@ -519,6 +519,7 @@ async function loadNote(){
   const r=await api('entries?select=value&group_id=eq.'+G_NOTE+'&key=eq.cfg');
   if(!r.ok)return; const rows=await r.json(); const v=rows[0]&&rows[0].value;
   if(v&&v.classes)NOTE={classes:v.classes,pin:v.pin||'1234'};
+  if(VIEW)NOTE.classes.forEach(function(c){(c.students||[]).forEach(function(x){var n=String(x.name||'');x.name=n.length<2?n:(n.length===2?n[0]+'○':n[0]+'○'.repeat(n.length-2)+n[n.length-1]);});});
 }
 async function loadMap(){
   const r=await api('entries?select=value&group_id=eq.0&key=eq.'+MAPKEY);
