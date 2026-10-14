@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>관심이끌기 기록 찾기</title>
+<style>
+body{font-family:system-ui,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#F4F1EA;color:#2B2A27;margin:0;padding:24px;font-size:18px;line-height:1.6}
+.box{max-width:760px;margin:0 auto;background:#fff;border-radius:14px;padding:20px 24px;box-shadow:0 2px 0 #ddd}
+h1{font-size:26px;margin:0 0 6px}
+.ok{color:#2F7D4E;font-weight:700}.no{color:#9A3B2E;font-weight:700}
+button{font:inherit;font-size:18px;background:#2B2A27;color:#fff;border:0;border-radius:10px;padding:12px 22px;margin-top:12px;cursor:pointer}
+button:disabled{opacity:.5}
+pre{white-space:pre-wrap;background:#FBF8F1;border-radius:10px;padding:12px;font-size:15px;max-height:50vh;overflow:auto}
+.small{font-size:15px;color:#5C564E}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>관심이끌기 기록 찾기</h1>
+  <p class="small">이 태블릿에 예전 관심이끌기 기록이 남아 있는지 찾아봐요. 이 화면은 아무것도 지우지 않아요.</p>
+  <div id="out">찾는 중…</div>
+</div>
+<script src="config.js"></script>
+<script>
+(function(){
+  var CFG=window.TUNING_IN||{}, out=document.getElementById('out');
+  function esc(s){return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  var found=[];
+  for(var i=0;i<localStorage.length;i++){
+    var k=localStorage.key(i);
+    if(!/^tuning-in/.test(k))continue;
+    var raw=localStorage.getItem(k), obj=null; try{obj=JSON.parse(raw);}catch(e){}
+    if(obj&&obj.E&&typeof obj.E==='object')found.push({k:k,o:obj});
+  }
+  var info={session:localStorage.getItem('tuning-in-session')||'',group:localStorage.getItem('tuning-in-group')||'',name:localStorage.getItem('tuning-in-name')||'',device:localStorage.getItem('tuning-in-device')||''};
+  var text='', reasons=0;
+  found.forEach(function(f){
+    var E=f.o.E; text+='[저장 칸 '+f.k+'] 모둠 '+(f.o.g||'?')+'\n';
+    Object.keys(E).forEach(function(key){
+      if(key.indexOf('pair:')===0&&E[key]){var pid=key.slice(5),p=E[key];
+        var rs=Object.keys(E).filter(function(x){return x.indexOf('r:'+pid+':')===0&&E[x];}).map(function(x){return E[x];});
+        reasons+=rs.length;
+        text+='- 짝 '+p.a+' + '+p.b+': '+(rs.join(' / ')||'(이유 없음)')+'\n';}
+    });
+    text+='\n';
+  });
+  if(!found.length){
+    out.innerHTML='<p class="no">이 태블릿에는 남아 있는 기록이 없어요.</p><p class="small">수업 코드 '+esc(info.session||'없음')+' · 모둠 '+esc(info.group||'없음')+'</p>';
+    return;
+  }
+  out.innerHTML='<p class="ok">이 태블릿에 기록이 남아 있어요! (이유 '+reasons+'개)</p><p class="small">수업 코드 '+esc(info.session)+' · 모둠 '+esc(info.group)+' · '+esc(info.name)+'</p>'+
+    '<pre>'+esc(text)+'</pre><button id="send">선생님께 보내기</button><p class="small" id="st"></p>';
+  document.getElementById('send').onclick=async function(){
+    var b=this; b.disabled=true; var st=document.getElementById('st'); st.textContent='보내는 중…';
+    try{
+      var key='recover~'+(info.session||'none')+'~'+(info.device||Math.random().toString(36).slice(2))+'~'+Date.now();
+      var r=await fetch(String(CFG.url).replace(/\/$/,'')+'/rest/v1/entries?on_conflict=group_id,key',{method:'POST',
+        headers:{'apikey':CFG.key,'Authorization':'Bearer '+CFG.key,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
+        body:JSON.stringify([{group_id:0,key:key,value:{info:info,found:found,at:Date.now()},updated_at:new Date().toISOString()}])});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      st.textContent='보냈어요. 선생님이 되살려 줄 거예요.';
+    }catch(e){ b.disabled=false; st.textContent='보내지 못했어요. 인터넷을 확인하고 다시 눌러 주세요.'; }
+  };
+})();
+</script>
+</body>
+</html>

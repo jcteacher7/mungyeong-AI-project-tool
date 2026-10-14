@@ -185,15 +185,18 @@ textarea:focus,input[type=text]:focus{border-color:var(--ink); outline:none}
     <label class="switch"><input type="checkbox" id="prepaired"> 짝을 미리 지어서 주기</label>
     <p class="hint">켜면 모든 모둠이 짝 짓기를 건너뛰고, 정해 둔 6쌍으로 바로 이유 쓰기부터 해요.</p>
     <div class="confirm" id="modeConfirm" hidden>
-      <p>설정을 바꾸면 <b>모든 모둠</b>이 지금까지 적은 짝과 이유가 지워져요.</p>
+      <p>설정을 바꾸면 <b>모든 모둠</b>이 지금까지 적은 짝과 이유가 <b>모두 지워져요.</b> (지우기 전 기록은 따로 보관되어, 아래 <b>되돌리기</b>로 되살릴 수 있어요)</p>
       <div class="actions"><button class="btn small ghost" type="button" data-action="cancel-mode">그대로 두기</button><button class="btn small" type="button" data-action="confirm-mode">바꾸기</button></div>
     </div>
     <button class="btn ghost" type="button" data-action="show-session">수업 코드 · QR 다시 보기</button>
     <button class="btn ghost" type="button" data-action="reset">이 수업 기록 지우기</button>
     <div class="confirm" id="resetConfirm" hidden>
-      <p><b>지금 수업</b>의 네 모둠 기록이 모두 지워져요. 되돌릴 수 없어요. (다른 수업 기록은 그대로입니다)</p>
+      <p><b>지금 수업</b>의 네 모둠 기록이 모두 지워져요. 지우기 전 기록은 따로 보관되어 <b>되돌리기</b>로 되살릴 수 있어요. (다른 수업 기록은 그대로입니다)</p>
       <div class="actions"><button class="btn small ghost" type="button" data-action="cancel-reset">취소</button><button class="btn small" type="button" data-action="confirm-reset">지우기</button></div>
     </div>
+    <div id="undoBox" hidden><button class="btn ghost" type="button" data-action="undo">되돌리기 · 마지막으로 지우기 전으로</button><p class="hint" id="undoNote"></p>
+      <div class="confirm" id="undoConfirm" hidden><p>지금 기록을 지우고, <b id="undoWhen"></b>에 지우기 전 기록으로 되돌려요.</p>
+      <div class="actions"><button class="btn small ghost" type="button" data-action="cancel-undo">취소</button><button class="btn small" type="button" data-action="confirm-undo">되돌리기</button></div></div></div>
     <p class="hint" id="modeNote"></p>
     <p class="hint">지금 사진은 예시 그림이에요. 실제 사진 12장(6쌍)으로 바꿔 넣을 수 있습니다.</p>
     <div class="actions"><button class="btn" type="button" data-action="close-teacher">닫기</button></div>
@@ -779,11 +782,42 @@ function openTeacher(){
   $('prepaired').checked=prepaired();$('modeConfirm').hidden=true;$('resetConfirm').hidden=true;
   $('modeNote').textContent=connected?'설정과 기록은 모든 기기에 함께 적용돼요.':'지금은 공유가 꺼져 있어 이 기기에만 적용돼요.';
   $('teacher').hidden=false;$('prepaired').focus();
+  $('undoBox').hidden=true;$('undoConfirm').hidden=true;
+  if(connected)loadBackup().then(function(b){if(!b)return;var d=new Date(b.at);var w=(d.getMonth()+1)+'월 '+d.getDate()+'일 '+d.getHours()+'시 '+String(d.getMinutes()).padStart(2,'0')+'분';
+    $('undoWhen').textContent=w;$('undoNote').textContent=w+'에 지운 기록 '+b.rows.length+'개가 보관되어 있어요.';$('undoBox').hidden=false;});
 }
 function closeTeacher(){$('teacher').hidden=true;}
+/* 지우기 전에 이 수업의 모둠 기록을 통째로 따로 보관해 둠(되돌리기용) */
+const BK='bk'+SEP;
+async function backupSession(){
+  var r=await api('entries?select=group_id,key,value&group_id=gt.0&key=like.'+encodeURIComponent(SESSION+SEP)+'*');
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  var rows=await r.json(); if(!rows.length)return 0;
+  await putRaw(0,BK+SESSION,{at:Date.now(),rows:rows.map(function(x){return {g:x.group_id,k:x.key,v:x.value};})});
+  return rows.length;
+}
+async function loadBackup(){
+  var r=await api('entries?select=value&group_id=eq.0&key=eq.'+encodeURIComponent(BK+SESSION));
+  if(!r.ok)return null; var rows=await r.json(); return rows.length&&rows[0].value&&rows[0].value.rows?rows[0].value:null;
+}
+async function restoreBackup(){
+  var b=await loadBackup(); if(!b){toast('되돌릴 기록이 없어요.');return;}
+  try{
+    var keepMode=b.rows.length;
+    await api('entries?group_id=gt.0&key=like.'+encodeURIComponent(SESSION+SEP)+'*',{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    for(var i=0;i<b.rows.length;i+=200){
+      var chunk=b.rows.slice(i,i+200).map(function(x){return {group_id:x.g,key:x.k,value:x.v,updated_at:new Date().toISOString()};});
+      var r=await api('entries?on_conflict=group_id,key',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(chunk)});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+    }
+    toast('지우기 전으로 되돌렸어요. ('+keepMode+'개 기록)');
+    setTimeout(function(){location.reload();},900);
+  }catch(e){toast('되돌리지 못했어요. 잠시 뒤 다시 해 보세요.');}
+}
 async function resetAll(pre){
   if(connected){
     try{
+      await backupSession();
       var r=await api('entries?group_id=gt.0&key=like.'+encodeURIComponent(SESSION+SEP)+'*',{method:'DELETE',headers:{'Prefer':'return=minimal'}});
       if(!r.ok)throw new Error('HTTP '+r.status);
       await put(0,'prepaired',!!pre);
@@ -871,6 +905,9 @@ document.addEventListener('click',function(e){
     resetAll(want).then(function(ok){if(ok){$('prepaired').checked=want;toast(want?'짝을 미리 지어서 주도록 바꿨어요.':'아이들이 직접 짝을 짓도록 바꿨어요.');}});}
   else if(a==='cancel-mode'){state.pendingMode=null;$('prepaired').checked=prepaired();$('modeConfirm').hidden=true;}
   else if(a==='reset')$('resetConfirm').hidden=false;
+  else if(a==='undo')$('undoConfirm').hidden=false;
+  else if(a==='cancel-undo')$('undoConfirm').hidden=true;
+  else if(a==='confirm-undo'){$('undoConfirm').hidden=true;restoreBackup();}
   else if(a==='cancel-reset')$('resetConfirm').hidden=true;
   else if(a==='confirm-reset'){$('resetConfirm').hidden=true;
     resetAll(prepaired()).then(function(ok){if(ok){closeTeacher();toast('모든 모둠 기록을 지웠어요.');}});}
