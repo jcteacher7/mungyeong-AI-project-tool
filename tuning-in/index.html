@@ -162,6 +162,25 @@ textarea:focus,input[type=text]:focus{border-color:var(--ink); outline:none}
   .show-item p{font-size:14pt}
   .gblock>h3{font-size:18pt}
 }
+.brand{user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; cursor:default}
+.who-grp{display:flex; flex-direction:column; gap:8px}
+.who-grp h3{font-size:20px}
+.who-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px}
+.who-grid button,.cls-grid button{border:2px solid var(--line); background:var(--bg); border-radius:var(--radius); padding:14px 8px; font-family:var(--f-head); font-size:22px}
+.who-grid button:hover,.cls-grid button:hover{border-color:var(--ink)}
+.cls-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px}
+.cls-grid button{font-size:30px; padding:26px 8px; display:flex; flex-direction:column; align-items:center; gap:4px}
+.cls-grid button span{font-family:var(--f-body); font-size:15px; color:var(--muted)}
+.lockbox{max-width:360px; margin:30px auto 0; text-align:center; display:flex; flex-direction:column; gap:8px}
+.lockbox .dots{font-size:30px; letter-spacing:10px; min-height:44px}
+.pad{display:grid; grid-template-columns:repeat(3,72px); gap:10px; justify-content:center; margin:10px 0}
+.pad button{height:64px; border-radius:12px; background:var(--surface); border:1.5px solid var(--line); font-size:24px}
+.ttabs{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+.ttabs .sp{flex:1}
+.ttabs .lk{border:0; background:none; color:var(--muted); font-size:14px; padding:8px 4px}
+.tpanel{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:18px; display:flex; flex-direction:column; gap:12px}
+.tpanel h3{font-size:22px}
+.sess-row.cur{border:2px solid var(--focus)}
 .viewbar{display:none}
 body.viewmode .viewbar{display:flex; position:sticky; top:0; z-index:15; align-items:center; justify-content:center; gap:8px; background:#2B2A27; color:#fff; font-size:15px; font-weight:700; padding:7px 12px; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none}
 body.viewmode .viewbar small{font-weight:500; opacity:.75}
@@ -176,7 +195,7 @@ body.viewmode [data-action="photo"]{cursor:default}
 <div class="viewbar" id="viewbar">👀 보기 모드 <small>· 구경만 할 수 있어요 (고칠 수 없어요)</small></div>
 <header class="top">
   <div class="top-row">
-    <span class="brand">공간과 시간으로 읽는 우리 지역</span>
+    <span class="brand" id="title">공간과 시간으로 읽는 우리 지역</span>
     <button class="group-btn" id="groupBtn" data-action="change-group" type="button">모둠 고르기</button>
     <span class="sync" id="sync"><span class="dot"></span><span id="syncText">연결 중…</span></span>
   </div>
@@ -185,36 +204,6 @@ body.viewmode [data-action="photo"]{cursor:default}
 
 <div class="wrap">
   <main id="main"></main>
-  <div class="foot"><button class="link-btn" type="button" data-action="open-teacher">선생님 설정</button></div>
-</div>
-
-<div class="overlay" id="teacher" hidden>
-  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="teacherTitle">
-    <h2 id="teacherTitle">선생님 설정</h2>
-    <label class="switch"><input type="checkbox" id="prepaired"> 짝을 미리 지어서 주기</label>
-    <p class="hint">켜면 모든 모둠이 짝 짓기를 건너뛰고, 정해 둔 6쌍으로 바로 이유 쓰기부터 해요.</p>
-    <div class="confirm" id="modeConfirm" hidden>
-      <p>설정을 바꾸면 <b>모든 모둠</b>이 지금까지 적은 짝과 이유가 <b>모두 지워져요.</b> (지우기 전 기록은 따로 보관되어, 아래 <b>되돌리기</b>로 되살릴 수 있어요)</p>
-      <div class="actions"><button class="btn small ghost" type="button" data-action="cancel-mode">그대로 두기</button><button class="btn small" type="button" data-action="confirm-mode">바꾸기</button></div>
-    </div>
-    <button class="btn ghost" type="button" data-action="show-session">수업 코드 · QR 다시 보기</button>
-    <button class="btn ghost" type="button" data-action="reset">이 수업 기록 지우기</button>
-    <div class="confirm" id="resetConfirm" hidden>
-      <p><b>지금 수업</b>의 네 모둠 기록이 모두 지워져요. 지우기 전 기록은 따로 보관되어 <b>되돌리기</b>로 되살릴 수 있어요. (다른 수업 기록은 그대로입니다)</p>
-      <div class="actions"><button class="btn small ghost" type="button" data-action="cancel-reset">취소</button><button class="btn small" type="button" data-action="confirm-reset">지우기</button></div>
-    </div>
-    <div id="undoBox" hidden><button class="btn ghost" type="button" data-action="undo">되돌리기 · 마지막으로 지우기 전으로</button><p class="hint" id="undoNote"></p>
-      <div class="confirm" id="undoConfirm" hidden><p>지금 기록을 지우고, <b id="undoWhen"></b>에 지우기 전 기록으로 되돌려요.</p>
-      <div class="actions"><button class="btn small ghost" type="button" data-action="cancel-undo">취소</button><button class="btn small" type="button" data-action="confirm-undo">되돌리기</button></div></div></div>
-    <div class="confirm" style="display:block">
-      <p><b>전시용 보기 모드</b> · 이 태블릿에서만 켜져요. 켜면 손님이 화면을 둘러볼 수만 있고, 짝·이유·무리를 고칠 수 없어요. 다른 기기(교실 아이들)는 그대로예요.</p>
-      <div class="actions" style="justify-content:flex-start"><button class="btn small" type="button" data-action="view-on">이 태블릿을 보기 모드로</button></div>
-      <p class="hint">끄려면: 화면 맨 위 검은 ‘보기 모드’ 띠를 2초 꾹 누르고 PIN을 넣으세요.</p>
-    </div>
-    <p class="hint" id="modeNote"></p>
-    <p class="hint">지금 사진은 예시 그림이에요. 실제 사진 12장(6쌍)으로 바꿔 넣을 수 있습니다.</p>
-    <div class="actions"><button class="btn" type="button" data-action="close-teacher">닫기</button></div>
-  </div>
 </div>
 
 <div class="overlay" id="viewExit" hidden>
@@ -341,11 +330,17 @@ try{group=+localStorage.getItem('tuning-in-group')||null;}catch(e){}
 try{deviceId=localStorage.getItem('tuning-in-device')||'';}catch(e){}
 if(!deviceId){deviceId='d'+Math.random().toString(36).slice(2,10);try{localStorage.setItem('tuning-in-device',deviceId);}catch(e){}}
 /* 수업 코드: 주소(?c=)가 우선, 없으면 이 기기가 기억하던 것 */
-(function(){
-  var m=/[?&]c=([A-Za-z0-9]{4,8})/.exec(location.search);
-  if(m){SESSION=m[1].toUpperCase();}
-  else{try{SESSION=localStorage.getItem('tuning-in-session')||'';}catch(e){}}
-})();
+/* 반·이름: 취재 노트(911) 명단을 그대로 씀. 반마다 어느 수업 기록을 쓸지는 선생님 화면에서 정함(0 / '__classmap') */
+const G_NOTE=911, MAPKEY='__classmap';
+let NOTE={classes:[],pin:'1234'}, CLASSMAP={}, cid=null, sid=null;
+try{cid=+localStorage.getItem('tuning-in-cls')||null;sid=+localStorage.getItem('tuning-in-sid')||null;}catch(e){}
+let TV=null, typed='', wrong=false, unlocked=false, tTab=null;
+try{unlocked=sessionStorage.getItem('ti-teacher')==='1';}catch(e){}
+const tst={resetAsk:false,undoAsk:false,backup:null};
+function klass(c){return (NOTE.classes||[]).filter(function(k){return k.id===c;})[0]||null;}
+function stu(c,s){var k=klass(c);return k?(k.students||[]).filter(function(x){return x.id===s;})[0]||null:null;}
+function remember(){try{if(cid)localStorage.setItem('tuning-in-cls',String(cid));else localStorage.removeItem('tuning-in-cls');
+  if(sid)localStorage.setItem('tuning-in-sid',String(sid));else localStorage.removeItem('tuning-in-sid');}catch(e){}}
 const SEP='~', IDX='__sessions';
 function sk(key){return SESSION+SEP+key;}                 /* 우리 수업 칸 이름 */
 function unsk(key){var p=SESSION+SEP;return key.indexOf(p)===0?key.slice(p.length):null;}
@@ -481,11 +476,12 @@ function isTyping(){
 
 var lastSig=null;
 async function poll(){
-  if(!connected||pollBusy||document.hidden||!SESSION||!group)return;
+  if(!connected||pollBusy||document.hidden||!SESSION||(!group&&TV!=='present'))return;
+  if(TV&&TV!=='present')return;
   if(isTyping())return;
   pollBusy=true;
   try{
-    const byG=await pull(state.step===4);
+    const byG=await pull(state.step===4||TV==='present');
     absorb(byG);
     setSync(true,'모둠끼리 실시간 공유 중');
     var sig=stableSig();
@@ -500,7 +496,9 @@ async function connect(){
   setSync(false,'연결 중…');
   try{
     sessionList=await pullSessions();
+    await loadNote(); await loadMap();
     connected=true;
+    applyIdentity();
     if(SESSION){
       var found=sessionList.filter(function(x){return x.code===SESSION;})[0];
       if(found)sessionName=found.name;
@@ -516,6 +514,32 @@ async function connect(){
     localLoad();
   }
   render();
+}
+async function loadNote(){
+  const r=await api('entries?select=value&group_id=eq.'+G_NOTE+'&key=eq.cfg');
+  if(!r.ok)return; const rows=await r.json(); const v=rows[0]&&rows[0].value;
+  if(v&&v.classes)NOTE={classes:v.classes,pin:v.pin||'1234'};
+}
+async function loadMap(){
+  const r=await api('entries?select=value&group_id=eq.0&key=eq.'+MAPKEY);
+  if(!r.ok)return; const rows=await r.json(); CLASSMAP=(rows[0]&&rows[0].value)||{};
+}
+function useSession(code){
+  code=code||'';
+  if(code===SESSION)return;
+  SESSION=code;justCreated=false;
+  var f=sessionList.filter(function(x){return x.code===code;})[0]; sessionName=f?f.name:'';
+  group=null;E={};ALLE={};lastSig=null;
+  Object.keys(SRV).forEach(function(k){delete SRV[k];});
+  Object.keys(LOCALW).forEach(function(k){delete LOCALW[k];});
+}
+/* 기억해 둔 반·이름으로 다시 들어가기 */
+function applyIdentity(){
+  var k=klass(cid); if(!k){cid=null;sid=null;}
+  useSession(cid?(CLASSMAP[cid]||''):'');
+  var s=stu(cid,sid);
+  if(s&&s.g>0&&SESSION){group=s.g;myName=s.name;}else{group=null;if(!s)sid=null;}
+  remember();
 }
 async function ensureSeed(){
   if(!connected||!group)return;
@@ -576,9 +600,10 @@ function duo(p){return '<div class="duo">'+img(p.a)+img(p.b)+'</div>';}
 const STEPS=[[1,'짝 짓기'],[2,'이유 쓰기'],[3,'무리 나누기'],[4,'발표하기']];
 function renderTop(){
   var gb=$('groupBtn');
-  if(!SESSION){gb.hidden=true;}
-  else{gb.hidden=false;gb.textContent=group?(myName?group+'모둠 · '+myName:group+'모둠'):'모둠 고르기';}
-  $('tabs').innerHTML=(!SESSION||!group)?'':STEPS.map(function(s){return '<button class="tab" type="button" data-action="step" data-step="'+s[0]+'"'+(state.step===s[0]?' aria-current="step"':'')+'><b>'+s[0]+'</b>'+s[1]+'</button>';}).join('');
+  var k=klass(cid);
+  if(TV||!k||!group){gb.hidden=true;}
+  else{gb.hidden=false;gb.textContent=k.name+' · '+group+'모둠 · '+myName;gb.title='이름 바꾸기';}
+  $('tabs').innerHTML=(TV||!SESSION||!group)?'':STEPS.map(function(s){return '<button class="tab" type="button" data-action="step" data-step="'+s[0]+'"'+(state.step===s[0]?' aria-current="step"':'')+'><b>'+s[0]+'</b>'+s[1]+'</button>';}).join('');
 }
 function renderPicker(){
   var note=online?(connected?'같은 모둠을 고른 친구들끼리 기록이 실시간으로 이어져요.':'서버에 연결되지 않아 지금은 이 기기에만 저장돼요.'):'지금은 이 기기에만 저장돼요.';
@@ -678,6 +703,77 @@ function renderStep4(){
   (connected?'':'<p class="banner">지금은 이 기기에만 저장돼서 다른 모둠 기록은 보이지 않아요.</p>')+
   tabs+which.map(groupBlock).join('')+'</section>';
 }
+function renderClass(){
+  var cl=NOTE.classes||[];
+  if(!cl.length)return '<section class="picker"><h2 class="lead">반 명단이 아직 없어요</h2><p class="hint">취재 노트 선생님 화면에서 반과 학생 명단을 먼저 넣어 주세요.</p></section>';
+  return '<section style="text-align:center;display:flex;flex-direction:column;gap:14px"><h2 class="lead">어느 반인가요?</h2><p class="hint">우리 반을 눌러요.</p><div class="cls-grid">'+
+    cl.map(function(c){var n=(c.students||[]).filter(function(x){return x.g>0;}).length;
+      return '<button type="button" data-action="cls" data-v="'+c.id+'">'+esc(c.name)+'<span>'+(n?n+'명':'모둠 편성 전')+'</span></button>';}).join('')+'</div></section>';
+}
+function renderWho(){
+  var k=klass(cid), on=(k.students||[]).filter(function(x){return x.g>0;});
+  if(!on.length)return '<section class="picker"><h2 class="lead">'+esc(k.name)+'</h2><p>아직 모둠 편성이 없어요. 선생님께 말씀드려요.</p><div class="actions" style="justify-content:flex-start"><button class="btn ghost" type="button" data-action="back-cls">반 다시 고르기</button></div></section>';
+  var h='<h2 class="lead">'+esc(k.name)+' · 내 이름을 눌러요</h2>';
+  for(var g=1;g<=(k.groups||4);g++){
+    var ms=on.filter(function(x){return x.g===g;}); if(!ms.length)continue;
+    h+='<div class="who-grp"><h3>'+g+'모둠</h3><div class="who-grid">'+ms.map(function(x){
+      return '<button type="button" data-action="who" data-v="'+x.id+'">'+esc(x.name)+'</button>';}).join('')+'</div></div>';
+  }
+  return h+'<div class="actions" style="justify-content:flex-start"><button class="btn ghost" type="button" data-action="back-cls">반 다시 고르기</button></div>';
+}
+function renderLock(){
+  return '<div class="lockbox"><h2 class="lead">선생님 화면</h2><p class="hint">네 자리 암호를 눌러 주세요.</p>'+
+    '<div class="dots">'+'●'.repeat(typed.length)+'○'.repeat(4-typed.length)+'</div>'+(wrong?'<p class="hint" style="color:#B3502A">암호가 맞지 않아요.</p>':'')+
+    '<div class="pad">'+[1,2,3,4,5,6,7,8,9,'',0,'←'].map(function(d){return d===''?'<span></span>':'<button type="button" data-action="pin" data-v="'+d+'">'+d+'</button>';}).join('')+'</div>'+
+    '<div class="actions" style="justify-content:center"><button class="btn ghost" type="button" data-action="t-leave">학생 화면으로</button></div></div>';
+}
+function renderTeacher(){
+  var cl=NOTE.classes||[]; if(!klass(tTab)&&cl[0])tTab=cl[0].id;
+  var k=klass(tTab)||{name:''}, cur=CLASSMAP[tTab]||'';
+  var h='<div class="ttabs">'+cl.map(function(c){return '<button class="tab" type="button" data-action="t-tab" data-v="'+c.id+'"'+(c.id===tTab?' aria-current="step"':'')+'>'+esc(c.name)+'</button>';}).join('')+
+    '<span class="sp"></span><button class="lk" type="button" data-action="t-leave">학생 화면으로</button><button class="lk" type="button" data-action="t-lock">잠그기</button></div>';
+  var used={}; Object.keys(CLASSMAP).forEach(function(c){used[CLASSMAP[c]]=1;});
+  h+='<section class="tpanel"><h3>수업 기록 · '+esc(k.name)+'</h3><p class="hint">아이들이 반과 이름을 누르면 여기서 고른 기록으로 들어가요.</p>'+
+    (sessionList.length?'<div class="sess-list">'+sessionList.slice(0,20).map(function(x){
+      var on=x.code===cur, pend=(state.pendingDelete===x.code);
+      return '<div class="sess-row'+(on?' cur':'')+'"><span class="sess-open" style="cursor:default"><span class="sess-name">'+esc(x.name||'(이름 없는 수업)')+(on?' · 지금 이 반 기록':'')+'</span>'+
+        '<span class="sess-meta"><code>'+x.code+'</code> · '+fmtDate(x.at)+'</span></span>'+
+        (on?'':'<button class="btn small ghost" type="button" data-action="t-use" data-code="'+x.code+'">이 반 기록으로 쓰기</button>')+
+        (used[x.code]?'':(pend?'<span class="sess-del"><button class="btn small ghost" type="button" data-action="cancel-del">취소</button><button class="btn small" type="button" data-action="do-del" data-code="'+x.code+'">지우기</button></span>'
+          :'<button class="x-btn" type="button" title="이 기록 지우기" data-action="ask-del" data-code="'+x.code+'">\u00d7</button>'))+'</div>';
+    }).join('')+'</div>':'<p class="hint">아직 수업 기록이 없어요.</p>')+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input type="text" id="sessName" placeholder="예) '+esc(k.name)+' · 11월 3일" autocomplete="off" style="flex:1;min-width:200px">'+
+    '<button class="btn small" type="button" data-action="t-new">새 기록 만들어 이 반에 쓰기</button></div></section>';
+  if(cur){
+    h+='<section class="tpanel"><h3>설정 · '+esc(k.name)+'</h3>'+
+      '<label class="switch"><input type="checkbox" id="prepaired"'+(prepaired()?' checked':'')+'> 짝을 미리 지어서 주기</label>'+
+      '<p class="hint">켜면 모든 모둠이 짝 짓기를 건너뛰고, 정해 둔 6쌍으로 바로 이유 쓰기부터 해요.</p>'+
+      (state.pendingMode!==null?'<div class="confirm"><p>설정을 바꾸면 <b>모든 모둠</b>이 지금까지 적은 짝과 이유가 <b>모두 지워져요.</b> (지우기 전 기록은 따로 보관되어 아래 <b>되돌리기</b>로 되살릴 수 있어요)</p><div class="actions"><button class="btn small ghost" type="button" data-action="cancel-mode">그대로 두기</button><button class="btn small" type="button" data-action="confirm-mode">바꾸기</button></div></div>':'')+
+      '<div class="actions" style="justify-content:flex-start"><button class="btn ghost" type="button" data-action="t-present">발표 화면 열기</button><button class="btn ghost" type="button" data-action="reset">이 반 기록 지우기</button>'+
+      (tst.backup?'<button class="btn ghost" type="button" data-action="undo">되돌리기</button>':'')+'</div>'+
+      (tst.resetAsk?'<div class="confirm"><p><b>'+esc(k.name)+'</b>의 네 모둠 기록이 모두 지워져요. 지우기 전 기록은 따로 보관되어 <b>되돌리기</b>로 되살릴 수 있어요.</p><div class="actions"><button class="btn small ghost" type="button" data-action="cancel-reset">취소</button><button class="btn small" type="button" data-action="confirm-reset">지우기</button></div></div>':'')+
+      (tst.backup?'<p class="hint">'+fmtDate(tst.backup.at)+'에 지운 기록 '+tst.backup.rows.length+'개가 보관되어 있어요.</p>':'')+
+      (tst.undoAsk&&tst.backup?'<div class="confirm"><p>지금 기록을 지우고, <b>'+fmtDate(tst.backup.at)+'</b>에 지우기 전 기록으로 되돌려요.</p><div class="actions"><button class="btn small ghost" type="button" data-action="cancel-undo">취소</button><button class="btn small" type="button" data-action="confirm-undo">되돌리기</button></div></div>':'')+
+      '</section>';
+  }
+  h+='<section class="tpanel"><h3>전시용 보기 모드</h3><p class="hint">이 태블릿에서만 켜져요. 켜면 손님이 둘러볼 수만 있고 고칠 수 없어요. 교실 아이들 기기는 그대로예요. 끄려면 맨 위 검은 ‘보기 모드’ 띠를 2초 꾹 누르고 암호를 넣으세요.</p>'+
+    '<div class="actions" style="justify-content:flex-start"><button class="btn" type="button" data-action="view-on">이 태블릿을 보기 모드로</button></div></section>';
+  return h;
+}
+async function enterTeacherClass(c){
+  tTab=c; tst.resetAsk=false;tst.undoAsk=false;tst.backup=null;state.pendingMode=null;state.pendingDelete=null;
+  useSession(CLASSMAP[c]||'');
+  render();
+  if(!SESSION||!connected)return;
+  try{absorb(await pull(false));tst.backup=await loadBackup();}catch(e){}
+  render();
+}
+function leaveTeacher(){
+  TV=null; typed='';wrong=false;
+  applyIdentity(); render(); window.scrollTo({top:0});
+  if(SESSION&&group&&connected)pull(false).then(function(b){absorb(b);return ensureSeed();}).then(function(){announce();render();}).catch(function(){});
+}
+async function saveMap(){ await putRaw(0,MAPKEY,CLASSMAP); }
 function renderSetup(){
   return '<section class="picker"><h2 class="lead">먼저 서버 연결이 필요해요</h2>'+
   '<p class="hint">이 앱은 Supabase에 기록을 저장합니다. <code>config.js</code> 파일에 주소와 키를 넣어 주세요.</p>'+
@@ -757,9 +853,13 @@ function render(){
   var isText=focused&&(focused.id==='nameInput'||focused.id==='sessName'||focused.id==='codeInput');
   var keep=(isField||isText)?{id:focused.id,start:focused.selectionStart,end:focused.selectionEnd,val:focused.value}:null;
   var head=(online&&!connected&&!SESSION)?renderSetup():'';
-  if(!SESSION)main.innerHTML=head+renderStart();
-  else if(justCreated)main.innerHTML=renderSessionInfo();
-  else if(!group)main.innerHTML=renderPicker();
+  if(TV==='lock'||(TV==='teacher'&&!unlocked))main.innerHTML=renderLock();
+  else if(TV==='teacher')main.innerHTML=renderTeacher();
+  else if(TV==='present')main.innerHTML='<div class="actions"><button class="btn ghost small" type="button" data-action="t-back">선생님 화면으로</button></div>'+renderStep4();
+  else if(!connected&&online)main.innerHTML=head+'<p class="hint">연결 중…</p>';
+  else if(!klass(cid))main.innerHTML=head+renderClass();
+  else if(!SESSION)main.innerHTML='<section class="picker"><h2 class="lead">'+esc(klass(cid).name)+'</h2><p>선생님이 아직 이 반 수업을 열지 않았어요. 선생님께 말씀드려요.</p><div class="actions" style="justify-content:flex-start"><button class="btn ghost" type="button" data-action="back-cls">반 다시 고르기</button></div></section>';
+  else if(!group)main.innerHTML=renderWho();
   else main.innerHTML=(state.step===4?'':memberLine())+[null,renderStep1,renderStep2,renderStep3,renderStep4][state.step]();
   if(keep){var el=$(keep.id);if(el){
     if(el.value!==keep.val)el.value=keep.val;   /* 치는 중 지워지지 않게 */
@@ -805,15 +905,6 @@ function selectUrl(){
   try{var r=document.createRange();r.selectNodeContents(el);var sel=getSelection();sel.removeAllRanges();sel.addRange(r);
     toast('주소가 선택됐어요. Ctrl+C로 복사하세요.');}catch(e){}
 }
-function openTeacher(){
-  $('prepaired').checked=prepaired();$('modeConfirm').hidden=true;$('resetConfirm').hidden=true;
-  $('modeNote').textContent=connected?'설정과 기록은 모든 기기에 함께 적용돼요.':'지금은 공유가 꺼져 있어 이 기기에만 적용돼요.';
-  $('teacher').hidden=false;$('prepaired').focus();
-  $('undoBox').hidden=true;$('undoConfirm').hidden=true;
-  if(connected)loadBackup().then(function(b){if(!b)return;var d=new Date(b.at);var w=(d.getMonth()+1)+'월 '+d.getDate()+'일 '+d.getHours()+'시 '+String(d.getMinutes()).padStart(2,'0')+'분';
-    $('undoWhen').textContent=w;$('undoNote').textContent=w+'에 지운 기록 '+b.rows.length+'개가 보관되어 있어요.';$('undoBox').hidden=false;});
-}
-function closeTeacher(){$('teacher').hidden=true;}
 /* 지우기 전에 이 수업의 모둠 기록을 통째로 따로 보관해 둠(되돌리기용) */
 const BK='bk'+SEP;
 async function backupSession(){
@@ -866,12 +957,29 @@ async function resetAll(pre){
 document.addEventListener('click',function(e){
   var t=e.target.closest('[data-action]');if(!t||t.disabled)return;
   var a=t.dataset.action;
-  if(a==='view-on'){VIEW=true;try{localStorage.setItem('tuning-in-view','1');}catch(err){}closeTeacher();state.sel=null;render();toast('보기 모드를 켰어요. 이제 둘러보기만 할 수 있어요.');return;}
+  if(a==='view-on'){VIEW=true;try{localStorage.setItem('tuning-in-view','1');}catch(err){}leaveTeacher();state.sel=null;render();toast('보기 모드를 켰어요. 이제 둘러보기만 할 수 있어요.');return;}
   if(a==='view-cancel'){$('viewExit').hidden=true;return;}
   if(a==='view-off'){var pv=$('viewPin').value.trim();
     if(pv!==VIEW_PIN){toast('PIN이 맞지 않아요.');$('viewPin').value='';$('viewPin').focus();return;}
     VIEW=false;try{localStorage.removeItem('tuning-in-view');}catch(err){}$('viewExit').hidden=true;render();toast('보기 모드를 껐어요.');return;}
-  if(VIEW&&['step','ptab','fullscreen','pick-group','change-group','open-session','join-code','go-join'].indexOf(a)<0){toast('👀 보기 모드예요. 구경만 할 수 있어요.');return;}
+  if(VIEW&&['step','ptab','fullscreen','cls','who','back-cls','change-group'].indexOf(a)<0){toast('👀 보기 모드예요. 구경만 할 수 있어요.');return;}
+  if(a==='cls'){cid=+t.dataset.v;sid=null;applyIdentity();render();window.scrollTo({top:0});return;}
+  if(a==='back-cls'){cid=null;sid=null;applyIdentity();render();return;}
+  if(a==='who'){var st=stu(cid,+t.dataset.v);if(!st)return;sid=st.id;myName=st.name;remember();joinGroup(st.g);window.scrollTo({top:0});return;}
+  if(a==='pin'){var pv=t.dataset.v;if(pv==='←')typed=typed.slice(0,-1);else if(typed.length<4)typed+=pv;wrong=false;
+    if(typed.length===4){if(typed===String(NOTE.pin||'1234')){unlocked=true;try{sessionStorage.setItem('ti-teacher','1');}catch(err){}typed='';TV='teacher';enterTeacherClass(tTab||cid||((NOTE.classes||[])[0]||{}).id);return;}else{wrong=true;typed='';}}
+    render();return;}
+  if(a==='t-leave'){leaveTeacher();return;}
+  if(a==='t-lock'){unlocked=false;try{sessionStorage.removeItem('ti-teacher');}catch(err){}leaveTeacher();return;}
+  if(a==='t-tab'){enterTeacherClass(+t.dataset.v);return;}
+  if(a==='t-back'){TV='teacher';render();return;}
+  if(a==='t-present'){TV='present';state.presentTab='all';lastSig=null;render();poll();return;}
+  if(a==='t-use'){var uc=t.dataset.code;CLASSMAP[tTab]=uc;t.disabled=true;
+    saveMap().then(function(){toast('이 반은 이제 이 기록으로 들어가요.');enterTeacherClass(tTab);}).catch(function(){t.disabled=false;toast('저장하지 못했어요. 잠시 뒤 다시 해 보세요.');});return;}
+  if(a==='t-new'){var ni2=$('sessName'),nm2=(ni2&&ni2.value.trim())||((klass(tTab)||{}).name||'')+' · '+(new Date().getMonth()+1)+'월 '+new Date().getDate()+'일';t.disabled=true;
+    createSession(nm2).then(function(code){justCreated=false;CLASSMAP[tTab]=code;return saveMap();})
+      .then(function(){return pullSessions();}).then(function(l){sessionList=l;SESSION='';enterTeacherClass(tTab);toast('새 기록을 만들었어요.');})
+      .catch(function(){t.disabled=false;toast('만들지 못했어요. 잠시 뒤 다시 해 보세요.');});return;}
   if(a==='ask-del'){state.pendingDelete=t.dataset.code;render();return;}
   if(a==='cancel-del'){state.pendingDelete=null;render();return;}
   if(a==='do-del'){
@@ -909,7 +1017,6 @@ document.addEventListener('click',function(e){
     connect();return;
   }
   if(a==='go-join'){justCreated=false;render();return;}
-  if(a==='show-session'){justCreated=true;closeTeacher();render();return;}
   if(a==='copy-url'){
     var u=sessionUrl();
     if(navigator.clipboard&&navigator.clipboard.writeText){
@@ -926,31 +1033,29 @@ document.addEventListener('click',function(e){
     myName=v.slice(0,12);try{localStorage.setItem('tuning-in-name',myName);}catch(err){}
     joinGroup(+t.dataset.group);
   }
-  else if(a==='change-group'){group=null;E={};try{localStorage.removeItem('tuning-in-group');}catch(err){}render();}
+  else if(a==='change-group'){group=null;sid=null;E={};remember();render();}
   else if(a==='step'){state.sel=null;state.step=+t.dataset.step;render();window.scrollTo({top:0});if(state.step===4)poll();}
   else if(a==='photo')tapPhoto(t.dataset.id);
   else if(a==='basket')setVal('basket:'+t.dataset.pair,t.dataset.b);
   else if(a==='unbasket')setVal('basket:'+t.dataset.pair,null);
   else if(a==='ptab'){state.presentTab=t.dataset.tab;render();}
   else if(a==='fullscreen'){var d=document;if(d.fullscreenElement){if(d.exitFullscreen)d.exitFullscreen().catch(function(){});}else if(d.documentElement.requestFullscreen)d.documentElement.requestFullscreen().catch(function(){toast('이 화면에서는 크게 보기를 쓸 수 없어요.');});else toast('이 화면에서는 크게 보기를 쓸 수 없어요.');}
-  else if(a==='open-teacher')openTeacher();
-  else if(a==='close-teacher')closeTeacher();
-  else if(a==='confirm-mode'){var want=state.pendingMode;state.pendingMode=null;$('modeConfirm').hidden=true;
-    resetAll(want).then(function(ok){if(ok){$('prepaired').checked=want;toast(want?'짝을 미리 지어서 주도록 바꿨어요.':'아이들이 직접 짝을 짓도록 바꿨어요.');}});}
-  else if(a==='cancel-mode'){state.pendingMode=null;$('prepaired').checked=prepaired();$('modeConfirm').hidden=true;}
-  else if(a==='reset')$('resetConfirm').hidden=false;
-  else if(a==='undo')$('undoConfirm').hidden=false;
-  else if(a==='cancel-undo')$('undoConfirm').hidden=true;
-  else if(a==='confirm-undo'){$('undoConfirm').hidden=true;restoreBackup();}
-  else if(a==='cancel-reset')$('resetConfirm').hidden=true;
-  else if(a==='confirm-reset'){$('resetConfirm').hidden=true;
-    resetAll(prepaired()).then(function(ok){if(ok){closeTeacher();toast('모든 모둠 기록을 지웠어요.');}});}
+  else if(a==='confirm-mode'){var want=state.pendingMode;state.pendingMode=null;
+    resetAll(want).then(function(ok){if(ok){toast(want?'짝을 미리 지어서 주도록 바꿨어요.':'아이들이 직접 짝을 짓도록 바꿨어요.');enterTeacherClass(tTab);}});}
+  else if(a==='cancel-mode'){state.pendingMode=null;render();}
+  else if(a==='reset'){tst.resetAsk=true;render();}
+  else if(a==='undo'){tst.undoAsk=true;render();}
+  else if(a==='cancel-undo'){tst.undoAsk=false;render();}
+  else if(a==='confirm-undo'){tst.undoAsk=false;restoreBackup();}
+  else if(a==='cancel-reset'){tst.resetAsk=false;render();}
+  else if(a==='confirm-reset'){tst.resetAsk=false;
+    resetAll(prepaired()).then(function(ok){if(ok){toast('이 반 기록을 지웠어요.');enterTeacherClass(tTab);}});}
 });
 document.addEventListener('change',function(e){
   if(e.target.id==='prepaired'){
     var want=e.target.checked;
     if(want===prepaired())return;
-    state.pendingMode=want;$('modeConfirm').hidden=false;
+    state.pendingMode=want;render();
   }
 });
 document.addEventListener('input',function(e){
@@ -971,8 +1076,13 @@ document.addEventListener('input',function(e){
     setValSoon('name:'+k,el.value);
   }
 });
-document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('teacher').hidden)closeTeacher();});
-$('teacher').addEventListener('click',function(e){if(e.target===$('teacher'))closeTeacher();});
+/* 숨은 입구 — 제목을 1초쯤 누르고 있기 (다른 앱과 같음) */
+(function(){var T=$('title'),lt=null;
+  function open(){if(VIEW||TV)return;typed='';wrong=false;tTab=cid||((NOTE.classes||[])[0]||{}).id;TV='teacher';if(unlocked)enterTeacherClass(tTab);else render();window.scrollTo({top:0});}
+  T.addEventListener('pointerdown',function(){clearTimeout(lt);lt=setTimeout(open,900);});
+  ['pointerup','pointerleave','pointercancel'].forEach(function(n){T.addEventListener(n,function(){clearTimeout(lt);});});
+  T.addEventListener('contextmenu',function(e){e.preventDefault();});
+})();
 (function(){var vb=$('viewbar'),lt=null;
   function down(e){if(!VIEW)return;clearTimeout(lt);lt=setTimeout(function(){$('viewPin').value='';$('viewExit').hidden=false;setTimeout(function(){$('viewPin').focus();},50);},2000);}
   function up(){clearTimeout(lt);}

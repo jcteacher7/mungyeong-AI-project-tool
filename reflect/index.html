@@ -145,16 +145,15 @@ input.t:focus{outline:none;border-bottom-color:var(--near)}
 /* 잠금 */
 .top h1{cursor:default;user-select:none;-webkit-user-select:none}
 .lock{max-width:300px;margin:60px auto 0;text-align:center}
-.lock .dots{display:flex;gap:12px;justify-content:center;margin:22px 0 28px}
-.lock .dots i{width:13px;height:13px;border-radius:50%;border:1.6px solid var(--far);display:block}
-.lock .dots i.on{background:var(--near);border-color:var(--near)}
+.lock .dots{text-align:center;font-size:30px;letter-spacing:10px;min-height:44px;margin:14px 0 4px;color:var(--near)}
 .lock.wrong .dots{animation:shake .4s}
 @keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
 @media (prefers-reduced-motion:reduce){.lock.wrong .dots{animation:none}}
-.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
-.pad button{background:var(--paper);padding:19px 0;font-size:22px;font-family:var(--serif)}
-.pad button:active{background:#fff}
-.pad button.fn{font-family:var(--sans);font-size:13.5px;color:var(--soft)}
+.pad{display:grid;grid-template-columns:repeat(3,72px);gap:10px;justify-content:center;margin:16px 0}
+.pad button{height:64px;border-radius:12px;background:#fff;border:1.5px solid var(--line);font-size:24px}
+.pad button:active{background:var(--paper)}
+.tabs .tside{margin-left:auto;box-shadow:none}
+.tabs .tside + .tside{margin-left:0}
 .msg{background:#fff;border-left:3px solid var(--lit);padding:12px 16px;font-size:14.5px;margin:16px 0}
 .msg.bad{border-left-color:#A8524A;color:#7E3B34}
 
@@ -230,7 +229,7 @@ var DEFAULT={
 var cfg=clone(DEFAULT), recs={}, draft={};
 var cid=null, sid=null, view={s:'cls'}, tTab=1, tStage=0;
 var unlocked=false, typed='', wrong=false, cfgDirty=false, justSaved=0;
-try{unlocked=localStorage.getItem('reflect-teacher')==='1';}catch(e){}
+try{unlocked=sessionStorage.getItem('reflect-teacher')==='1';}catch(e){}
 
 function clone(o){return JSON.parse(JSON.stringify(o));}
 
@@ -468,15 +467,12 @@ function scWrite(){
 function scLock(){
   return '<div class="lock'+(wrong?' wrong':'')+'">'+
     '<h3>선생님 화면</h3>'+
-    '<p class="quiet">'+(wrong?'암호가 맞지 않습니다.':'네 자리 암호를 눌러 주세요.')+'</p>'+
-    '<div class="dots">'+[0,1,2,3].map(function(i){
-      return '<i class="'+(i<typed.length?'on':'')+'"></i>';}).join('')+'</div>'+
-    '<div class="pad">'+
-      [1,2,3,4,5,6,7,8,9].map(function(n){return '<button data-d="'+n+'">'+n+'</button>';}).join('')+
-      '<button class="fn" data-d="back">지우기</button>'+
-      '<button data-d="0">0</button>'+
-      '<button class="fn" data-d="out">나가기</button>'+
-    '</div></div>';
+    '<p class="quiet">네 자리 암호를 눌러 주세요.</p>'+
+    '<div class="dots">'+'●'.repeat(typed.length)+'○'.repeat(4-typed.length)+'</div>'+
+    (wrong?'<p class="quiet" style="color:#A8524A">암호가 맞지 않아요.</p>':'')+
+    '<div class="pad">'+[1,2,3,4,5,6,7,8,9,'',0,'←'].map(function(d){
+      return d===''?'<span></span>':'<button data-d="'+(d==='←'?'back':d)+'">'+d+'</button>';}).join('')+'</div>'+
+    '<button class="go quietbtn" data-d="out">학생 화면으로</button></div>';
 }
 function scTeacher(){
   if(!unlocked)return scLock();
@@ -487,9 +483,9 @@ function scTeacher(){
 
   var k=klass(tTab)||cfg.classes[0];
   return '<div class="wide">'+
-    '<h2 style="font-size:24px">선생님 화면</h2>'+
     '<div class="tabs">'+cfg.classes.map(function(c){
-      return '<button data-tab="'+c.id+'" aria-selected="'+(c.id===k.id)+'">'+esc(c.name)+'</button>';}).join('')+'</div>'+
+      return '<button data-tab="'+c.id+'" aria-selected="'+(c.id===k.id)+'">'+esc(c.name)+'</button>';}).join('')+
+      '<button class="tside" data-back="cls">학생 화면으로</button><button class="tside" id="lockBtn">잠그기</button></div>'+
     '<p class="quiet" style="margin-top:14px">'+esc(k.name)+'은(는) 지금 <b style="color:var(--lit)">'+
       esc((stage(k.cur)||{}).t||'—')+'</b> 입니다. 다음 단계로 넘기려면 아래에서 그 단계를 누르세요. '+
       '아이들 화면이 바로 그 단계로 바뀝니다. 이름을 누르면 그 학생의 길이 열리고 인쇄할 수 있습니다.</p>'+
@@ -576,8 +572,7 @@ function scTeacher(){
     '<p class="quiet" style="margin-top:8px">제목 <b>돌아보는 길</b>을 1초쯤 누르고 있으면 이 화면이 열립니다. 아이들이 우연히 들어오는 것을 막는 정도이지, 완전한 잠금은 아닙니다.</p></div>'+
 
     '<div style="margin-top:20px"><button class="go" id="cSave">설정 저장</button>'+
-    '<button class="go quietbtn" data-back="cls" style="margin-left:18px">학생 화면으로</button>'+
-    '<button class="go quietbtn" id="lockBtn" style="margin-left:18px">잠그기</button></div>'+
+    '</div>'+
     '</div>';
 }
 
@@ -631,7 +626,7 @@ function wire(){
     if(typed.length===4){
       if(typed===String(cfg.pin||'1234')){
         unlocked=true; typed='';
-        try{localStorage.setItem('reflect-teacher','1');}catch(e){}
+        try{sessionStorage.setItem('reflect-teacher','1');}catch(e){}
         tTab=cid||cfg.classes[0].id;
       } else { wrong=true; typed=''; }
     }
@@ -651,7 +646,7 @@ function wire(){
   var lb=A.querySelector('#lockBtn');
   if(lb)lb.onclick=function(){
     unlocked=false; typed='';
-    try{localStorage.removeItem('reflect-teacher');}catch(e){}
+    try{sessionStorage.removeItem('reflect-teacher');localStorage.removeItem('reflect-teacher');}catch(e){}
     go(cid?'who':'cls');
   };
 
