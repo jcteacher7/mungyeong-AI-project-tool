@@ -157,6 +157,22 @@ input.t:focus{outline:none;border-bottom-color:var(--near)}
 .msg{background:#fff;border-left:3px solid var(--lit);padding:12px 16px;font-size:14.5px;margin:16px 0}
 .msg.bad{border-left-color:#A8524A;color:#7E3B34}
 
+/* 전시용 보기 모드 */
+.viewbar{display:none}
+body.viewmode .viewbar{display:flex;position:sticky;top:0;z-index:15;justify-content:center;gap:8px;background:#223038;color:#fff;font-size:15px;font-weight:600;padding:7px 12px;margin:0 -20px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+body.viewmode .viewbar small{font-weight:400;opacity:.75}
+.vq{font-family:var(--serif);font-size:21px;margin:18px 0 4px}
+.vlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:14px}
+.vcard{background:var(--paper);padding:16px 18px;border-top:3px solid var(--far)}
+.vcard .nm{font-size:13px;color:var(--soft);margin-bottom:4px}
+.vcard .nt{font-family:var(--serif);font-size:17px;line-height:1.65;white-space:pre-wrap}
+.vcard .ai{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);font-size:14px;color:#3d4d55;white-space:pre-wrap}
+.vcard .ai b{display:block;font-size:12px;color:var(--lit);font-weight:600}
+.vcard .lv{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+.vcard .lv span{font-size:12px;color:#fff;padding:1px 8px;border-radius:99px}
+.vexit{position:fixed;inset:0;background:rgba(20,30,35,.45);display:flex;align-items:center;justify-content:center;z-index:30}
+.vexit .box{background:var(--paper);padding:22px 26px;max-width:340px;width:100%;text-align:center}
+.vexit input{font-size:24px;letter-spacing:6px;width:140px;text-align:center;padding:6px;border:1px solid var(--line);margin:10px 0}
 @media print{
   body{background:#fff;padding:0}
   .noprint{display:none!important}
@@ -167,12 +183,15 @@ input.t:focus{outline:none;border-bottom-color:var(--near)}
 </head>
 <body>
 
+<div class="viewbar noprint" id="viewbar">👀 보기 모드 <small>· 아이들이 남긴 성찰을 둘러볼 수 있어요 (고칠 수 없어요)</small></div>
 <div class="wrap noprint"><div class="top">
   <h1 id="title">돌아보는 길</h1>
   <span class="state" id="state"></span>
 </div></div>
 <div class="wrap" id="msg"></div>
 <main id="app"></main>
+<div class="vexit" id="viewExit" hidden><div class="box"><h3 style="margin:0">보기 모드 끄기</h3><p class="quiet">선생님 암호를 넣어 주세요.</p>
+<input type="password" id="viewPin" inputmode="numeric" maxlength="8" autocomplete="off"><div><button class="go" id="viewOff">끄기</button> <button class="go quietbtn" id="viewCancel" style="margin-left:12px">취소</button></div></div></div>
 
 <script src="config.js?v=4"></script>
 <script>
@@ -230,11 +249,15 @@ var cfg=clone(DEFAULT), recs={}, draft={};
 var cid=null, sid=null, view={s:'cls'}, tTab=1, tStage=0;
 var unlocked=false, typed='', wrong=false, cfgDirty=false, justSaved=0;
 try{unlocked=sessionStorage.getItem('reflect-teacher')==='1';}catch(e){}
+var VIEW=false, vCls=null, vSt=null;
+try{VIEW=localStorage.getItem('reflect-view')==='1';}catch(e){}
+function maskName(n){n=String(n||'');if(n.length<2)return n;if(n.length===2)return n[0]+'○';return n[0]+'○'.repeat(n.length-2)+n[n.length-1];}
 
 function clone(o){return JSON.parse(JSON.stringify(o));}
 
 /* ── 서버 ── */
-function api(p,o){o=o||{};var h=Object.assign({'apikey':CFG.key,'Authorization':'Bearer '+CFG.key,'Content-Type':'application/json'},o.headers||{});
+function api(p,o){o=o||{};
+  if(VIEW&&o.method&&o.method!=='GET')return Promise.resolve(new Response(null,{status:204}));  /* 보기 모드: 쓰기 막음 */var h=Object.assign({'apikey':CFG.key,'Authorization':'Bearer '+CFG.key,'Content-Type':'application/json'},o.headers||{});
   return fetch(String(CFG.url||'').replace(/\/$/,'')+'/rest/v1/'+p,Object.assign({},o,{headers:h}));}
 async function put(g,k,v){
   var r=await api('entries?on_conflict=group_id,key',{method:'POST',
@@ -298,7 +321,9 @@ function render(){
     if(el===ae){fk=key;cs=el.selectionStart;ce=el.selectionEnd;}
   });
 
-  var f={cls:scClass,who:scWho,home:scHome,write:scWrite,teacher:scTeacher}[view.s]||scClass;
+  document.body.classList.toggle('viewmode',VIEW);
+  if(VIEW)document.getElementById('state').innerHTML='';
+  var f=VIEW?scView:({cls:scClass,who:scWho,home:scHome,write:scWrite,teacher:scTeacher}[view.s]||scClass);
   A.innerHTML=f();
 
   A.querySelectorAll('input,textarea').forEach(function(el){
@@ -309,6 +334,27 @@ function render(){
   wire();
 }
 function go(s,o){view=Object.assign({s:s},o||{});scrollTo(0,0);render();}
+
+/* 전시용 보기 모드: 단계를 골라 아이들이 남긴 성찰 모아 보기 */
+function scView(){
+  if(!klass(vCls))vCls=cfg.classes[0]&&cfg.classes[0].id;
+  var k=klass(vCls); if(!k)return '<div class="wrap"><p class="quiet">아직 반이 없습니다.</p></div>';
+  if(!stage(vSt))vSt=k.cur||cfg.stages[0].id;
+  var st=stage(vSt), sk=stageATL(st);
+  var list=k.students.map(function(x){var r=rec(k.id,x.id,st.id);return r&&((r.note||'').trim()||(r.ai||'').trim())?{s:x,r:r}:null;}).filter(Boolean);
+  list.sort(function(a,b){return ((b.r.note||'').length+(b.r.ai||'').length)-((a.r.note||'').length+(a.r.ai||'').length);});
+  return '<div class="wide">'+
+    '<div class="tabs">'+cfg.classes.map(function(c){return '<button data-vcls="'+c.id+'" aria-selected="'+(c.id===k.id)+'">'+esc(c.name)+'</button>';}).join('')+'</div>'+
+    '<div class="chips" style="margin-top:14px">'+cfg.stages.map(function(x){return '<button data-vst="'+x.id+'" aria-pressed="'+(x.id===st.id)+'">'+esc(x.t)+'</button>';}).join('')+'</div>'+
+    '<p class="vq">'+esc(st.q)+'</p><p class="quiet">'+esc(k.name)+' · '+list.length+'명이 남겼어요</p>'+
+    (list.length?'<div class="vlist">'+list.map(function(o){var r=o.r;
+      return '<div class="vcard"><div class="nm">'+esc(maskName(o.s.name))+'</div>'+
+        ((r.note||'').trim()?'<div class="nt">'+esc(r.note.trim())+'</div>':'')+
+        ((r.ai||'').trim()?'<div class="ai"><b>AI·디지털 도구</b>'+esc(r.ai.trim())+'</div>':'')+
+        '<div class="lv">'+sk.filter(function(a){return r[a.k];}).map(function(a){var lv=LEVELS.filter(function(l){return l.v===r[a.k];})[0];
+          return '<span style="background:'+(HEX[a.k]||'#6E8089')+'">'+esc(a.label)+' · '+esc(lv?lv.t:'')+'</span>';}).join('')+'</div></div>';
+    }).join('')+'</div>':'<p class="msg">아직 이 단계의 성찰이 없어요.</p>')+'</div>';
+}
 
 /* 1. 반 */
 function scClass(){
@@ -485,7 +531,8 @@ function scTeacher(){
   return '<div class="wide">'+
     '<div class="tabs">'+cfg.classes.map(function(c){
       return '<button data-tab="'+c.id+'" aria-selected="'+(c.id===k.id)+'">'+esc(c.name)+'</button>';}).join('')+
-      '<button class="tside" data-back="cls">학생 화면으로</button><button class="tside" id="lockBtn">잠그기</button></div>'+
+      '<button class="tside" data-back="cls">학생 화면으로</button><button class="tside" id="viewOn">보기 모드</button><button class="tside" id="lockBtn">잠그기</button></div>'+
+    '<p class="quiet" style="margin-top:8px">‘보기 모드’는 이 태블릿에서만 켜져요. 손님이 단계를 골라 아이들 성찰을 둘러볼 수만 있고(이름은 가운데 글자를 가려요), 고칠 수는 없어요. 끄려면 맨 위 검은 띠를 2초 꾹 누르고 암호를 넣으세요.</p>'+
     '<p class="quiet" style="margin-top:14px">'+esc(k.name)+'은(는) 지금 <b style="color:var(--lit)">'+
       esc((stage(k.cur)||{}).t||'—')+'</b> 입니다. 다음 단계로 넘기려면 아래에서 그 단계를 누르세요. '+
       '아이들 화면이 바로 그 단계로 바뀝니다. 이름을 누르면 그 학생의 길이 열리고 인쇄할 수 있습니다.</p>'+
@@ -579,6 +626,9 @@ function scTeacher(){
 /* ── 연결 ── */
 function wire(){
   var A=document.getElementById('app');
+  A.querySelectorAll('[data-vcls]').forEach(function(b){b.onclick=function(){vCls=+b.dataset.vcls;vSt=null;render();};});
+  A.querySelectorAll('[data-vst]').forEach(function(b){b.onclick=function(){vSt=+b.dataset.vst;render();};});
+  var vo=A.querySelector('#viewOn'); if(vo)vo.onclick=function(){VIEW=true;try{localStorage.setItem('reflect-view','1');}catch(e){}vCls=tTab;vSt=null;scrollTo(0,0);render();};
   A.querySelectorAll('[data-cls]').forEach(function(b){b.onclick=function(){
     cid=+b.dataset.cls; try{localStorage.setItem('reflect-cls',cid);}catch(e){} go('who');};});
   A.querySelectorAll('[data-who]').forEach(function(b){b.onclick=function(){
@@ -690,13 +740,24 @@ function wire(){
 /* 숨은 입구 — 제목을 1초쯤 누르고 있기 */
 (function(){
   var T=document.getElementById('title'), t=null;
-  function open(){ if(view.s==='teacher')return; typed='';wrong=false;
+  function open(){ if(VIEW||view.s==='teacher')return; typed='';wrong=false;
     tTab=cid||cfg.classes[0].id; go('teacher'); }
   function down(){ clearTimeout(t); t=setTimeout(open,900); }
   function up(){ clearTimeout(t); }
   T.addEventListener('pointerdown',down);
   ['pointerup','pointerleave','pointercancel'].forEach(function(e){T.addEventListener(e,up);});
   T.addEventListener('contextmenu',function(e){e.preventDefault();});
+})();
+
+(function(){var vb=document.getElementById('viewbar'),lt=null,X=document.getElementById('viewExit'),P=document.getElementById('viewPin');
+  vb.addEventListener('pointerdown',function(){if(!VIEW)return;clearTimeout(lt);lt=setTimeout(function(){P.value='';X.hidden=false;setTimeout(function(){P.focus();},50);},2000);});
+  ['pointerup','pointerleave','pointercancel'].forEach(function(n){vb.addEventListener(n,function(){clearTimeout(lt);});});
+  vb.addEventListener('contextmenu',function(e){e.preventDefault();});
+  function off(){if(P.value.trim()!==String(cfg.pin||'1234')){P.value='';P.focus();say('암호가 맞지 않아요.',1);return;}
+    VIEW=false;try{localStorage.removeItem('reflect-view');}catch(e){}X.hidden=true;say('');go(cid?'who':'cls');}
+  document.getElementById('viewOff').onclick=off;
+  P.addEventListener('keydown',function(e){if(e.key==='Enter')off();});
+  document.getElementById('viewCancel').onclick=function(){X.hidden=true;};
 })();
 
 /* ── 시작 ── */
@@ -710,7 +771,7 @@ function wire(){
   if(/[?&]t=1/.test(location.search)){ tTab=cid||cfg.classes[0].id; go('teacher'); }
   else go(cid?'who':'cls');
   setInterval(function(){
-    var live=['teacher','who','cls'].indexOf(view.s)>=0;
+    var live=VIEW||['teacher','who','cls'].indexOf(view.s)>=0;
     var ae=document.activeElement;
     var typing=ae&&/^(INPUT|TEXTAREA)$/.test(ae.tagName);
     if(!live||typing)return;
@@ -718,7 +779,7 @@ function wire(){
     loadAll().then(function(){
       var ae2=document.activeElement;
       if(ae2&&/^(INPUT|TEXTAREA)$/.test(ae2.tagName))return;
-      if(['teacher','who','cls'].indexOf(view.s)>=0)render();
+      if(VIEW||['teacher','who','cls'].indexOf(view.s)>=0)render();
     }).catch(function(){});
   },6000);
 })();
