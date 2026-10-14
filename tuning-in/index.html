@@ -162,9 +162,18 @@ textarea:focus,input[type=text]:focus{border-color:var(--ink); outline:none}
   .show-item p{font-size:14pt}
   .gblock>h3{font-size:18pt}
 }
+.viewbar{display:none}
+body.viewmode .viewbar{display:flex; position:sticky; top:0; z-index:15; align-items:center; justify-content:center; gap:8px; background:#2B2A27; color:#fff; font-size:15px; font-weight:700; padding:7px 12px; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none}
+body.viewmode .viewbar small{font-weight:500; opacity:.75}
+body.viewmode .foot, body.viewmode [data-action="basket"], body.viewmode [data-action="unbasket"], body.viewmode [data-action="print"], body.viewmode .x-btn{display:none!important}
+body.viewmode textarea, body.viewmode input[type=text]{background:#F6F2EA; caret-color:transparent}
+body.viewmode [data-action="photo"]{cursor:default}
+.vpin{display:flex; gap:8px; margin-top:12px}
+.vpin input{font-size:24px; letter-spacing:6px; width:140px; text-align:center}
 </style>
 </head>
 <body>
+<div class="viewbar" id="viewbar">👀 보기 모드 <small>· 구경만 할 수 있어요 (고칠 수 없어요)</small></div>
 <header class="top">
   <div class="top-row">
     <span class="brand">공간과 시간으로 읽는 우리 지역</span>
@@ -197,12 +206,25 @@ textarea:focus,input[type=text]:focus{border-color:var(--ink); outline:none}
     <div id="undoBox" hidden><button class="btn ghost" type="button" data-action="undo">되돌리기 · 마지막으로 지우기 전으로</button><p class="hint" id="undoNote"></p>
       <div class="confirm" id="undoConfirm" hidden><p>지금 기록을 지우고, <b id="undoWhen"></b>에 지우기 전 기록으로 되돌려요.</p>
       <div class="actions"><button class="btn small ghost" type="button" data-action="cancel-undo">취소</button><button class="btn small" type="button" data-action="confirm-undo">되돌리기</button></div></div></div>
+    <div class="confirm" style="display:block">
+      <p><b>전시용 보기 모드</b> · 이 태블릿에서만 켜져요. 켜면 손님이 화면을 둘러볼 수만 있고, 짝·이유·무리를 고칠 수 없어요. 다른 기기(교실 아이들)는 그대로예요.</p>
+      <div class="actions" style="justify-content:flex-start"><button class="btn small" type="button" data-action="view-on">이 태블릿을 보기 모드로</button></div>
+      <p class="hint">끄려면: 화면 맨 위 검은 ‘보기 모드’ 띠를 2초 꾹 누르고 PIN을 넣으세요.</p>
+    </div>
     <p class="hint" id="modeNote"></p>
     <p class="hint">지금 사진은 예시 그림이에요. 실제 사진 12장(6쌍)으로 바꿔 넣을 수 있습니다.</p>
     <div class="actions"><button class="btn" type="button" data-action="close-teacher">닫기</button></div>
   </div>
 </div>
 
+<div class="overlay" id="viewExit" hidden>
+  <div class="panel" role="dialog" aria-modal="true">
+    <h2>보기 모드 끄기</h2>
+    <p class="hint">선생님 PIN을 넣어 주세요.</p>
+    <div class="vpin"><input type="password" id="viewPin" inputmode="numeric" maxlength="8" autocomplete="off"><button class="btn" type="button" data-action="view-off">끄기</button></div>
+    <div class="actions"><button class="btn ghost" type="button" data-action="view-cancel">취소</button></div>
+  </div>
+</div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script src="config.js"></script>
@@ -312,6 +334,8 @@ let SESSION='', sessionName='', sessionList=[], justCreated=false;
 let E={}, ALLE={};          /* E: 우리 모둠 값, ALLE: 모둠별 값(발표용) */
 const SRV={};               /* 서버에서 마지막으로 본 값 (합치기 기준점) */
 const LOCALW={};            /* 아직 서버에 못 보낸 내 값 */
+let VIEW=false;try{VIEW=localStorage.getItem('tuning-in-view')==='1';}catch(e){}
+const VIEW_PIN='1234';
 try{myName=localStorage.getItem('tuning-in-name')||'';}catch(e){}
 try{group=+localStorage.getItem('tuning-in-group')||null;}catch(e){}
 try{deviceId=localStorage.getItem('tuning-in-device')||'';}catch(e){}
@@ -334,6 +358,7 @@ function sessionUrl(code){return location.origin+location.pathname+'?c='+(code||
 
 function api(path,opts){
   opts=opts||{};
+  if(VIEW&&opts.method&&opts.method!=='GET')return Promise.resolve(new Response(null,{status:204}));  /* 보기 모드: 서버에 아무것도 쓰지 않음 */
   const h=Object.assign({'apikey':CFG.key,'Authorization':'Bearer '+CFG.key,'Content-Type':'application/json'},opts.headers||{});
   return fetch(CFG.url.replace(/\/$/,'')+'/rest/v1/'+path,Object.assign({},opts,{headers:h}));
 }
@@ -740,6 +765,8 @@ function render(){
     if(el.value!==keep.val)el.value=keep.val;   /* 치는 중 지워지지 않게 */
     el.focus();try{el.setSelectionRange(keep.start,keep.end);}catch(e){}}}
   if(SESSION&&justCreated)drawQR();
+  document.body.classList.toggle('viewmode',VIEW);
+  if(VIEW)main.querySelectorAll('textarea,input').forEach(function(el){if(el.id!=='nameInput'&&el.id!=='codeInput'){el.readOnly=true;if(el.tagName==='TEXTAREA'&&!el.value.trim())el.style.display='none';}});
 }
 
 /* ---------- 동작 ---------- */
@@ -839,6 +866,12 @@ async function resetAll(pre){
 document.addEventListener('click',function(e){
   var t=e.target.closest('[data-action]');if(!t||t.disabled)return;
   var a=t.dataset.action;
+  if(a==='view-on'){VIEW=true;try{localStorage.setItem('tuning-in-view','1');}catch(err){}closeTeacher();state.sel=null;render();toast('보기 모드를 켰어요. 이제 둘러보기만 할 수 있어요.');return;}
+  if(a==='view-cancel'){$('viewExit').hidden=true;return;}
+  if(a==='view-off'){var pv=$('viewPin').value.trim();
+    if(pv!==VIEW_PIN){toast('PIN이 맞지 않아요.');$('viewPin').value='';$('viewPin').focus();return;}
+    VIEW=false;try{localStorage.removeItem('tuning-in-view');}catch(err){}$('viewExit').hidden=true;render();toast('보기 모드를 껐어요.');return;}
+  if(VIEW&&['step','ptab','fullscreen','pick-group','change-group','open-session','join-code','go-join'].indexOf(a)<0){toast('👀 보기 모드예요. 구경만 할 수 있어요.');return;}
   if(a==='ask-del'){state.pendingDelete=t.dataset.code;render();return;}
   if(a==='cancel-del'){state.pendingDelete=null;render();return;}
   if(a==='do-del'){
@@ -888,6 +921,7 @@ document.addEventListener('click',function(e){
   if(a==='print'){window.print();return;}
   if(a==='pick-group'){
     var ni=$('nameInput'), v=ni?ni.value.trim():myName;
+    if(!v&&VIEW)v='손님';
     if(!v){toast('이름을 먼저 적어 주세요.');if(ni)ni.focus();return;}
     myName=v.slice(0,12);try{localStorage.setItem('tuning-in-name',myName);}catch(err){}
     joinGroup(+t.dataset.group);
@@ -921,6 +955,7 @@ document.addEventListener('change',function(e){
 });
 document.addEventListener('input',function(e){
   var el=e.target;
+  if(VIEW&&(el.dataset.pair||el.dataset.name))return;
   if(el.dataset.pair&&el.tagName==='TEXTAREA'){
     var pid=el.dataset.pair, key='r:'+pid+':'+deviceId;
     E[key]=el.value;
@@ -938,6 +973,13 @@ document.addEventListener('input',function(e){
 });
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('teacher').hidden)closeTeacher();});
 $('teacher').addEventListener('click',function(e){if(e.target===$('teacher'))closeTeacher();});
+(function(){var vb=$('viewbar'),lt=null;
+  function down(e){if(!VIEW)return;clearTimeout(lt);lt=setTimeout(function(){$('viewPin').value='';$('viewExit').hidden=false;setTimeout(function(){$('viewPin').focus();},50);},2000);}
+  function up(){clearTimeout(lt);}
+  vb.addEventListener('pointerdown',down);['pointerup','pointerleave','pointercancel'].forEach(function(n){vb.addEventListener(n,up);});
+  vb.addEventListener('contextmenu',function(e){e.preventDefault();});
+})();
+$('viewPin').addEventListener('keydown',function(e){if(e.key==='Enter'){var b=document.querySelector('[data-action="view-off"]');if(b)b.click();}});
 document.addEventListener('visibilitychange',function(){if(!document.hidden)poll();});
 window.addEventListener('pagehide',function(){if(!connected)localSave();});
 
