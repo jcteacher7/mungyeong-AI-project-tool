@@ -174,15 +174,28 @@ body.presenting header.top,body.presenting #msg{display:none}
 .pbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .pbtn{font-size:16px;background:rgba(251,248,241,.12);color:#FBF8F1;border:1.5px solid rgba(251,248,241,.4);border-radius:10px;padding:8px 14px;min-height:44px}
 .pbtn.on{background:var(--open);border-color:var(--open)}
+/* 전시용 보기 모드 */
+.viewbar{display:none}
+body.viewmode .viewbar{display:flex;position:sticky;top:0;z-index:40;justify-content:center;gap:8px;background:#2B2A27;color:#fff;font-size:15px;font-weight:600;padding:7px 12px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+body.viewmode .viewbar small{font-weight:400;opacity:.75}
+body.viewmode .compose, body.viewmode .retry, body.viewmode [data-a="save"], body.viewmode #savewhy, body.viewmode [data-a="tipframe"], body.viewmode [data-a="useframe"]{display:none!important}
+body.viewmode textarea{background:#F6F2EA}
+.vexit[hidden]{display:none}
+.vexit{position:fixed;inset:0;background:rgba(30,25,20,.45);display:flex;align-items:center;justify-content:center;z-index:60}
+.vexit .box{background:#FBF8F1;padding:22px 26px;border-radius:14px;max-width:340px;width:100%;text-align:center}
+.vexit input{font-size:24px;letter-spacing:6px;width:140px;text-align:center;padding:6px;border:1.5px solid #CFC6B3;border-radius:8px;margin:10px 0}
 </style>
 </head>
 <body>
+<div class="viewbar" id="viewbar">👀 보기 모드 <small>· 모둠이 AI와 나눈 대화와 결론을 둘러볼 수 있어요 (보낼 수 없어요)</small></div>
 <header class="top">
   <h1 id="title">생각 잇기</h1>
   <span id="state"></span>
 </header>
 <div id="msg"></div>
 <main id="app"></main>
+<div class="vexit" id="viewExit" hidden><div class="box"><h3 style="margin:0">보기 모드 끄기</h3><p>선생님 암호를 넣어 주세요.</p>
+<input type="password" id="viewPin" inputmode="numeric" maxlength="8" autocomplete="off"><div><button class="btn" id="viewOff">끄기</button> <button class="btn ghost" id="viewCancel">취소</button></div></div></div>
 
 <script src="config.js?v=1"></script>
 <script>
@@ -232,7 +245,10 @@ function merge(a,b){var o=clone(a);Object.keys(b||{}).forEach(function(k){
   if(b[k]&&typeof b[k]==='object'&&!Array.isArray(b[k])&&a[k]&&typeof a[k]==='object'&&!Array.isArray(a[k]))o[k]=merge(a[k],b[k]); else o[k]=b[k];});return o;}
 
 /* ── 서버 ── */
-function api(p,o){o=o||{};var h=Object.assign({'apikey':C.key,'Authorization':'Bearer '+C.key,'Content-Type':'application/json'},o.headers||{});
+var VIEW=false; try{VIEW=localStorage.getItem('gz-view')==='1';}catch(e){}
+function api(p,o){o=o||{};
+  if(VIEW&&o.method&&o.method!=='GET')return Promise.resolve(new Response(null,{status:204}));
+  var h=Object.assign({'apikey':C.key,'Authorization':'Bearer '+C.key,'Content-Type':'application/json'},o.headers||{});
   return fetch(String(C.url||'').replace(/\/$/,'')+'/rest/v1/'+p,Object.assign({},o,{headers:h}));}
 async function put(g,k,v){
   var r=await api('entries?on_conflict=group_id,key',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
@@ -318,6 +334,7 @@ function render(){
   if(composing){pendingRender=true;return;}
   var A=document.getElementById('app'), n=nclass(cid);
   document.body.classList.toggle('presenting',view.s==='present');
+  document.body.classList.toggle('viewmode',VIEW);
   document.getElementById('state').innerHTML=(n&&view.s!=='teacher'&&view.s!=='lock'&&view.s!=='present'?esc(n.name)+(gid?' · <b>'+gid+'모둠</b> <button class="lk" data-a="back-grp">모둠 바꾸기</button>':''):'')+(connected?'':' · <span style="color:var(--bad)">인터넷 연결을 확인해 주세요</span>');
   var keepV={}, fk=null, cs=0, ce=0, ae=document.activeElement, sc={}, wy=window.scrollY;
   A.querySelectorAll('[data-k]').forEach(function(el){keepV[el.dataset.k]=el.value;if(el===ae){fk=el.dataset.k;cs=el.selectionStart;ce=el.selectionEnd;}});
@@ -325,6 +342,7 @@ function render(){
   var keepEl=(ae&&fk&&A.contains(ae))?ae:null;
   var f={cls:scClass,grp:scGroup,main:scMain,lock:scLock,teacher:scTeacher,present:scPresent}[view.s]||scClass;
   A.innerHTML=f();
+  if(VIEW)A.querySelectorAll('textarea,input').forEach(function(el){el.readOnly=true;});
   if(keepEl){var nu=A.querySelector('[data-k="'+fk+'"]');if(nu&&nu.tagName===keepEl.tagName)nu.replaceWith(keepEl);}
   A.querySelectorAll('[data-k]').forEach(function(el){var k=el.dataset.k;
     if(k.indexOf('f:')===0&&!ui.dirty[k.slice(2)]){ if(el!==keepEl)return; }
@@ -471,7 +489,8 @@ function scTeacher(){
   var cl=note.classes||[]; if(!tTab&&cl[0])tTab=cl[0].id;
   var n=nclass(tTab)||{name:''}, k=kstate(tTab), gs=groupsOf(tTab);
   var h='<div class="wide"><div class="tabs">'+cl.map(function(c){return '<button data-a="ttab" data-v="'+c.id+'" class="'+(c.id===tTab?'on':'')+'">'+esc(c.name)+'</button>';}).join('')+
-    '<span class="sp"></span><button class="lk" data-a="leave">학생 화면으로</button><button class="lk" data-a="lockout">잠그기</button></div>';
+    '<span class="sp"></span><button class="lk" data-a="leave">학생 화면으로</button><button class="lk" data-a="viewon">보기 모드</button><button class="lk" data-a="lockout">잠그기</button></div>'+
+    '<p class="why" style="margin:6px 0 0">‘보기 모드’는 이 태블릿에서만 켜져요. 손님이 반·모둠을 골라 AI와 나눈 대화와 결론을 둘러볼 수만 있고, 쓰거나 AI에게 보낼 수는 없어요. 끄려면 맨 위 검은 띠를 2초 꾹 누르고 암호를 넣으세요.</p>';
   h+='<div class="panel"><h3>수업 진행 · '+esc(n.name)+'</h3><p class="why">누르면 바로 아이들 화면에 반영돼요(몇 초 안).</p>'+
     '<div class="row"><b style="font-size:15px">지금 단계</b>'+[1,2,3].map(function(i){return '<button class="tog'+((k.step||1)===i?' on':'')+'" data-a="tstep" data-v="'+i+'">'+i+'. '+esc(stage(i).name)+'</button>';}).join('')+'</div>'+
     '<div class="row"><b style="font-size:15px">AI 챗봇</b><button class="tog'+(k.chat?' on':'')+'" data-a="tchat">'+(k.chat?'켜짐 · 아이들이 이야기할 수 있어요':'꺼짐 · 누르면 켜져요')+'</button>'+
@@ -546,6 +565,8 @@ document.addEventListener('input',function(e){var el=e.target,k=el.dataset&&el.d
 document.addEventListener('click',async function(e){
   var b=e.target.closest('[data-a]'); if(!b||b.disabled)return;
   var a=b.dataset.a, v=b.dataset.v;
+  if(a==='viewon'){VIEW=true;try{localStorage.setItem('gz-view','1');}catch(err){}cid=tTab;gid=null;remember();go('grp');return;}
+  if(VIEW&&['cls','back-cls','grp','back-grp','ex','tab'].indexOf(a)<0){say('👀 보기 모드예요. 둘러보기만 할 수 있어요.');return;}
   if(a==='cls'){cid=+v;gid=null;remember();go('grp');}
   else if(a==='back-cls'){cid=null;gid=null;remember();go('cls');}
   else if(a==='grp'){gid=+v;ui.tab=null;ui.dirty={};ui.chat={};remember();try{await loadData(cid,gid);}catch(err){}go('main');}
@@ -598,10 +619,21 @@ async function saveSettings(){
 /* 숨은 입구 — 제목을 1초쯤 누르고 있기 */
 (function(){
   var T=document.getElementById('title'), t=null;
-  function open(){ if(view.s==='teacher')return; typed='';wrong=false; tTab=cid||((note.classes||[])[0]||{}).id; go('teacher'); loadData(tTab).then(render).catch(function(){}); }
+  function open(){ if(VIEW||view.s==='teacher')return; typed='';wrong=false; tTab=cid||((note.classes||[])[0]||{}).id; go('teacher'); loadData(tTab).then(render).catch(function(){}); }
   T.addEventListener('pointerdown',function(){clearTimeout(t);t=setTimeout(open,900);});
   ['pointerup','pointerleave','pointercancel'].forEach(function(ev){T.addEventListener(ev,function(){clearTimeout(t);});});
   T.addEventListener('contextmenu',function(e){e.preventDefault();});
+})();
+
+(function(){var vb=document.getElementById('viewbar'),lt=null,X=document.getElementById('viewExit'),P=document.getElementById('viewPin');
+  vb.addEventListener('pointerdown',function(){if(!VIEW)return;clearTimeout(lt);lt=setTimeout(function(){P.value='';X.hidden=false;setTimeout(function(){P.focus();},50);},2000);});
+  ['pointerup','pointerleave','pointercancel'].forEach(function(n){vb.addEventListener(n,function(){clearTimeout(lt);});});
+  vb.addEventListener('contextmenu',function(e){e.preventDefault();});
+  function off(){if(P.value.trim()!==String(cfg.pin||'1234')){P.value='';P.focus();return;}
+    VIEW=false;try{localStorage.removeItem('gz-view');}catch(e){}X.hidden=true;say('');render();}
+  document.getElementById('viewOff').onclick=off;
+  P.addEventListener('keydown',function(e){if(e.key==='Enter')off();});
+  document.getElementById('viewCancel').onclick=function(){X.hidden=true;};
 })();
 
 /* ── 시작 ── */
