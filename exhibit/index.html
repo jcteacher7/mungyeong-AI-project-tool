@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>공간과 시간으로 읽는 우리 지역</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font-family:Pretendard,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#FBF8F1;color:#2B2A27;word-break:keep-all;overflow-x:hidden;position:relative;min-height:100vh}
+svg.bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.mas{position:fixed;bottom:10px;height:min(24vh,190px);z-index:0;pointer-events:none}
+.mas.l{left:12px}.mas.r{right:12px}
+main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 20px 40px;display:flex;flex-direction:column;align-items:center;gap:18px}
+.sync{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;color:#5C564E;flex-wrap:wrap;justify-content:center;text-align:center}
+.lt{display:flex;gap:3px}.lt span{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;color:#fff}
+h1{font-weight:900;font-size:clamp(28px,4.4vw,52px);line-height:1.1;color:#24563A;letter-spacing:-1px;text-align:center}
+h1 em{font-style:normal;color:#D25A2A}
+.bar{width:120px;height:4px;border-radius:2px;background:#E8798A;opacity:.85}
+h2{font-weight:700;font-size:clamp(17px,2vw,24px);color:#3F3A33;text-align:center}
+.grid{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px}
+.st{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;padding:16px 16px 16px 16px;border:4px solid var(--c);border-radius:22px;background:var(--bg);color:inherit;text-decoration:none;box-shadow:0 4px 0 var(--c);transition:transform .12s, box-shadow .12s;min-height:118px}
+.st:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--c)}
+.st:active{transform:translateY(3px);box-shadow:0 1px 0 var(--c)}
+.st:focus-visible{outline:4px solid #2B2A27;outline-offset:3px}
+.ic{width:64px;height:64px;border-radius:50%;background:var(--c);display:flex;align-items:center;justify-content:center;padding:14px;flex:none}
+.tx{display:flex;flex-direction:column;gap:3px;min-width:0}
+.nm{font-weight:900;font-size:26px;line-height:1.1;color:var(--c);letter-spacing:-.5px}
+.nm em{font-style:normal;font-weight:800;font-size:15px;color:#fff;background:var(--c);border-radius:7px;padding:2px 8px;margin-left:7px;vertical-align:4px;letter-spacing:0}
+.tx b{font-size:18px;font-weight:800;color:#2B2A27;margin-top:4px}
+.tx small{font-size:14px;color:#5C564E;font-weight:500}
+.go{width:36px;height:36px;border-radius:50%;background:#fff;border:2px solid var(--c);display:flex;align-items:center;justify-content:center;padding:6px}
+.go svg{stroke:var(--c)}
+.reflect{width:100%;display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 20px;border-radius:999px;background:#3E5C6B;color:#fff;text-decoration:none;font-weight:800;font-size:20px;box-shadow:0 4px 0 #2A3F49;margin-top:4px}
+.reflect small{font-weight:500;font-size:15px;opacity:.85}
+.reflect .ic{width:40px;height:40px;padding:8px;background:rgba(255,255,255,.18)}
+.reflect:active{transform:translateY(3px);box-shadow:0 1px 0 #2A3F49}
+.note{font-size:13px;color:#7A7268;text-align:center}
+@media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.mas{display:none}}
+@media (max-width:560px){.grid{grid-template-columns:1fr}.nm{font-size:22px}.reflect{flex-wrap:wrap;border-radius:22px}}
+</style>
+</head>
+<body>
+<svg class="bg" viewBox="0 0 1000 500" preserveAspectRatio="none" aria-hidden="true">
+ <path d="M0,-40 C24,-30 24,30 0,40 C-24,30 -24,-30 0,-40Z" transform="translate(60,70) rotate(-30) scale(1.6)" fill="#6FA35B" opacity=".08"/>
+ <path d="M0,-40 C24,-30 24,30 0,40 C-24,30 -24,-30 0,-40Z" transform="translate(940,80) rotate(35) scale(1.5)" fill="#6FA35B" opacity=".08"/>
+ <path d="M0,-40 C24,-30 24,30 0,40 C-24,30 -24,-30 0,-40Z" transform="translate(40,300) rotate(10) scale(1.2)" fill="#6FA35B" opacity=".06"/>
+ <path d="M0,-40 C24,-30 24,30 0,40 C-24,30 -24,-30 0,-40Z" transform="translate(960,320) rotate(-35) scale(1.3)" fill="#6FA35B" opacity=".06"/>
+ <path d="M-20,455 C180,420 300,480 500,450 C700,420 820,480 1020,445 L1020,520 L-20,520Z" fill="#DCEBD3" opacity=".7"/>
+ <path d="M-20,475 C200,450 330,500 520,478 C720,455 840,500 1020,470 L1020,520 L-20,520Z" fill="#C6DFB9" opacity=".6"/>
+</svg>
+<img class="mas l" src="mascot4.png" alt="">
+<img class="mas r" src="mascot5.png" alt="">
+<main>
+ <div class="sync"><div class="lt"><span style="background:#E9587F">S</span><span style="background:#F2B21B">Y</span><span style="background:#2BB3A0">N</span><span style="background:#8DBB3E">C</span></div>프로그램을 통한 AI 리터러시(AILit) 역량 강화 방안 연구</div>
+ <h1><em>공간</em>과 <em>시간</em>으로 읽는 우리 지역</h1>
+ <div class="bar"></div>
+ <h2>우리의 생활 모습은 어떻게, 왜 달라질까?</h2>
+ <nav class="grid" aria-label="탐구 단계">
+<a class="st" href="https://jcteacher7.github.io/mungyeong-AI-project-tool/tuning-in/" style="--c:#D49A12;--bg:#FFF6DC">
+  <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  > <path stroke="none" d="M0 0h24v24H0z" fill="none" /> <path d="M5 18v-6a6 6 0 0 1 6 -6h2a6 6 0 0 1 6 6v6a3 3 0 0 1 -3 3h-8a3 3 0 0 1 -3 -3" /> <path d="M10 6v-1a2 2 0 1 1 4 0v1" /> <path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" /> <path d="M11 10h2" /> </svg></span>
+  <span class="tx"><span class="nm">준비하기</span><b>관심 이끌기</b><small>사진 짝 짓기로 궁금증 열기</small></span>
+  <span class="go"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  > <path stroke="none" d="M0 0h24v24H0z" fill="none" /> <path d="M5 12l14 0" /> <path d="M13 18l6 -6" /> <path d="M13 6l6 6" /> </svg></span></a>
+<a class="st" href="https://padlet.com/jcteacher7/padlet-s024hpm7ctmsqimjsrdc" style="--c:#2E8B6E;--bg:#E4F4EC">
+  <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  > <path stroke="none" d="M0 0h24v24H0z" fill="none" /> <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /> <path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0" /> </svg></span>
+  <span class="tx"><span class="nm">조사하기<em>공간</em></span><b>우리 반 패들렛</b><small>문경·김제·부산 공간 탐구</small></span>
+  <span class="go"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  > <path stroke="none" d="M0 0h24v24H0z" fill="none" /> <path d="M5 12l14 0" /> <path d="M13 18l6 -6" /> <path d="M13 6l6 6" /> </svg></span></a>
+<a class="st" href="https://jcteacher7.github.io/mungyeong-AI-project-tool/report-note/" style="--c:#2A7C99;--bg:#E2F1F6">
+  <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  > <path stroke="none" d="M0 0h24v24H0z" fill="none" /> <path d="M6.5 7h11" /> <path d="M6.5 17h11" /> <path d="M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1" /> <path d="M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1" /> </svg></span>
+  <span class="tx"><span class="nm">조사하기<em>시간</em></span><b>취재 노트</b><small>문경 타임머신 기자단</small></span>
+  <span class="go"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  > <path stroke="none" d="M0 0h24v24H0z" fill="none" /> <path d="M5 12l14 0" /> <path d="M13 18l6 -6" /> <path d="M13 6l6 6" /> </svg></span></a>
+<a class="st" href="https://layout-life.lovable.app/" style="--c:#7556B0;--bg:#EFEAF8">
+  <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  > <path stroke="none" d="M0 0h24v24H0z" fill="none" /> <path d="M4 7h3a1 1 0 0 0 1 -1v-1a2 2 0 0 1 4 0v1a1 1 0 0 0 1 1h3a1 1 0 0 1 1 1v3a1 1 0 0 0 1 1h1a2 2 0 0 1 0 4h-1a1 1 0 0 0 -1 1v3a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1v-1a2 2 0 0 0 -4 0v1a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h1a2 2 0 0 0 0 -4h-1a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1" /> </svg></span>
+  <span class="tx"><span class="nm">조직·정리하기</span><b>이젤 패드</b><small>공간 탐구·시간 탐구의 공통점 찾기</small></span>
+  <span class="go"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  > <path stroke="none" d="M0 0h24v24H0z" fill="none" /> <path d="M5 12l14 0" /> <path d="M13 18l6 -6" /> <path d="M13 6l6 6" /> </svg></span></a>
+<a class="st" href="https://jcteacher7.github.io/mungyeong-AI-project-tool/generalize/" style="--c:#D25A2A;--bg:#FCEBE2">
+  <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  > <path stroke="none" d="M0 0h24v24H0z" fill="none" /> <path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7" /> <path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3" /> <path d="M9.7 17l4.6 0" /> </svg></span>
+  <span class="tx"><span class="nm">일반화하기</span><b>생각 잇기</b><small>AI 챗봇과 일반화 문장 만들기</small></span>
+  <span class="go"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  > <path stroke="none" d="M0 0h24v24H0z" fill="none" /> <path d="M5 12l14 0" /> <path d="M13 18l6 -6" /> <path d="M13 6l6 6" /> </svg></span></a>
+<a class="st" href="https://jcteacher7.github.io/gyeongbuk-resource-map/" style="--c:#3B68C0;--bg:#E6EEFA">
+  <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  > <path stroke="none" d="M0 0h24v24H0z" fill="none" /> <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /> <path d="M3.6 9h16.8" /> <path d="M3.6 15h16.8" /> <path d="M11.5 3a17 17 0 0 0 0 18" /> <path d="M12.5 3a17 17 0 0 1 0 18" /> </svg></span>
+  <span class="tx"><span class="nm">전이하기</span><b>경상북도 자원 지도</b><small>지역끼리 교류 제안하기</small></span>
+  <span class="go"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  > <path stroke="none" d="M0 0h24v24H0z" fill="none" /> <path d="M5 12l14 0" /> <path d="M13 18l6 -6" /> <path d="M13 6l6 6" /> </svg></span></a>
+ </nav>
+ <a class="reflect" href="https://jcteacher7.github.io/mungyeong-AI-project-tool/reflect/"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  > <path stroke="none" d="M0 0h24v24H0z" fill="none" /> <path d="M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /> <path d="M19 7a2 2 0 1 0 0 -4a2 2 0 0 0 0 4" /> <path d="M11 19h5.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h4.5" /> </svg></span>돌아보는 길 · 성찰하기<small>모든 단계에서 아이들이 남긴 성찰</small></a>
+ <p class="note">단계를 누르면 그 단계에서 쓴 웹앱이 열려요. 돌아오려면 브라우저의 뒤로 가기를 눌러요.</p>
+</main>
+</body>
+</html>
