@@ -1,5 +1,5 @@
 /* 선생님 페이지. 아이들 글은 항상 lcEsc 를 거쳐 화면에 넣습니다.
-   자동 새로고침은 ① 반 요약에서만, 입력 칸을 쓰지 않을 때만 돕니다. */
+   자동 새로고침은 ① 반 요약과 ⑤ 다짐 모아보기에서만, 입력 칸을 쓰지 않을 때만 돕니다. */
 (function () {
   const S = window.LC_SURVEY;
   const QUESTIONS = window.lcFlatQuestions();
@@ -13,6 +13,7 @@
   let classId = null;
   let hideNames = false;
   let openKid = null;
+  let wallNames = false;
 
   function rememberPw(v) {
     pw = v;
@@ -97,6 +98,7 @@
     if (tab === "summary") renderSummary(v);
     if (tab === "items") renderItems(v);
     if (tab === "kids") renderKids(v);
+    if (tab === "wall") renderWall(v);
   }
 
   function round1(x) { return (Math.round(x * 10) / 10).toFixed(1); }
@@ -234,6 +236,24 @@
     v.querySelectorAll("[data-open]").forEach(b => {
       b.onclick = () => { openKid = openKid === b.dataset.open ? null : b.dataset.open; render(); };
     });
+  }
+
+  /* ── ⑤ 다짐 모아보기 ── 최근에 남긴 다짐이 위로 옵니다. 이름은 처음에 가려 둡니다. */
+  function renderWall(v) {
+    const notes = responded().filter(s => s.response.reflection).sort((a, b) =>
+      String(b.response.reflected_at || "").localeCompare(String(a.response.reflected_at || "")));
+    let html = '<div class="toolbar"><b>다짐 ' + notes.length + "개</b>" +
+      '<span class="muted">응답 ' + responded().length + "명 중</span><span class=\"grow\"></span>" +
+      '<button type="button" class="btn ghost small" id="wall-names">' + (wallNames ? "이름 가리기" : "이름 보이기") + "</button></div>";
+    if (!notes.length) {
+      html += '<p class="muted">아직 남긴 다짐이 없어요. 아이들이 남기면 여기에 나타납니다.</p>';
+    } else {
+      html += '<div class="wall">' + notes.map(s =>
+        '<div class="wall-note"><p>' + esc(s.response.reflection) + "</p>" +
+        (wallNames ? '<div class="wall-name">' + esc(s.name) + "</div>" : "") + "</div>").join("") + "</div>";
+    }
+    v.innerHTML = html;
+    $("wall-names").onclick = () => { wallNames = !wallNames; render(); };
   }
 
   /* ── ④ 관리 ── */
@@ -440,7 +460,7 @@
   }));
 
   setInterval(() => {
-    if (tab !== "summary" || !data || document.hidden) return;
+    if ((tab !== "summary" && tab !== "wall") || !data || document.hidden) return;
     const el = document.activeElement;
     if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
     if ($("confirm-box").open) return;

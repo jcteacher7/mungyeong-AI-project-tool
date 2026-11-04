@@ -195,6 +195,10 @@ tr.detail td { white-space: normal; background: var(--soft); }
 .detail-list { list-style: none; padding: 0; margin: 0; font-size: 14px; }
 .detail-list li { display: flex; gap: 12px; justify-content: space-between; padding: 4px 0; border-top: 1px dashed var(--line); }
 .detail-list b { white-space: nowrap; }
+.wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; align-items: start; }
+.wall-note { background: var(--soft); border-left: 4px solid var(--accent); border-radius: 8px; padding: 14px 16px; font-size: 19px; line-height: 1.55; }
+.wall-note p { margin: 0; white-space: pre-wrap; }
+.wall-name { margin-top: 8px; font-size: 15px; font-weight: 600; color: var(--ink-2); }
 .field { margin-bottom: 12px; }
 .field label { display: block; font-weight: 600; margin-bottom: 4px; }
 .row-inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: stretch; }
