@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>자가진단 선생님 페이지</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <div class="card login" id="login-box" hidden>
+      <h1>선생님 페이지</h1>
+      <form id="login-form">
+        <div class="field">
+          <label for="pw">암호</label>
+          <input type="password" id="pw" autocomplete="current-password" required>
+        </div>
+        <div id="login-msg" role="alert"></div>
+        <div class="center"><button class="btn" type="submit">들어가기</button></div>
+      </form>
+    </div>
+
+    <div class="card" id="main-box" hidden>
+      <div class="toolbar">
+        <h1 style="margin:0">자가진단 선생님 페이지</h1>
+        <span class="grow"></span>
+        <button type="button" class="linkbtn" id="logout">나가기</button>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" data-tab="summary">① 반 요약</button>
+        <button class="tab" role="tab" data-tab="items">② 문항별 분석</button>
+        <button class="tab" role="tab" data-tab="kids">③ 아이별 보기</button>
+        <button class="tab" role="tab" data-tab="manage">④ 관리</button>
+      </div>
+      <div class="toolbar" id="class-bar">
+        <label for="class-select">반</label>
+        <select id="class-select"></select>
+        <button type="button" class="btn ghost small" id="refresh">새로고침</button>
+        <span class="muted" id="refreshed"></span>
+      </div>
+      <div id="load-msg" role="status"></div>
+      <section id="view"></section>
+    </div>
+  </main>
+
+  <dialog id="confirm-box">
+    <h2 id="confirm-title"></h2>
+    <p id="confirm-text"></p>
+    <div class="dialog-actions">
+      <button type="button" class="btn ghost small" id="confirm-no">취소</button>
+      <button type="button" class="btn danger small" id="confirm-yes"></button>
+    </div>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="survey.js"></script>
+  <script src="teacher.js"></script>
+</body>
+</html>

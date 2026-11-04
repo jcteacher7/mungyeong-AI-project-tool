@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>언어생활 자가진단</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <div class="card" id="app">
+      <h1>언어생활 자가진단</h1>
+
+      <!-- 1. 반·이름 고르기 -->
+      <section id="screen-pick" hidden>
+        <div id="pick-status"></div>
+        <div id="pick-class" hidden>
+          <h2>우리 반을 눌러 주세요</h2>
+          <div class="pick-grid" id="class-list"></div>
+        </div>
+        <div id="pick-name" hidden>
+          <h2 id="name-title">내 이름을 눌러 주세요</h2>
+          <div class="pick-grid" id="name-list"></div>
+        </div>
+      </section>
+
+      <!-- 2. 설문 -->
+      <section id="screen-survey" hidden>
+        <div class="who">
+          <span id="who-text"></span>
+          <button type="button" class="linkbtn" id="change-name">내 이름이 아니에요</button>
+        </div>
+        <div class="intro" id="intro-text"></div>
+        <div class="progress" aria-live="polite">
+          <span id="progress-text"></span>
+          <div class="progress-bar"><i id="progress-fill"></i></div>
+        </div>
+        <div id="sections"></div>
+        <div class="form-msg" id="survey-msg" role="alert" hidden></div>
+        <div class="center"><button type="button" class="btn" id="see-result">결과 보기</button></div>
+      </section>
+
+      <!-- 3. 결과와 다짐 -->
+      <section id="screen-result" hidden>
+        <div class="result-sum">
+          <h2>진단 결과</h2>
+          <div class="row" id="sum-row"></div>
+        </div>
+        <div class="lights" id="lights"></div>
+        <div id="send-status" role="status"></div>
+        <div class="reflect">
+          <label for="reflection">나의 반성 및 다짐</label>
+          <textarea id="reflection" maxlength="2000"></textarea>
+          <div id="reflect-status" role="status"></div>
+          <div class="center" style="margin-top:12px">
+            <button type="button" class="btn" id="save-reflection" disabled>다짐 남기기</button>
+            <div class="muted" id="save-reason" style="margin-top:6px"></div>
+          </div>
+        </div>
+        <div class="finish-note">끝나면 꼭 "처음으로"를 눌러 주세요</div>
+        <div class="center"><button type="button" class="btn ghost" id="restart">처음으로</button></div>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="confirm-box">
+    <h2 id="confirm-title"></h2>
+    <p id="confirm-text"></p>
+    <div class="dialog-actions">
+      <button type="button" class="btn ghost small" id="confirm-no"></button>
+      <button type="button" class="btn small" id="confirm-yes"></button>
+    </div>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="survey.js"></script>
+  <script src="student.js"></script>
+</body>
+</html>
