@@ -372,6 +372,15 @@
     startPick();
   }
 
+  /* 숨은 입구: 제목을 3초 안에 5번 누르면 선생님 페이지로 갑니다. 쓰던 답은 기기에 남습니다. */
+  let titleTaps = [];
+  $("title").addEventListener("click", () => {
+    const now = Date.now();
+    titleTaps = titleTaps.filter(t => now - t < 3000);
+    titleTaps.push(now);
+    if (titleTaps.length >= 5) location.href = "teacher.html";
+  });
+
   /* ── 시작 ── */
   buildSurvey();
   buildLights();

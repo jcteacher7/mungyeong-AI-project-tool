@@ -44,6 +44,7 @@ body {
 .page { max-width: 980px; margin: 0 auto; padding: 16px; }
 .card { background: var(--card); border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
 h1 { font-size: 22px; font-weight: 700; text-align: center; margin: 0 0 16px; color: var(--ink-2); }
+#title { user-select: none; -webkit-user-select: none; touch-action: manipulation; }
 h2 { font-size: 19px; margin: 0 0 12px; }
 h3 { font-size: 17px; margin: 0 0 8px; }
 p { margin: 0 0 12px; }

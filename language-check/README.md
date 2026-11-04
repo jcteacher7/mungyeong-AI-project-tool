@@ -4,6 +4,7 @@
 
 - 아이들 주소: `language-check/`
 - 선생님 주소: `language-check/teacher.html`
+- 숨은 입구: 아이들 화면의 제목을 3초 안에 5번 누르면 선생님 페이지의 암호 화면으로 갑니다.
 
 ## 처음 설정
 
